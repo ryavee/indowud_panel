@@ -1,7 +1,6 @@
 import {
   LayoutDashboard,
   ClipboardList,
-  Users,
   Lock,
   UserCog,
   UserCircle,
@@ -9,8 +8,19 @@ import {
   MapPin,
   Tag,
   Gift,
-  Users2,
 } from "lucide-react";
+import { BsBuilding } from "react-icons/bs";
+
+import { FaUsers, 
+   FaLock, 
+   FaUserCircle, 
+   FaUserCheck, 
+   FaUserCog,
+   FaMapMarkerAlt,
+   FaTags,
+   FaGift,
+   FaUser,
+  } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
 
 const menuItems = [
@@ -24,27 +34,27 @@ const menuItems = [
   {
     section: "USERS",
     items: [
-      { name: "Department", icon: Users, path: "/department" },
-      { name: "Users", icon: Users2, path: "/users" },
-      { name: "Permission/Role", icon: Lock, path: "/roles" },
+      { name: "Department", icon: BsBuilding, path: "/department" },
+      { name: "Users", icon: FaUsers, path: "/users" },
+      { name: "Permission/Role", icon: FaLock, path: "/roles" },
     ],
   },
   {
     section: "SALES USERS",
     items: [
-      { name: "User type", icon: UserCog, path: "/user-type" },
-      { name: "Owner User", icon: UserCircle, path: "/owner-user" },
-      { name: "Sale User", icon: UserCheck, path: "/sale-user" },
-      { name: "Tracking Management", icon: MapPin, path: "/tracking" },
-      { name: "Promotional Activity Type", icon: Tag, path: "/promo-type" },
-      { name: "Promotional Activity", icon: Gift, path: "/promo" },
+      { name: "User type", icon: FaUserCog, path: "/user-type" },
+      { name: "Owner User", icon: FaUserCircle, path: "/owner-user" },
+      { name: "Sale User", icon: FaUserCheck, path: "/sale-user" },
+      { name: "Tracking Management", icon: FaMapMarkerAlt, path: "/tracking" },
+      { name: "Promotional Activity Type", icon: FaTags, path: "/promo-type" },
+      { name: "Promotional Activity", icon: FaGift, path: "/promo" },
     ],
   },
   {
     section: "CUSTOMERS",
     items: [
-      { name: "Customer Group", icon: Users, path: "/customer-group" },
-      { name: "Customers", icon: Users2, path: "/customers" },
+      { name: "Customer Group", icon: FaUsers, path: "/customer-group" },
+      { name: "Customers", icon: FaUser, path: "/customers" },
     ],
   },
 ];
