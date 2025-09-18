@@ -1,14 +1,14 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 import Login from "../Pages/Login";
 import Dashboard from "../Pages/Dashboard";
-import Users from "../Pages/Users";
-import OwnerUser from "../Pages/OwnerUser";
-import SaleUser from "../Pages/SaleUser";
-import Roles from "../Pages/Roles";
-import Department from "../Pages/Department";
-import CustomerGroup from "../Pages/CustomerGroup";
-import Notifications from "../Pages/Notifications";
-import Settings from "../Pages/Settings";
+import AdminUsers from "../Pages/AdminUsers";
+import FactoryUsers from "../Pages/FactoryUsers";
+import QRGeneration from "../Pages/QRGeneration";
+import Catalogue from "../Pages/Catalogue";
+import Promotions from "../Pages/Promotions";
+import Customers from "../Pages/Customers";
+import CustomNotifications from "../Pages/CustomNotifications";
+import Announcements from "../Pages/Announcements";
 import AdminLayout from "../Components/Layout/AdminLayout";
 import { useAuth } from "../Hooks/useAuth";
 
@@ -24,14 +24,14 @@ const AppRoutes = () => {
       {user ? (
         <Route element={<AdminLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/owner-user" element={<OwnerUser />} />
-          <Route path="/sale-user" element={<SaleUser />} />
-          <Route path="/roles" element={<Roles />} />
-          <Route path="/department" element={<Department />} />
-          <Route path="/customer-group" element={<CustomerGroup />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/settings" element={<Settings />} />
+          <Route path="/users/admin" element={<AdminUsers />} />
+          <Route path="/users/factory" element={<FactoryUsers />} />
+          <Route path="/sales/qr" element={<QRGeneration />} />
+          <Route path="/sales/catalogue" element={<Catalogue />} />
+          <Route path="/sales/promotions" element={<Promotions />} />
+          <Route path="/customers" element={<Customers />} />
+          <Route path="/customer/notifications" element={<CustomNotifications />} />
+          <Route path="/customer/announcements" element={<Announcements />} />
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />

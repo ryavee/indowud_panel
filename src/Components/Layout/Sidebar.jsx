@@ -1,60 +1,35 @@
-import {
-  LayoutDashboard,
-  ClipboardList,
-  Lock,
-  UserCog,
-  UserCircle,
-  UserCheck,
-  MapPin,
-  Tag,
-  Gift,
-} from "lucide-react";
-import { BsBuilding } from "react-icons/bs";
-
-import { FaUsers, 
-   FaLock, 
-   FaUserCircle, 
-   FaUserCheck, 
-   FaUserCog,
-   FaMapMarkerAlt,
-   FaTags,
-   FaGift,
-   FaUser,
-  } from "react-icons/fa";
 import { NavLink } from "react-router-dom";
+import { LayoutDashboard } from "lucide-react";
+import { FaUsers, FaQrcode, FaBook, FaBullhorn, FaUser, FaBell, FaGift } from "react-icons/fa";
+import { MdAdminPanelSettings } from "react-icons/md";
+
 
 const menuItems = [
   {
     section: "MAIN",
-    items: [
-      { name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" },
-      { name: "Pending Actions", icon: ClipboardList, path: "/pending" },
-    ],
+    items: [{ name: "Dashboard", icon: LayoutDashboard, path: "/dashboard" }],
   },
   {
     section: "USERS",
     items: [
-      { name: "Department", icon: BsBuilding, path: "/department" },
-      { name: "Users", icon: FaUsers, path: "/users" },
-      { name: "Permission/Role", icon: FaLock, path: "/roles" },
+      { name: "Manage Admin Users", icon: MdAdminPanelSettings, path: "/users/admin" },
+      { name: "Manage Factory Users", icon: FaUsers, path: "/users/factory" },
     ],
   },
   {
-    section: "SALES USERS",
+    section: "SALES",
     items: [
-      { name: "User type", icon: FaUserCog, path: "/user-type" },
-      { name: "Owner User", icon: FaUserCircle, path: "/owner-user" },
-      { name: "Sale User", icon: FaUserCheck, path: "/sale-user" },
-      { name: "Tracking Management", icon: FaMapMarkerAlt, path: "/tracking" },
-      { name: "Promotional Activity Type", icon: FaTags, path: "/promo-type" },
-      { name: "Promotional Activity", icon: FaGift, path: "/promo" },
+      { name: "QR Generation", icon: FaQrcode, path: "/sales/qr" },
+      { name: "Catalogue", icon: FaBook, path: "/sales/catalogue" },
+      { name: "Promotions", icon: FaGift, path: "/sales/promotions" },
     ],
   },
   {
     section: "CUSTOMERS",
     items: [
-      { name: "Customer Group", icon: FaUsers, path: "/customer-group" },
       { name: "Customers", icon: FaUser, path: "/customers" },
+      { name: "Custom Notifications", icon: FaBell, path: "/customer/notifications" },
+      { name: "Announcements", icon: FaBullhorn, path: "/customer/announcements" },
     ],
   },
 ];
