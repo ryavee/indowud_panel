@@ -1,8 +1,19 @@
 import { NavLink } from "react-router-dom";
+import "./Sidebar.css";
 import { LayoutDashboard } from "lucide-react";
-import { FaUsers, FaQrcode, FaBook, FaBullhorn, FaUser, FaBell, FaGift } from "react-icons/fa";
+import {
+  FaUsers,
+  FaQrcode,
+  FaBook,
+  FaBullhorn,
+  FaUser,
+  FaBell,
+  FaGift,
+  FaCog,
+  FaSignOutAlt,
+} from "react-icons/fa";
 import { MdAdminPanelSettings } from "react-icons/md";
-
+import { useAuth } from "../../Hooks/useAuth";
 
 const menuItems = [
   {
@@ -12,8 +23,8 @@ const menuItems = [
   {
     section: "USERS",
     items: [
-      { name: "Manage Admin Users", icon: MdAdminPanelSettings, path: "/users/admin" },
-      { name: "Manage Factory Users", icon: FaUsers, path: "/users/factory" },
+      { name: "Admin Users", icon: MdAdminPanelSettings, path: "/users/admin" },
+      { name: "Factory Users", icon: FaUsers, path: "/users/factory" },
     ],
   },
   {
@@ -32,15 +43,21 @@ const menuItems = [
       { name: "Announcements", icon: FaBullhorn, path: "/customer/announcements" },
     ],
   },
+  {
+    section: "SYSTEM",
+    items: [{ name: "Settings", icon: FaCog, path: "/settings" }],
+  },
 ];
 
 const Sidebar = () => {
+  const { logout } = useAuth();
+
   return (
-    <aside className="w-64 bg-white shadow-md h-screen flex flex-col">
-      <div className="flex-1 overflow-y-auto p-4">
+    <aside className="w-64 shadow-md h-screen flex flex-col">
+      {/* Scrollable menu */}
+      <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
         {menuItems.map((menu, idx) => (
           <div key={idx} className="mb-6">
-            {/* Section Title */}
             <h3 className="text-xs font-semibold text-gray-500 uppercase mb-2">
               {menu.section}
             </h3>
@@ -53,7 +70,7 @@ const Sidebar = () => {
                       `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${
                         isActive
                           ? "bg-purple-100 text-purple-700"
-                          : "text-gray-700 hover:bg-gray-100"
+                          : "text-gray-700 hover:bg-gray-200"
                       }`
                     }
                   >
@@ -65,6 +82,17 @@ const Sidebar = () => {
             </ul>
           </div>
         ))}
+      </div>
+
+      {/* Fixed Logout button */}
+      <div className="p-4 border-t">
+        <button
+          onClick={logout}
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-red-100 hover:text-red-600 w-full text-left"
+        >
+          <FaSignOutAlt className="w-5 h-5" />
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
   );
