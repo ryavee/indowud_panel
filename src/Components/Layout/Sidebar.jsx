@@ -45,7 +45,7 @@ const menuItems = [
   },
   {
     section: "SYSTEM",
-    items: [{ name: "Settings", icon: FaCog, path: "/settings" }],
+    items: [{ name: "Settings", icon: FaCog, path: "system/settings" }],
   },
 ];
 

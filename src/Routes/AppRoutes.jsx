@@ -10,6 +10,7 @@ import Customers from "../Pages/Customers";
 import CustomNotifications from "../Pages/CustomNotifications";
 import Announcements from "../Pages/Announcements";
 import AdminLayout from "../Components/Layout/AdminLayout";
+import Settings from "../Pages/Settings";
 import { useAuth } from "../Hooks/useAuth";
 
 const AppRoutes = () => {
@@ -32,6 +33,7 @@ const AppRoutes = () => {
           <Route path="/customers" element={<Customers />} />
           <Route path="/customer/notifications" element={<CustomNotifications />} />
           <Route path="/customer/announcements" element={<Announcements />} />
+          <Route path="/system/settings" element={<Settings />} />
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />
