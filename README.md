@@ -5,7 +5,7 @@
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/ryavee/indowud-dashboard.git
+   git clone https://github.com/ryavee/indowud_panel.git
    cd indowud-dashboard
   ```bash
 npm install
