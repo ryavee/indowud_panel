@@ -7,6 +7,8 @@
    ```bash
    git clone https://github.com/rayvee/indowud-dashboard.git
    cd indowud-dashboard
+  ```bash
 npm install
 npm run dev
+
 http://localhost:5173
