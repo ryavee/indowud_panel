@@ -96,35 +96,35 @@ const Settings = () => {
   };
 
   if (loading) {
-  return (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="relative">
-        {/* Outer rotating ring */}
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-        
-        {/* Middle rotating ring - opposite direction */}
-        <div className="absolute top-2 left-2 w-12 h-12 border-3 border-gray-100 border-b-purple-400 rounded-full animate-spin" 
-             style={{ animationDirection: "reverse", animationDuration: "1.5s" }}></div>
-        
-        {/* Inner pulsing dot */}
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
-        </div>
-        
-        {/* Floating dots around the spinner */}
-        {/* 4 bouncing dots positioned around the spinner */}
-        
-        {/* Loading text with animation */}
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 text-sm font-medium animate-pulse">Loading settings...</p>
-          <div className="flex justify-center mt-2 space-x-1">
-            {/* 3 small bouncing dots */}
+    return (
+      <div className="flex items-center justify-center h-screen bg-gray-50">
+        <div className="relative">
+          {/* Outer rotating ring */}
+          <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
+
+          {/* Middle rotating ring - opposite direction */}
+          <div className="absolute top-2 left-2 w-12 h-12 border-3 border-gray-100 border-b-purple-400 rounded-full animate-spin"
+            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}></div>
+
+          {/* Inner pulsing dot */}
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
+          </div>
+
+          {/* Floating dots around the spinner */}
+          {/* 4 bouncing dots positioned around the spinner */}
+
+          {/* Loading text with animation */}
+          <div className="mt-6 text-center">
+            <p className="text-gray-600 text-sm font-medium animate-pulse">Loading settings...</p>
+            <div className="flex justify-center mt-2 space-x-1">
+              {/* 3 small bouncing dots */}
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
-}
+    )
+  }
 
   if (error) return <p className="p-4 text-red-600">Error: {error}</p>;
 
@@ -200,7 +200,7 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Limits Section */}
+        {/* Redemption Limit & Coin Value Section */}
         <div className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-green-100 rounded-full">
@@ -250,7 +250,7 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal, when clicked on trash button*/}
       {confirmDeleteEmail && (
         <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
           <div className="bg-white rounded-lg shadow-lg p-6 w-80">

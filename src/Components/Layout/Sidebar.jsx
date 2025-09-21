@@ -11,6 +11,7 @@ import {
   FaGift,
   FaCog,
   FaSignOutAlt,
+  FaClipboard,
 } from "react-icons/fa";
 import { MdAdminPanelSettings } from "react-icons/md";
 import { useAuth } from "../../Hooks/useAuth";
@@ -45,7 +46,9 @@ const menuItems = [
   },
   {
     section: "SYSTEM",
-    items: [{ name: "Settings", icon: FaCog, path: "system/settings" }],
+    items: [
+      { name: "Settings", icon: FaCog, path: "system/settings" },
+      { name: "Manage Tickets", icon: FaClipboard, path: "system/tickets" }],
   },
 ];
 
@@ -67,10 +70,9 @@ const Sidebar = () => {
                   <NavLink
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${
-                        isActive
-                          ? "bg-purple-100 text-purple-700"
-                          : "text-gray-700 hover:bg-gray-200"
+                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${isActive
+                        ? "bg-purple-100 text-purple-700"
+                        : "text-gray-700 hover:bg-gray-200"
                       }`
                     }
                   >

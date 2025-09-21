@@ -11,6 +11,7 @@ import CustomNotifications from "../Pages/CustomNotifications";
 import Announcements from "../Pages/Announcements";
 import AdminLayout from "../Components/Layout/AdminLayout";
 import Settings from "../Pages/Settings";
+import ManageTickets from "../Pages/ManageTickets";
 import { useAuth } from "../Hooks/useAuth";
 
 const AppRoutes = () => {
@@ -34,6 +35,7 @@ const AppRoutes = () => {
           <Route path="/customer/notifications" element={<CustomNotifications />} />
           <Route path="/customer/announcements" element={<Announcements />} />
           <Route path="/system/settings" element={<Settings />} />
+          <Route path="/system/tickets" element={<ManageTickets />} />
         </Route>
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />
