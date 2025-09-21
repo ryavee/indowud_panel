@@ -1,99 +1,100 @@
-import React, { useContext, useEffect, useState } from "react";
-import { SettingsContext } from "../Context/SettingsContext";
-import { FaEnvelope, FaCoins, FaTrash } from "react-icons/fa";
+"use client"
+
+import { useContext, useEffect, useState } from "react"
+import { SettingsContext } from "../Context/SettingsContext"
+import { FaEnvelope, FaCoins, FaTrash } from "react-icons/fa"
 
 const Settings = () => {
-  const { settings, loading, updateUserLoading, error, updateUserList } =
-    useContext(SettingsContext);
+  const { settings, loading, updateUserLoading, error, updateUserList } = useContext(SettingsContext)
 
-  const [newEmail, setNewEmail] = useState("");
-  const [emails, setEmails] = useState([]);
-  const [redemptionLimit, setRedemptionLimit] = useState("");
-  const [coinValue, setCoinValue] = useState("");
-  const [emailError, setEmailError] = useState("");
+  const [newEmail, setNewEmail] = useState("")
+  const [emails, setEmails] = useState([])
+  const [redemptionLimit, setRedemptionLimit] = useState("")
+  const [coinValue, setCoinValue] = useState("")
+  const [emailError, setEmailError] = useState("")
 
-  const [confirmDeleteEmail, setConfirmDeleteEmail] = useState(null);
+  const [confirmDeleteEmail, setConfirmDeleteEmail] = useState(null)
 
   useEffect(() => {
     if (settings) {
-      setEmails(settings.requestTo || []);
-      setRedemptionLimit(settings.redemptionLimit || "");
-      setCoinValue(settings.ratio || "");
+      setEmails(settings.requestTo || [])
+      setRedemptionLimit(settings.redemptionLimit || "")
+      setCoinValue(settings.ratio || "")
     }
-  }, [settings]);
+  }, [settings])
 
   const isValidEmail = (email) => {
-    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
-    return emailRegex.test(email);
-  };
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/
+    return emailRegex.test(email)
+  }
 
   const isDemoEmail = (email) => {
-    const blockedDomains = ["example.com", "test.com", "demo.com"];
-    return blockedDomains.some((domain) => email.toLowerCase().endsWith(`@${domain}`));
-  };
+    const blockedDomains = ["example.com", "test.com", "demo.com"]
+    return blockedDomains.some((domain) => email.toLowerCase().endsWith(`@${domain}`))
+  }
 
   const handleAddEmail = async () => {
-    if (!newEmail) return;
+    if (!newEmail) return
 
     if (emails.length >= 5) {
-      setEmailError("You can only add up to 5 emails.");
-      return;
+      setEmailError("You can only add up to 5 emails.")
+      return
     }
 
     if (!isValidEmail(newEmail)) {
-      setEmailError("Please enter a valid email address.");
-      return;
+      setEmailError("Please enter a valid email address.")
+      return
     }
 
     if (isDemoEmail(newEmail)) {
-      setEmailError("Demo/test emails are not allowed.");
-      return;
+      setEmailError("Demo/test emails are not allowed.")
+      return
     }
 
     if (emails.includes(newEmail)) {
-      setEmailError("This email already exists.");
-      return;
+      setEmailError("This email already exists.")
+      return
     }
 
-    const updatedEmails = [...emails, newEmail];
-    setEmails(updatedEmails);
-    setNewEmail("");
-    setEmailError("");
+    const updatedEmails = [...emails, newEmail]
+    setEmails(updatedEmails)
+    setNewEmail("")
+    setEmailError("")
 
     try {
-      await updateUserList({ requestTo: updatedEmails });
+      await updateUserList({ requestTo: updatedEmails })
     } catch (err) {
-      setEmails(emails);
-      alert("Failed to add email. Please try again.");
+      setEmails(emails)
+      alert("Failed to add email. Please try again.")
     }
-  };
+  }
 
   const confirmRemoveEmail = (email) => {
-    setConfirmDeleteEmail(email);
-  };
+    setConfirmDeleteEmail(email)
+  }
 
   const handleDeleteConfirmed = async () => {
-    if (!confirmDeleteEmail) return;
+    if (!confirmDeleteEmail) return
 
-    const updatedEmails = emails.filter((email) => email !== confirmDeleteEmail);
-    setEmails(updatedEmails);
-    setConfirmDeleteEmail(null);
+    const updatedEmails = emails.filter((email) => email !== confirmDeleteEmail)
+    setEmails(updatedEmails)
+    setConfirmDeleteEmail(null)
 
     try {
-      await updateUserList({ requestTo: updatedEmails });
+      await updateUserList({ requestTo: updatedEmails })
     } catch (err) {
-      setEmails(emails);
-      alert("Failed to remove email. Please try again.");
+      setEmails(emails)
+      alert("Failed to remove email. Please try again.")
     }
-  };
+  }
 
   const handleSave = () => {
     console.log("Saving settings:", {
       requestTo: emails,
       redemptionLimit,
       ratio: coinValue,
-    });
-  };
+    })
+  }
 
   if (loading) {
     return (
@@ -103,8 +104,10 @@ const Settings = () => {
           <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
 
           {/* Middle rotating ring - opposite direction */}
-          <div className="absolute top-2 left-2 w-12 h-12 border-3 border-gray-100 border-b-purple-400 rounded-full animate-spin"
-            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}></div>
+          <div
+            className="absolute top-2 left-2 w-12 h-12 border-3 border-gray-100 border-b-purple-400 rounded-full animate-spin"
+            style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
+          ></div>
 
           {/* Inner pulsing dot */}
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -112,13 +115,26 @@ const Settings = () => {
           </div>
 
           {/* Floating dots around the spinner */}
-          {/* 4 bouncing dots positioned around the spinner */}
+          <div className="absolute -top-1 left-1/2 transform -translate-x-1/2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
+          </div>
+          <div className="absolute top-1/2 -right-1 transform -translate-y-1/2">
+            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
+          </div>
+          <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2">
+            <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0.4s" }}></div>
+          </div>
+          <div className="absolute top-1/2 -left-1 transform -translate-y-1/2">
+            <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce" style={{ animationDelay: "0.6s" }}></div>
+          </div>
 
-          {/* Loading text with animation */}
+          {/* Loading text with subtle animation */}
           <div className="mt-6 text-center">
             <p className="text-gray-600 text-sm font-medium animate-pulse">Loading settings...</p>
             <div className="flex justify-center mt-2 space-x-1">
-              {/* 3 small bouncing dots */}
+              <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0s" }}></div>
+              <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0.1s" }}></div>
+              <div className="w-1 h-1 bg-blue-400 rounded-full animate-bounce" style={{ animationDelay: "0.2s" }}></div>
             </div>
           </div>
         </div>
@@ -126,15 +142,13 @@ const Settings = () => {
     )
   }
 
-  if (error) return <p className="p-4 text-red-600">Error: {error}</p>;
+  if (error) return <p className="p-4 text-red-600">Error: {error}</p>
 
   return (
     <div className="px-6 pb-6 bg-gray-50 min-h-screen font-sans">
       <div className="max-w-3xl mx-auto pt-0">
         <h1 className="text-2xl font-bold text-gray-900">Redemption Settings</h1>
-        <p className="text-gray-500 mt-1">
-          Manage your redemption preferences and system values.
-        </p>
+        <p className="text-gray-500 mt-1">Manage your redemption preferences and system values.</p>
 
         {/* Emails Section */}
         <div className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-200">
@@ -143,23 +157,19 @@ const Settings = () => {
               <FaEnvelope className="text-blue-600" size={18} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Redemption Receipt Management
-              </h2>
-              <p className="text-gray-500 text-sm mt-1">
-                Add or remove users who receive redemption request emails.
-              </p>
+              <h2 className="text-xl font-semibold text-gray-800">Redemption Receipt Management</h2>
+              <p className="text-gray-500 text-sm mt-1">Add or remove users who receive redemption request emails.</p>
             </div>
           </div>
 
           <div className="flex items-center mt-4 space-x-2">
             <input
               type="email"
-              placeholder="user@gmail.com"
+              placeholder="user@example.com"
               value={newEmail}
               onChange={(e) => {
-                setNewEmail(e.target.value);
-                setEmailError("");
+                setNewEmail(e.target.value)
+                setEmailError("")
               }}
               onKeyDown={(e) => e.key === "Enter" && handleAddEmail()}
               disabled={updateUserLoading || emails.length >= 5}
@@ -176,9 +186,7 @@ const Settings = () => {
 
           {emailError && <p className="mt-2 text-sm text-red-500">{emailError}</p>}
           {emails.length >= 5 && !emailError && (
-            <p className="mt-2 text-sm text-gray-500">
-              You have reached the maximum of 5 emails.
-            </p>
+            <p className="mt-2 text-sm text-gray-500">You have reached the maximum of 5 emails.</p>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
@@ -200,26 +208,20 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* Redemption Limit & Coin Value Section */}
+        {/* Limits Section */}
         <div className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-200">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-green-100 rounded-full">
               <FaCoins className="text-green-600" size={18} />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Redemption Limit & Coin Value
-              </h2>
-              <p className="text-gray-500 text-sm mt-1">
-                Manage the limits and value for coin redemptions.
-              </p>
+              <h2 className="text-xl font-semibold text-gray-800">Redemption Limit & Coin Value</h2>
+              <p className="text-gray-500 text-sm mt-1">Manage the limits and value for coin redemptions.</p>
             </div>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Redemption Limit
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Redemption Limit</label>
               <input
                 type="text"
                 value={redemptionLimit}
@@ -228,9 +230,7 @@ const Settings = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Coin Value
-              </label>
+              <label className="block text-sm font-medium text-gray-700">Coin Value</label>
               <input
                 type="text"
                 value={coinValue}
@@ -250,16 +250,14 @@ const Settings = () => {
         </div>
       </div>
 
-      {/* Delete Confirmation Modal, when clicked on trash button*/}
+      {/* Delete Confirmation Modal */}
       {confirmDeleteEmail && (
-        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.2)' }}>
+        <div className="fixed inset-0 flex items-center justify-center z-50" style={{ backgroundColor: 'rgba(0, 0, 0, 0.3)' }}>
+
           <div className="bg-white rounded-lg shadow-lg p-6 w-80">
-            <h3 className="text-lg font-semibold text-gray-800">
-              Confirm Deletion
-            </h3>
+            <h3 className="text-lg font-semibold text-gray-800">Confirm Deletion</h3>
             <p className="text-sm text-gray-600 mt-2">
-              Are you sure you want to remove{" "}
-              <span className="font-medium">{confirmDeleteEmail}</span>?
+              Are you sure you want to remove <span className="font-medium">{confirmDeleteEmail}</span>?
             </p>
             <div className="flex justify-end space-x-3 mt-6">
               <button
@@ -279,7 +277,7 @@ const Settings = () => {
         </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default Settings;
+export default Settings
