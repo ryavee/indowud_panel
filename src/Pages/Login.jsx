@@ -1,30 +1,47 @@
 import { useState } from "react";
-import { useAuth } from "../Hooks/useAuth";
+import { useAuthContext } from "../Context/AuthContext";
 import { EyeIcon, EyeOffIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import logo from "../assets/logo_Indowud.png";
 
 const Login = () => {
-  const { login } = useAuth();
+  const { login, loading, error, setError } = useAuthContext();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
-    setLoading(true);
 
-    const success = login(email, password);
-    setLoading(false);
+    try {
+      const userData = await login(email, password);
+      console.log("Logged in user:", userData);
 
-    if (success) {
-      navigate("/dashboard");
-    } else {
-      setError("Invalid email or password.");
+      if (userData) {
+        navigate("/dashboard");
+      }
+    } catch (err) {
+      console.error("Login error:", err);
+
+      if (!error && setError) {
+        setError(err.message || "Login failed. Please try again.");
+      }
+    }
+  };
+
+  const handleEmailChange = (e) => {
+    setEmail(e.target.value);
+    if (error && setError) {
+      setError("");
+    }
+  };
+
+  const handlePasswordChange = (e) => {
+    setPassword(e.target.value);
+    if (error && setError) {
+      setError("");
     }
   };
 
@@ -36,7 +53,9 @@ const Login = () => {
         style={{ backgroundColor: "#fe9f45" }}
       >
         <img src={logo} alt="Logo" className="h-10 w-10" />
-        <h1 className="text-xl font-bold text-white">Indowud Private Limited</h1>
+        <h1 className="text-xl font-bold text-white">
+          Indowud Private Limited
+        </h1>
       </header>
 
       {/* Body */}
@@ -53,14 +72,17 @@ const Login = () => {
 
           {/* Email */}
           <div>
-            <label className="block text-sm font-medium mb-1">Email Address</label>
+            <label className="block text-sm font-medium mb-1">
+              Email Address
+            </label>
             <input
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              onChange={handleEmailChange}
               className="border rounded p-3 w-full focus:outline-none focus:ring-2 focus:ring-[#fe9f45]"
               required
+              disabled={loading}
             />
           </div>
 
@@ -72,14 +94,16 @@ const Login = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={handlePasswordChange}
                 className="border rounded p-3 w-full focus:outline-none focus:ring-2 focus:ring-[#fe9f45] pr-10"
                 required
+                disabled={loading}
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
+                disabled={loading}
               >
                 {showPassword ? (
                   <EyeOffIcon className="w-5 h-5" />
@@ -93,7 +117,11 @@ const Login = () => {
           {/* Remember Me & Forgot Password */}
           <div className="flex items-center justify-between text-sm">
             <label className="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" className="form-checkbox text-[#fe9f45]" />
+              <input
+                type="checkbox"
+                className="form-checkbox text-[#fe9f45]"
+                disabled={loading}
+              />
               Remember me
             </label>
             <a href="#" className="text-[#fe9f45] hover:underline">
@@ -101,14 +129,18 @@ const Login = () => {
             </a>
           </div>
 
-          {/* Error */}
-          {error && <p className="text-red-500 text-sm">{error}</p>}
+          {/* Error Display */}
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+              {error}
+            </div>
+          )}
 
           {/* Submit */}
           <button
             type="submit"
             disabled={loading}
-            className="bg-[#fe9f45] text-white py-3 rounded font-semibold hover:bg-orange-400 transition disabled:opacity-70"
+            className="bg-[#fe9f45] text-white py-3 rounded font-semibold hover:bg-orange-400 transition disabled:opacity-70 disabled:cursor-not-allowed"
           >
             {loading ? "Signing in..." : "Sign In"}
           </button>

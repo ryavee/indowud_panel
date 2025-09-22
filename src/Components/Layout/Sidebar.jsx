@@ -12,8 +12,6 @@ import {
   FaCog,
   FaSignOutAlt,
 } from "react-icons/fa";
-import { MdAdminPanelSettings } from "react-icons/md";
-import { useAuth } from "../../Hooks/useAuth";
 
 const menuItems = [
   {
@@ -23,8 +21,11 @@ const menuItems = [
   {
     section: "USERS",
     items: [
-      { name: "Admin Users", icon: MdAdminPanelSettings, path: "/users/admin" },
-      { name: "Factory Users", icon: FaUsers, path: "/users/factory" },
+      {
+        name: "Factory Users",
+        icon: FaUsers,
+        path: "/users/factoryUsers",
+      },
     ],
   },
   {
@@ -39,8 +40,16 @@ const menuItems = [
     section: "CUSTOMERS",
     items: [
       { name: "Customers", icon: FaUser, path: "/customers" },
-      { name: "Custom Notifications", icon: FaBell, path: "/customer/notifications" },
-      { name: "Announcements", icon: FaBullhorn, path: "/customer/announcements" },
+      {
+        name: "Custom Notifications",
+        icon: FaBell,
+        path: "/customer/notifications",
+      },
+      {
+        name: "Announcements",
+        icon: FaBullhorn,
+        path: "/customer/announcements",
+      },
     ],
   },
   {
@@ -50,8 +59,6 @@ const menuItems = [
 ];
 
 const Sidebar = () => {
-  const { logout } = useAuth();
-
   return (
     <aside className="w-64 shadow-md h-screen flex flex-col">
       {/* Scrollable menu */}
@@ -87,7 +94,7 @@ const Sidebar = () => {
       {/* Fixed Logout button */}
       <div className="p-4 border-t">
         <button
-          onClick={logout}
+          onClick={() => {}}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-red-100 hover:text-red-600 w-full text-left"
         >
           <FaSignOutAlt className="w-5 h-5" />

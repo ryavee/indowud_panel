@@ -1,5 +1,5 @@
 import { createContext, useState, useEffect } from "react";
-import { loadSettings, updateRequestUsers } from "../Api/settingsService";
+import { loadSettings, updateRequestUsers } from "../Services/settingsService";
 
 export const SettingsContext = createContext();
 
