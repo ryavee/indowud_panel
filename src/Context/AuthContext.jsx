@@ -1,16 +1,36 @@
-import { createContext, useState, useContext } from "react";
+import { createContext, useState, useContext, useEffect } from "react";
 import { loginToAdminPortal, getUserData } from "../Services/authService";
 
 const AuthContext = createContext();
+
 export const useAuthContext = () => useContext(AuthContext);
 
 export function AuthProvider({ children }) {
-  const [userData, setUserData] = useState(
-    JSON.parse(localStorage.getItem("user")) || null
-  );
-  const [token, setToken] = useState(localStorage.getItem("token") || null);
+  const [userData, setUserData] = useState(null);
+  const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  useEffect(() => {
+    const storedToken = localStorage.getItem("authToken");
+    const storedUser = localStorage.getItem("user");
+
+    if (storedToken) {
+      setToken(storedToken);
+    }
+
+    if (storedUser) {
+      try {
+        setUserData(JSON.parse(storedUser));
+      } catch (error) {
+        console.error("Error parsing stored user data:", error);
+        localStorage.removeItem("user");
+      }
+    }
+
+    setIsInitialized(true);
+  }, []);
 
   const login = async (email, password) => {
     setLoading(true);
@@ -27,7 +47,11 @@ export function AuthProvider({ children }) {
       }
 
       const idToken = loginRes.idToken;
+      console.log(idToken);
+
       setToken(idToken);
+      console.log("TOKEN SET");
+
       localStorage.setItem("authToken", idToken);
 
       const userData = await getUserData(loginRes.uid, idToken);
@@ -54,11 +78,21 @@ export function AuthProvider({ children }) {
     setToken(null);
     setError(null);
     localStorage.removeItem("authToken");
+    localStorage.removeItem("user");
   };
 
   return (
     <AuthContext.Provider
-      value={{ userData, token, login, logout, loading, error, setError }}
+      value={{
+        userData,
+        token,
+        login,
+        logout,
+        loading,
+        error,
+        setError,
+        isInitialized,
+      }}
     >
       {children}
     </AuthContext.Provider>

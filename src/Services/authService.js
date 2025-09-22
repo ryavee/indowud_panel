@@ -1,4 +1,5 @@
 import { BASE_URL, ENDPOINTS } from "../Config/apiConfig.js";
+import { useAuthContext } from "../Context/AuthContext.jsx";
 export async function loginToAdminPortal(email, password) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.LOGIN}`, {
@@ -36,5 +37,3 @@ export async function getUserData(uid, token) {
     return null;
   }
 }
-
-export async function apiRequest(url, method = "GET", token, body = null) {}
