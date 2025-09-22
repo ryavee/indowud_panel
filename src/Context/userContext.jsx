@@ -18,12 +18,11 @@ export const UserProvider = ({ children }) => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const hasFetched = useRef(false);
 
-  // Helper function to sort users by createdAt (newest first)
   const sortUsersByCreatedAt = (users) => {
     return [...users].sort((a, b) => {
       const dateA = new Date(a.createdAt);
       const dateB = new Date(b.createdAt);
-      return dateB - dateA; // Newest first
+      return dateB - dateA;
     });
   };
 
@@ -96,11 +95,10 @@ export const UserProvider = ({ children }) => {
     try {
       const data = await updateUser(token, updatedUserData);
       if (data.success) {
-        // Update the user in the list with the updated data
         setUsersList((prev) => {
           const updatedList = prev.map((user) =>
             user.uid === updatedUserData.uid
-              ? { ...user, ...updatedUserData, ...data.user } // Merge all data to ensure consistency
+              ? { ...user, ...updatedUserData, ...data.user }
               : user
           );
           return sortUsersByCreatedAt(updatedList);
