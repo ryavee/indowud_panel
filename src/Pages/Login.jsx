@@ -48,15 +48,18 @@ const Login = () => {
   return (
     <div className="min-h-screen flex flex-col bg-gradient-to-br from-gray-100 to-gray-200">
       {/* Header */}
-      <header
-        className="flex items-center justify-center gap-3 shadow-md py-4"
-        style={{ backgroundColor: "#fe9f45" }}
-      >
-        <img src={logo} alt="Logo" className="h-10 w-10" />
-        <h1 className="text-xl font-bold text-white">
-          Indowud Private Limited
-        </h1>
+      <header className="bg-gradient-to-r from-orange-500 to-orange-600 shadow-lg">
+        <div className="flex items-center justify-center gap-4 px-6 py-4">
+          <div className="w-12 h-12 bg-white rounded-lg flex items-center justify-center">
+            <img src={logo} alt="Logo" className="w-10 h-10" />
+          </div>
+          <h1 className="text-lg font-bold text-white">
+            INDOWUN NFC PRIVATE LIMITED
+          </h1>
+        </div>
       </header>
+
+
 
       {/* Body */}
       <div className="flex-1 flex items-center justify-center relative">

@@ -22,11 +22,8 @@ const menuItems = [
   {
     section: "USERS",
     items: [
-      {
-        name: "Factory Users",
-        icon: FaUsers,
-        path: "/users/factoryUsers",
-      },
+      { name: "Factory Users", icon: FaUsers, path: "/users/factoryUsers" },
+      { name: "Customers", icon: FaUser, path: "/users/customers" },
     ],
   },
   {
@@ -38,30 +35,17 @@ const menuItems = [
     ],
   },
   {
-    section: "CUSTOMERS",
-    items: [
-      { name: "Customers", icon: FaUser, path: "/customers" },
-      {
-        name: "Custom Notifications",
-        icon: FaBell,
-        path: "/customer/notifications",
-      },
-      {
-        name: "Announcements",
-        icon: FaBullhorn,
-        path: "/customer/announcements",
-      },
-    ],
-  },
-  {
     section: "SYSTEM",
     items: [
-      { name: "Settings", icon: FaCog, path: "system/settings" },
-      { name: "Manage Tickets", icon: FaClipboard, path: "system/tickets" }],
+      { name: "Settings", icon: FaCog, path: "/system/settings" },
+      { name: "Manage Tickets", icon: FaClipboard, path: "/system/tickets" },
+      { name: "Custom Notifications", icon: FaBell, path: "/system/notifications" },
+      { name: "Announcements", icon: FaBullhorn, path: "/system/announcements" },
+    ],
   },
 ];
 
-const Sidebar = () => {
+const Sidebar = ({ onLogout }) => {
   return (
     <aside className="w-64 shadow-md h-screen flex flex-col">
       {/* Scrollable menu */}
@@ -77,9 +61,10 @@ const Sidebar = () => {
                   <NavLink
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${isActive
-                        ? "bg-purple-100 text-purple-700"
-                        : "text-gray-700 hover:bg-gray-200"
+                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${
+                        isActive
+                          ? "bg-orange-100 text-orange-700"
+                          : "text-gray-700 hover:bg-orange-200"
                       }`
                     }
                   >
@@ -96,7 +81,7 @@ const Sidebar = () => {
       {/* Fixed Logout button */}
       <div className="p-4 border-t">
         <button
-          onClick={() => {}}
+          onClick={onLogout}
           className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-gray-700 hover:bg-red-100 hover:text-red-600 w-full text-left"
         >
           <FaSignOutAlt className="w-5 h-5" />
