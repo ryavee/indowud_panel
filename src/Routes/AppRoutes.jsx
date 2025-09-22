@@ -18,8 +18,6 @@ const AppRoutes = () => {
       <Route path="/login" element={<Login />} />
 
       {/* Protected Routes */}
-      {/* {user ? (
-       
       ) : (
         <Route path="*" element={<Navigate to="/login" />} />
       )} */}
