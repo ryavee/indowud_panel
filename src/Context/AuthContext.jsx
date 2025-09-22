@@ -8,18 +8,21 @@ export const useAuthContext = () => useContext(AuthContext);
 export function AuthProvider({ children }) {
   const [userData, setUserData] = useState(null);
   const [token, setToken] = useState(null);
+  const [refreshToken, setRefreshToken] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
     const storedToken = localStorage.getItem("authToken");
+    const storedRefreshToken = localStorage.getItem("refreshToken");
     const storedUser = localStorage.getItem("user");
-
     if (storedToken) {
       setToken(storedToken);
     }
-
+    if (storedRefreshToken) {
+      setRefreshToken(storedRefreshToken);
+    }
     if (storedUser) {
       try {
         setUserData(JSON.parse(storedUser));
@@ -47,14 +50,20 @@ export function AuthProvider({ children }) {
       }
 
       const idToken = loginRes.idToken;
-      console.log(idToken);
+      const refreshToken = loginRes.refreshToken;
 
       setToken(idToken);
-      console.log("TOKEN SET");
+      setRefreshToken(refreshToken);
 
       localStorage.setItem("authToken", idToken);
-
+      localStorage.setItem("refreshToken", refreshToken);
       const userData = await getUserData(loginRes.uid, idToken);
+      if(!userData) {
+        const errorMessage = "User data not found";
+        setError(errorMessage);
+        setLoading(false);
+        throw new Error(errorMessage);
+      }
       setUserData(userData);
       localStorage.setItem("user", JSON.stringify(userData));
       setError(null);
