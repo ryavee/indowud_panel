@@ -1,10 +1,10 @@
 export async function loadSettings() {
-  console.log("aPI CALLING");
   const response = await fetch(
     "https://indowud-main-engine.onrender.com/api/v3/settings/load-settings"
   );
-  if (!response.ok) throw new Error("Failed to fetch settings");
-  return response.json();
+  const data = await response.json();
+  console.log("Settings loaded successfully:", data);
+  return data;
 }
 
 export async function updateRequestUsers(updateUsersList) {

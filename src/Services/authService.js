@@ -1,5 +1,4 @@
 import { BASE_URL, ENDPOINTS } from "../Config/apiConfig.js";
-import { useAuthContext } from "../Context/AuthContext.jsx";
 export async function loginToAdminPortal(email, password) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.LOGIN}`, {
@@ -13,7 +12,6 @@ export async function loginToAdminPortal(email, password) {
     if (!res.ok) throw new Error("Login failed");
     return res.json();
   } catch (error) {
-    console.log(error);
     return false;
   }
 }

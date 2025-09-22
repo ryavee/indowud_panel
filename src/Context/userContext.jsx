@@ -1,14 +1,31 @@
-import { createContext, useState, useEffect } from "react";
-import { getUsersList } from "../Services/userService";
+import { createContext, useState, useEffect, useRef } from "react";
+import {
+  getUsersList,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "../Services/userService";
 import { useAuthContext } from "./AuthContext";
 
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
   const { token, isInitialized } = useAuthContext();
-  
   const [usersList, setUsersList] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [createOrUpdateUserLoading, setCreateOrUpdateUserLoading] =
+    useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const hasFetched = useRef(false);
+
+  // Helper function to sort users by createdAt (newest first)
+  const sortUsersByCreatedAt = (users) => {
+    return [...users].sort((a, b) => {
+      const dateA = new Date(a.createdAt);
+      const dateB = new Date(b.createdAt);
+      return dateB - dateA; // Newest first
+    });
+  };
 
   const fetchUserList = async () => {
     if (!token) {
@@ -18,8 +35,9 @@ export const UserProvider = ({ children }) => {
     setLoading(true);
     try {
       const data = await getUsersList(token);
-      console.log(data);
-      setUsersList(data?.users || []);
+      const users = data?.users || [];
+      setUsersList(sortUsersByCreatedAt(users));
+      hasFetched.current = true;
     } catch (error) {
       console.log("Error fetching users:", error);
       setUsersList([]);
@@ -27,16 +45,137 @@ export const UserProvider = ({ children }) => {
       setLoading(false);
     }
   };
+
   useEffect(() => {
-    if (isInitialized && token) {
+    if (isInitialized && token && !hasFetched.current) {
       fetchUserList();
     } else if (isInitialized && !token) {
       setUsersList([]);
+      hasFetched.current = false;
     }
   }, [isInitialized, token]);
 
+  const createUserAdminPortal = async (newUserData) => {
+    setCreateOrUpdateUserLoading(true);
+    try {
+      const data = await createUser(token, newUserData);
+      if (data.success) {
+        const newUser = {
+          ...data.user,
+        };
+        setUsersList((prev) => sortUsersByCreatedAt([newUser, ...prev]));
+        setCreateOrUpdateUserLoading(false);
+        return { success: true, data: data };
+      } else {
+        setCreateOrUpdateUserLoading(false);
+        return {
+          success: false,
+          error: data.message || data.error || "Failed to create user",
+        };
+      }
+    } catch (error) {
+      setCreateOrUpdateUserLoading(false);
+      let errorMessage = "An unexpected error occurred";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  };
+
+  const updateUserData = async (updatedUserData) => {
+    setCreateOrUpdateUserLoading(true);
+    try {
+      const data = await updateUser(token, updatedUserData);
+      if (data.success) {
+        // Update the user in the list with the updated data
+        setUsersList((prev) => {
+          const updatedList = prev.map((user) =>
+            user.uid === updatedUserData.uid
+              ? { ...user, ...updatedUserData, ...data.user } // Merge all data to ensure consistency
+              : user
+          );
+          return sortUsersByCreatedAt(updatedList);
+        });
+        setCreateOrUpdateUserLoading(false);
+        return { success: true, data: data };
+      } else {
+        setCreateOrUpdateUserLoading(false);
+        return {
+          success: false,
+          error: data.message || data.error || "Failed to update user",
+        };
+      }
+    } catch (error) {
+      setCreateOrUpdateUserLoading(false);
+      let errorMessage = "An unexpected error occurred";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  };
+
+  const deleteUserFromPortal = async (uid) => {
+    setDeleteLoading(true);
+    try {
+      const data = await deleteUser(token, uid);
+      if (data.success) {
+        setUsersList((prev) => prev.filter((user) => user.uid !== uid));
+        setDeleteLoading(false);
+        return { success: true, data: data };
+      } else {
+        setDeleteLoading(false);
+        return {
+          success: false,
+          error: data.message || data.error || "Failed to delete user",
+        };
+      }
+    } catch (error) {
+      setDeleteLoading(false);
+      let errorMessage = "An unexpected error occurred";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      return {
+        success: false,
+        error: errorMessage,
+      };
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ usersList, loading, fetchUserList }}>
+    <UserContext.Provider
+      value={{
+        usersList,
+        loading,
+        createOrUpdateUserLoading,
+        deleteLoading,
+        fetchUserList,
+        createUserAdminPortal,
+        updateUserData,
+        deleteUserFromPortal,
+      }}
+    >
       {children}
     </UserContext.Provider>
   );

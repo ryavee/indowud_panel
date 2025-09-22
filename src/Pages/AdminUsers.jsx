@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useContext } from "react";
 import Modal from "../Components/Reusable/form";
 import UserForm from "../Components/add_user_form";
+import ConfirmationModal from "../Components/ConfirmationModal";
 import { UserContext } from "../Context/userContext";
 import { formatDateToDDMMYYYY } from "../utils/dateUtils";
 
-// Status Badge Component
 const StatusBadge = ({ status }) => {
   const getStatusColor = (status) => {
     switch (status) {
@@ -28,7 +28,6 @@ const StatusBadge = ({ status }) => {
   );
 };
 
-// Role Badge Component
 const RoleBadge = ({ role }) => {
   const getRoleColor = (role) => {
     switch (role) {
@@ -54,14 +53,26 @@ const RoleBadge = ({ role }) => {
   );
 };
 
-// Main AdminUsers Component
 const AdminUsers = () => {
-  const { usersList, loading, fetchUserList } = useContext(UserContext);
+  const {
+    usersList,
+    loading,
+    createOrUpdateUserLoading,
+    deleteLoading,
+    fetchUserList,
+    createUserAdminPortal,
+    updateUserData,
+    deleteUserFromPortal,
+  } = useContext(UserContext);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState(null);
+
   useEffect(() => {
     fetchUserList();
   }, []);
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -72,30 +83,23 @@ const AdminUsers = () => {
       </div>
     );
   }
-  const handleFormSubmit = (formData) => {
-    if (editingUser) {
-      // Update existing user
-      setUsers(
-        users.map((user) =>
-          user.id === editingUser.id ? { ...user, ...formData } : user
-        )
-      );
-    } else {
-      // Create new user
-      const newId =
-        users.length > 0 ? Math.max(...users.map((u) => u.id)) + 1 : 1;
-      setUsers([
-        ...users,
-        {
-          id: newId,
-          ...formData,
-          lastLogin: new Date().toISOString().split("T")[0],
-        },
-      ]);
-    }
 
-    setIsModalOpen(false);
-    setEditingUser(null);
+  const handleFormSubmit = async (formData) => {
+    if (editingUser) {
+      const result = await updateUserData(formData);
+      if (result.success) {
+        setIsModalOpen(false);
+        setEditingUser(null);
+      }
+      return result;
+    } else {
+      const result = await createUserAdminPortal(formData);
+      if (result.success) {
+        setIsModalOpen(false);
+        setEditingUser(null);
+      }
+      return result;
+    }
   };
 
   const handleEditUser = (user) => {
@@ -103,10 +107,26 @@ const AdminUsers = () => {
     setIsModalOpen(true);
   };
 
-  const handleDeleteUser = (user) => {
-    if (window.confirm(`Are you sure you want to delete "${user.name}"?`)) {
-      setUsers(users.filter((u) => u.id !== user.id));
+  const handleDeleteUser = (user) => {    
+    setIsConfirmationOpen(true);
+    setUserToDelete(user);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!userToDelete) return;
+    try {
+      await deleteUserFromPortal(userToDelete.uid);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+    } finally {
+      setIsConfirmationOpen(false);
+      setUserToDelete(null);
     }
+  };
+
+  const handleCancelDelete = () => {
+    setIsConfirmationOpen(false);
+    setUserToDelete(null);
   };
 
   const handleAddUser = () => {
@@ -119,6 +139,10 @@ const AdminUsers = () => {
     setEditingUser(null);
   };
 
+  const validUsers = (usersList || []).filter(
+    (user) => user && user.uid && user.firstName && user.lastName
+  );
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="p-6">
@@ -127,7 +151,7 @@ const AdminUsers = () => {
           {/* Header */}
           <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
             <h3 className="text-lg font-medium text-gray-900">
-              Users ({usersList.length})
+              Users ({validUsers.length})
             </h3>
             <button
               onClick={handleAddUser}
@@ -140,87 +164,99 @@ const AdminUsers = () => {
 
           {/* Table */}
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Role
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Joined On
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {usersList.map((user) => (
-                  <tr
-                    key={user.uid}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {`${user.firstName} ${user.lastName}`}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {user.email}
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">{user.phone}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <RoleBadge role={user.role} />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge
-                        status={
-                          user.isUserInActive == true ? "Inactive" : "Active"
-                        }
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-900">
-                        {formatDateToDDMMYYYY(user.createdAt)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditUser(user)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeleteUser(user)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+            {validUsers.length === 0 ? (
+              <div className="px-6 py-8 text-center text-gray-500">
+                No users found.
+              </div>
+            ) : (
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      User
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Contact
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Role
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Joined On
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {validUsers.map((user) => (
+                    <tr
+                      key={user.uid}
+                      className="hover:bg-gray-50 transition-colors"
+                    >
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {`${user.firstName || ""} ${
+                              user.lastName || ""
+                            }`.trim()}
+                          </div>
+                          <div className={`text-sm text-gray-500 ${!user.email ? 'text-center' : ''}`}>
+                            {user.email || "-"}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={`text-sm text-gray-900 ${!user.phone ? 'text-center' : ''}`}>
+                          {user.phone || "-"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <RoleBadge role={user.role || "Unknown"} />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <StatusBadge
+                          status={
+                            user.isUserInActive === true ? "Inactive" : "Active"
+                          }
+                        />
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={`text-sm text-gray-900 ${!user.createdAt ? 'text-center' : ''}`}>
+                          {user.createdAt
+                            ? formatDateToDDMMYYYY(user.createdAt)
+                            : "-"}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => handleEditUser(user)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                          >
+                            Edit
+                          </button>
+                          <button
+                            onClick={() => handleDeleteUser(user)}
+                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </div>
         </div>
 
-        {/* Modal */}
+        {/* Add/Edit User Modal */}
         <Modal
           isOpen={isModalOpen}
           onClose={handleCloseModal}
@@ -230,8 +266,25 @@ const AdminUsers = () => {
             onSubmit={handleFormSubmit}
             onCancel={handleCloseModal}
             initialData={editingUser}
+            isLoading={createOrUpdateUserLoading}
           />
         </Modal>
+
+        {/* Confirmation Modal */}
+        <ConfirmationModal
+          isOpen={isConfirmationOpen}
+          onClose={handleCancelDelete}
+          onConfirm={handleConfirmDelete}
+          title="Delete User"
+          message={
+            userToDelete
+              ? `Are you sure you want to delete "${userToDelete.firstName} ${userToDelete.lastName}"? This action cannot be undone.`
+              : ""
+          }
+          confirmText="Delete"
+          cancelText="Cancel"
+          isLoading={deleteLoading}
+        />
       </div>
     </div>
   );
