@@ -8,6 +8,8 @@ const DataTable = ({
   onHeaderAdd = () => {},
   title = "Data Table",
   emptyMessage = "No data available",
+  showEdit = true,
+  loading = false,
 }) => {
   return (
     <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -16,7 +18,8 @@ const DataTable = ({
         <h3 className="text-lg font-medium text-gray-900">{title}</h3>
         <button
           onClick={onHeaderAdd}
-          className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
+          disabled={loading}
+          className="bg-green-600 hover:bg-green-700 disabled:bg-green-400 disabled:cursor-not-allowed text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors"
         >
           <span className="text-lg">+</span>
           Add New
@@ -42,7 +45,19 @@ const DataTable = ({
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
-            {data.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td
+                  colSpan={columns.length + 1}
+                  className="px-6 py-8 text-center"
+                >
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <span className="text-sm text-gray-500">Loading...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : data.length === 0 ? (
               <tr>
                 <td
                   colSpan={columns.length + 1}
@@ -67,15 +82,19 @@ const DataTable = ({
                   ))}
                   <td className="px-6 py-4 whitespace-nowrap text-sm">
                     <div className="flex gap-2">
-                      <button
-                        onClick={() => onEdit(row, rowIndex)}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors"
-                      >
-                        Edit
-                      </button>
+                      {showEdit && (
+                        <button
+                          onClick={() => onEdit(row, rowIndex)}
+                          disabled={loading}
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-xs transition-colors"
+                        >
+                          Edit
+                        </button>
+                      )}
                       <button
                         onClick={() => onDelete(row, rowIndex)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors"
+                        disabled={loading}
+                        className="bg-red-600 hover:bg-red-700 disabled:bg-red-400 disabled:cursor-not-allowed text-white px-3 py-1 rounded text-xs transition-colors"
                       >
                         Delete
                       </button>

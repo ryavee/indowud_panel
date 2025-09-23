@@ -74,12 +74,10 @@ export const CustomerProvider = ({ children }) => {
     }
   };
 
-  const refreshCustomerList = () => {
-    fetchCustomerList();
-  };
-
   useEffect(() => {
-    fetchCustomerList();
+    if (token && customersList.length === 0) {
+      fetchCustomerList();
+    }
   }, [token]);
 
   return (
@@ -91,7 +89,6 @@ export const CustomerProvider = ({ children }) => {
         blockLoading,
         kycVerification,
         kycLoading,
-        refreshCustomerList,
       }}
     >
       {children}

@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-const AnnouncementForm = ({ onSubmit, onCancel, initialData = null }) => {
+
+const AnnouncementForm = ({
+  onSubmit,
+  onCancel,
+  initialData = null,
+  loading = false,
+}) => {
   const [formData, setFormData] = useState({
     title: initialData?.title || "",
     date: initialData?.date || "",
@@ -16,7 +22,9 @@ const AnnouncementForm = ({ onSubmit, onCancel, initialData = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+    if (!loading) {
+      onSubmit(formData);
+    }
   };
 
   return (
@@ -32,7 +40,8 @@ const AnnouncementForm = ({ onSubmit, onCancel, initialData = null }) => {
           value={formData.title}
           onChange={handleChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={loading}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
           placeholder="Enter announcement title"
         />
       </div>
@@ -48,7 +57,8 @@ const AnnouncementForm = ({ onSubmit, onCancel, initialData = null }) => {
           value={formData.date}
           onChange={handleChange}
           required
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={loading}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
         />
       </div>
 
@@ -61,7 +71,8 @@ const AnnouncementForm = ({ onSubmit, onCancel, initialData = null }) => {
           name="priority"
           value={formData.priority}
           onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+          disabled={loading}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
         >
           <option value="Low">Low</option>
           <option value="Medium">Medium</option>
@@ -79,7 +90,8 @@ const AnnouncementForm = ({ onSubmit, onCancel, initialData = null }) => {
           value={formData.description}
           onChange={handleChange}
           rows={3}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+          disabled={loading}
+          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none disabled:bg-gray-100 disabled:cursor-not-allowed"
           placeholder="Enter announcement description"
         />
       </div>
@@ -89,14 +101,19 @@ const AnnouncementForm = ({ onSubmit, onCancel, initialData = null }) => {
         <button
           type="button"
           onClick={handleSubmit}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition-colors"
+          disabled={loading}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-md font-medium transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
-          {initialData ? "Update" : "Create"}
+          {loading && (
+            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+          )}
+          {loading ? "Creating..." : initialData ? "Update" : "Create"}
         </button>
         <button
           type="button"
           onClick={onCancel}
-          className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md font-medium transition-colors"
+          disabled={loading}
+          className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md font-medium transition-colors disabled:bg-gray-200 disabled:cursor-not-allowed"
         >
           Cancel
         </button>
