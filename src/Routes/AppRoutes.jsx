@@ -6,7 +6,8 @@ import QRGeneration from "../Pages/QRGeneration";
 import Customers from "../Pages/Customers";
 import Catalogue from "../Pages/Catalogue";
 import Promotions from "../Pages/Promotions";
-import CustomNotifications from "../Pages/CustomNotifications";
+import Products from "../Pages/Products";
+import Feed from "../Pages/Feed";
 import Announcements from "../Pages/Announcements";
 import AdminLayout from "../Components/Layout/AdminLayout";
 import Settings from "../Pages/Settings";
@@ -31,7 +32,8 @@ const AppRoutes = () => {
         <Route path="/sales/promotions" element={<Promotions />} />
         <Route path="/system/settings" element={<Settings />} />
         <Route path="/system/tickets" element={<ManageTickets />} />
-        <Route path="/system/notifications" element={<CustomNotifications />} />
+        <Route path="/system/products" element={<Products />} />
+        <Route path="/system/feed" element={<Feed />} />
         <Route path="/system/announcements" element={<Announcements />} />
       </Route>
       <Route path="/" element={<Navigate to="/login" />} />
