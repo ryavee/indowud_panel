@@ -1,6 +1,8 @@
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 import { LayoutDashboard } from "lucide-react";
+import { MdFeed, MdFactory  } from "react-icons/md";
+
 import {
   FaUsers,
   FaQrcode,
@@ -37,9 +39,10 @@ const menuItems = [
   {
     section: "SYSTEM",
     items: [
+      { name: "Products", icon: MdFactory , path: "/system/products" },
+      { name: "Feed", icon: MdFeed, path: "/system/feed" },
       { name: "Settings", icon: FaCog, path: "/system/settings" },
       { name: "Manage Tickets", icon: FaClipboard, path: "/system/tickets" },
-      { name: "Custom Notifications", icon: FaBell, path: "/system/notifications" },
       { name: "Announcements", icon: FaBullhorn, path: "/system/announcements" },
     ],
   },
