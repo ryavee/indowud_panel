@@ -23,7 +23,6 @@ export async function loadSettings() {
 
 export async function updateRequestUsers(emailArray) {
   try {
-    console.log("Update Users Api Calling with:", emailArray);
     const payload = { requestTo: emailArray };
     const response = await fetch(`${BASE_URL}${ENDPOINTS.UPDATEREQUESTUSERS}`, {
       method: "POST",
