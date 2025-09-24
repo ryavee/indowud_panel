@@ -20,4 +20,7 @@ export const ENDPOINTS = {
   UPDATEREQUESTUSERS: "/api/v3/settings/request-to-users",
   UPDATERATIOREDEMPTIONLIMIT: "/api/v3/settings/change-limit-ratio",
   REMOVEREQUESTUSERS: "/api/v3/settings/delete-request-user",
+  // Tickets
+  LOADALLTICKETS: "/api/v7/tickets/all-tickets",
+  CHANGETICKETSTATUS: "/api/v7/tickets/change-tickets-status",
 };
