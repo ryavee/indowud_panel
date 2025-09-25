@@ -122,7 +122,6 @@ const ManageTickets = () => {
   const LoadingState = () => (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <PageHeader />
         <div className="flex justify-center items-center h-64">
           <div className="flex items-center space-x-3">
             <Loader2 className="h-8 w-8 animate-spin text-blue-500" />
@@ -137,7 +136,6 @@ const ManageTickets = () => {
   const ErrorState = () => (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <PageHeader />
         <div className="bg-red-50 border border-red-200 rounded-lg p-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
@@ -163,22 +161,6 @@ const ManageTickets = () => {
   );
 
   // Page Header Component
-  const PageHeader = () => (
-    <div className="mb-8">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900">Manage Tickets</h1>
-          <p className="text-gray-600 mt-2">
-            Monitor and manage customer support tickets
-          </p>
-        </div>
-        <div className="text-sm text-gray-500">
-          Total: {statusCounts.total} tickets
-        </div>
-      </div>
-    </div>
-  );
-
   // Status Card Component
   const StatusCard = ({ status, isActive, onClick }) => {
     const statusInfo = getStatusInfo(status);
@@ -372,8 +354,6 @@ const ManageTickets = () => {
   return (
     <div className="p-6 bg-gray-50 min-h-screen">
       <div className="max-w-7xl mx-auto">
-        <PageHeader />
-
         {/* Status Overview Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
           <StatusCard

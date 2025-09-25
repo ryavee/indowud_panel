@@ -1,16 +1,12 @@
-import React, { useState } from "react";
-import { Loader2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Loader2, AlertCircle } from "lucide-react";
+import { usePromotionalContext } from "../Context/PromotionalContext";
 
 const StatusBadge = ({ status }) => {
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800";
-      case "Inactive":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+  const getStatusColor = (isActive) => {
+    return isActive
+      ? "bg-green-100 text-green-800"
+      : "bg-gray-100 text-gray-800";
   };
 
   return (
@@ -19,44 +15,72 @@ const StatusBadge = ({ status }) => {
         status
       )}`}
     >
-      {status}
+      {status ? "Active" : "Inactive"}
     </span>
   );
 };
 
+const CategoryBadge = ({ category }) => {
+  const getCategoryColor = (category) => {
+    switch (category) {
+      case "Bonus":
+        return "bg-blue-100 text-blue-800";
+      case "Product Offer":
+        return "bg-purple-100 text-purple-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  return (
+    <span
+      className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(
+        category
+      )}`}
+    >
+      {category}
+    </span>
+  );
+};
+
+const ErrorAlert = ({ error, onClose }) => {
+  if (!error) return null;
+
+  return (
+    <div className="mb-4 p-4 bg-red-50 border border-red-200 rounded-md">
+      <div className="flex">
+        <AlertCircle className="h-5 w-5 text-red-400" />
+        <div className="ml-3">
+          <p className="text-sm text-red-800">{error}</p>
+          {onClose && (
+            <button
+              onClick={onClose}
+              className="mt-2 text-sm text-red-600 hover:text-red-800 underline"
+            >
+              Dismiss
+            </button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const Promotions = () => {
-  const [promotions, setPromotions] = useState([
-    {
-      id: 1,
-      productName: "Zerowud 18mm",
-      description:
-        "Premium quality plywood with excellent durability and smooth finish",
-      offerStatus: "Active",
-      offerPoints: 150,
-    },
-    {
-      id: 2,
-      productName: "Zerowud 12mm",
-      description:
-        "Lightweight plywood perfect for furniture and interior applications",
-      offerStatus: "Inactive",
-      offerPoints: 100,
-    },
-    {
-      id: 3,
-      productName: "Zerowud 25mm",
-      description:
-        "Heavy-duty plywood for structural and commercial applications",
-      offerStatus: "Active",
-      offerPoints: 200,
-    },
-  ]);
+  const {
+    promotions,
+    loading,
+    error,
+    createPromotion,
+    editPromotion,
+    removePromotion,
+    clearError,
+  } = usePromotionalContext();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [promotionToDelete, setPromotionToDelete] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [createOrUpdateLoading, setCreateOrUpdateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [actionLoading, setActionLoading] = useState({
@@ -66,65 +90,55 @@ const Promotions = () => {
 
   const [formData, setFormData] = useState({
     productName: "",
-    description: "",
-    offerStatus: "Active",
-    offerPoints: "",
+    Discription: "",
+    isActive: true,
+    category: "Bonus",
+    point: "",
   });
 
   const handleInputChange = (e) => {
-    const { name, value } = e.target;
+    const { name, value, type, checked } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === "checkbox" ? checked : value,
     }));
   };
 
   const handleFormSubmit = async () => {
-    if (
-      !formData.productName ||
-      !formData.description ||
-      !formData.offerPoints
-    ) {
+    if (!formData.productName || !formData.Discription || !formData.point) {
       alert("Please fill in all required fields");
       return;
     }
 
     setCreateOrUpdateLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (editingPromotion) {
-      setPromotions((prev) =>
-        prev.map((promo) =>
-          promo.id === editingPromotion.id
-            ? {
-                ...promo,
-                ...formData,
-                offerPoints: parseInt(formData.offerPoints),
-              }
-            : promo
-        )
-      );
-    } else {
-      const newPromotion = {
-        id: Date.now(),
+    try {
+      const promotionData = {
         ...formData,
-        offerPoints: parseInt(formData.offerPoints),
+        point: parseInt(formData.point),
       };
-      setPromotions((prev) => [...prev, newPromotion]);
-    }
 
-    setCreateOrUpdateLoading(false);
-    resetForm();
+      if (editingPromotion) {
+        await editPromotion(editingPromotion.id, promotionData);
+      } else {
+        await createPromotion(promotionData);
+      }
+
+      resetForm();
+    } catch (err) {
+      console.error("Error saving promotion:", err);
+    } finally {
+      setCreateOrUpdateLoading(false);
+    }
   };
 
   const resetForm = () => {
     setFormData({
       productName: "",
-      description: "",
-      offerStatus: "Active",
-      offerPoints: "",
+      Discription: "",
+      isActive: true,
+      category: "Bonus",
+      point: "",
     });
     setEditingPromotion(null);
     setIsModalOpen(false);
@@ -135,10 +149,11 @@ const Promotions = () => {
     try {
       setEditingPromotion(promotion);
       setFormData({
-        productName: promotion.productName,
-        description: promotion.description,
-        offerStatus: promotion.offerStatus,
-        offerPoints: promotion.offerPoints.toString(),
+        productName: promotion.productName || "",
+        Discription: promotion.Discription || "",
+        isActive: promotion.isActive ?? true,
+        category: promotion.category || "Bonus",
+        point: promotion.point?.toString() || "",
       });
       setIsModalOpen(true);
     } catch (error) {
@@ -165,13 +180,8 @@ const Promotions = () => {
 
     setDeleteLoading(true);
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
     try {
-      setPromotions((prev) =>
-        prev.filter((promo) => promo.id !== promotionToDelete.id)
-      );
+      await removePromotion(promotionToDelete.id);
     } catch (error) {
       console.error("Error deleting promotion:", error);
     } finally {
@@ -197,7 +207,15 @@ const Promotions = () => {
     resetForm();
   };
 
-  if (loading) {
+  const safePromotions = promotions.map((promotion, index) => ({
+    ...promotion,
+
+    uniqueKey:
+      promotion.id ||
+      `promotion-${index}-${promotion.productName || "unknown"}`,
+  }));
+
+  if (loading && promotions.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50">
         <div className="bg-white rounded-lg shadow overflow-hidden">
@@ -220,12 +238,17 @@ const Promotions = () => {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      <ErrorAlert error={error} onClose={clearError} />
+
       {/* Promotions Table */}
       <div className="bg-white rounded-lg shadow overflow-hidden">
         {/* Header */}
         <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
           <h3 className="text-lg font-medium text-gray-900">
             Promotions ({promotions.length})
+            {loading && promotions.length > 0 && (
+              <Loader2 className="inline ml-2 h-4 w-4 animate-spin text-blue-600" />
+            )}
           </h3>
           <button
             onClick={handleAddPromotion}
@@ -243,9 +266,35 @@ const Promotions = () => {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          {promotions.length === 0 ? (
-            <div className="px-6 py-8 text-center text-gray-500">
-              No promotions found.
+          {promotions.length === 0 && !loading ? (
+            <div className="px-6 py-12 text-center">
+              <div className="text-gray-400 mb-2">
+                <svg
+                  className="mx-auto h-12 w-12"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1}
+                    d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v1M7 7h.01M7 3h.01"
+                  />
+                </svg>
+              </div>
+              <p className="text-gray-500 text-lg font-medium">
+                No promotions yet
+              </p>
+              <p className="text-gray-400 text-sm mt-1">
+                Get started by creating your first promotion
+              </p>
+              <button
+                onClick={handleAddPromotion}
+                className="mt-4 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors"
+              >
+                Create First Promotion
+              </button>
             </div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
@@ -258,10 +307,13 @@ const Promotions = () => {
                     Description
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Category
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Status
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Offer Points
+                    Points
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -269,28 +321,31 @@ const Promotions = () => {
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {promotions.map((promotion) => (
+                {safePromotions.map((promotion) => (
                   <tr
-                    key={promotion.id}
+                    key={promotion.uniqueKey}
                     className="hover:bg-gray-50 transition-colors"
                   >
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm font-medium text-gray-900">
-                        {promotion.productName}
+                        {promotion.productName || "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="text-sm text-gray-900 max-w-xs">
-                        {promotion.description}
+                        {promotion.Discription || "N/A"}
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
-                      <StatusBadge status={promotion.offerStatus} />
+                      <CategoryBadge category={promotion.category} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge status={promotion.isActive} />
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="text-sm text-gray-900">
                         <span className="font-medium text-blue-600">
-                          {promotion.offerPoints}
+                          {promotion.point || 0}
                         </span>
                         <span className="text-gray-500 ml-1">pts</span>
                       </div>
@@ -305,6 +360,9 @@ const Promotions = () => {
                           }
                           className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed flex items-center gap-1"
                         >
+                          {actionLoading.edit === promotion.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : null}
                           Edit
                         </button>
                         <button
@@ -315,6 +373,9 @@ const Promotions = () => {
                           }
                           className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors disabled:bg-red-400 disabled:cursor-not-allowed flex items-center gap-1"
                         >
+                          {actionLoading.delete === promotion.id ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : null}
                           Delete
                         </button>
                       </div>
@@ -329,7 +390,10 @@ const Promotions = () => {
 
       {/* Add/Edit Promotion Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
           <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <div className="px-6 py-4 border-b border-gray-200">
               <h3 className="text-lg font-medium text-gray-900">
@@ -340,7 +404,7 @@ const Promotions = () => {
             <div className="p-6 space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Name
+                  Product Name *
                 </label>
                 <input
                   type="text"
@@ -355,11 +419,11 @@ const Promotions = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Description
+                  Description *
                 </label>
                 <textarea
-                  name="description"
-                  value={formData.description}
+                  name="Discription"
+                  value={formData.Discription}
                   onChange={handleInputChange}
                   placeholder="Enter product description and promotion details..."
                   rows={3}
@@ -368,36 +432,49 @@ const Promotions = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Offer Status
+                    Category
                   </label>
                   <select
-                    name="offerStatus"
-                    value={formData.offerStatus}
+                    name="category"
+                    value={formData.category}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
-                    <option value="Active">Active</option>
-                    <option value="Inactive">Inactive</option>
+                    <option value="Bonus">Bonus</option>
+                    <option value="Product Offer">Product Offer</option>
                   </select>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Offer Points
+                    Points *
                   </label>
                   <input
                     type="number"
-                    name="offerPoints"
-                    value={formData.offerPoints}
+                    name="point"
+                    value={formData.point}
                     onChange={handleInputChange}
-                    placeholder="e.g., 150"
+                    placeholder="e.g., 80"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     required
                   />
+                </div>
+
+                <div className="flex items-center">
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="isActive"
+                      checked={formData.isActive}
+                      onChange={handleInputChange}
+                      className="rounded border-gray-300 text-blue-600 shadow-sm focus:border-blue-300 focus:ring focus:ring-blue-200 focus:ring-opacity-50"
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Active</span>
+                  </label>
                 </div>
               </div>
 
@@ -427,7 +504,10 @@ const Promotions = () => {
 
       {/* Confirmation Modal */}
       {isConfirmationOpen && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+        <div
+          className="fixed inset-0 flex items-center justify-center z-50 p-4"
+          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+        >
           <div className="bg-white rounded-lg max-w-md w-full">
             <div className="p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">

@@ -1,6 +1,6 @@
-export const BASE_URL =
-  //  "http://localhost:2000";
-  "https://indowud-main-engine.onrender.com";
+export const BASE_URL = 
+// "http://localhost:2000";
+"https://indowud-main-engine.onrender.com";
 export const ENDPOINTS = {
   LOGIN: "/api/v1/auth/login",
   GETUSERDATA: "/api/v1/auth/users/:uid",
@@ -23,4 +23,14 @@ export const ENDPOINTS = {
   // Tickets
   LOADALLTICKETS: "/api/v7/tickets/all-tickets",
   CHANGETICKETSTATUS: "/api/v7/tickets/change-tickets-status",
+  // FEED
+  GETALLFEEDS: "/api/v8/feeds/get-all-feeds",
+  CREATEFEED: "/api/v8/feeds/create-new-feed",
+  UPDATEFEED: "/api/v8/feeds/update-feed",
+  DELETEFEED: "/api/v8/feeds/delete-feed",
+  // Promotional
+  GETALLPROMOTIONS: "/api/v9/promotional/get-all-promotionals",
+  CREATENEWPROMOTIONS:"/api/v9/promotional/create-new-promotional",
+  UPDATEPROMOTIONS:"/api/v9/promotional/update-promotional",
+  DELETEPROMOTIONS:"/api/v9/promotional/delete-promotional",
 };
