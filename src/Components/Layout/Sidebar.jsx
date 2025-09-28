@@ -1,7 +1,9 @@
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
 import { LayoutDashboard } from "lucide-react";
-import { MdFeed, MdFactory  } from "react-icons/md";
+import { MdFeed, MdFactory } from "react-icons/md";
+import { FaMapLocationDot } from "react-icons/fa6";
+
 
 import {
   FaUsers,
@@ -31,7 +33,9 @@ const menuItems = [
   {
     section: "SALES",
     items: [
+      { name: "Products", icon: MdFactory, path: "/sales/products" },
       { name: "QR Generation", icon: FaQrcode, path: "/sales/qr" },
+      { name: "QR Track", icon: FaMapLocationDot, path: "/sales/Track" },
       { name: "Catalogue", icon: FaBook, path: "/sales/catalogue" },
       { name: "Promotions", icon: FaGift, path: "/sales/promotions" },
     ],
@@ -39,11 +43,10 @@ const menuItems = [
   {
     section: "SYSTEM",
     items: [
-      { name: "Products", icon: MdFactory , path: "/system/products" },
       { name: "Feed", icon: MdFeed, path: "/system/feed" },
-      { name: "Settings", icon: FaCog, path: "/system/settings" },
       { name: "Manage Tickets", icon: FaClipboard, path: "/system/tickets" },
       { name: "Announcements", icon: FaBullhorn, path: "/system/announcements" },
+      { name: "Settings", icon: FaCog, path: "/system/settings" },
     ],
   },
 ];
@@ -64,10 +67,9 @@ const Sidebar = ({ onLogout }) => {
                   <NavLink
                     to={item.path}
                     className={({ isActive }) =>
-                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${
-                        isActive
-                          ? "bg-orange-100 text-orange-700"
-                          : "text-gray-700 hover:bg-orange-200"
+                      `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition ${isActive
+                        ? "bg-orange-100 text-orange-700"
+                        : "text-gray-700 hover:bg-orange-200"
                       }`
                     }
                   >
