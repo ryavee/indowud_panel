@@ -7,25 +7,28 @@ import { AnnouncementProvider } from "./Context/AnnouncementContext";
 import { TicketProvider } from "./Context/TicketsContext";
 import { FeedProvider } from "./Context/FeedContext";
 import { PromotionalProvider } from "./Context/PromotionalContext";
+import { ProductProvider } from "./Context/ProductsContext";
 
 function App() {
   return (
     <AuthProvider>
-      <PromotionalProvider>
-        <FeedProvider>
-          <TicketProvider>
-            <AnnouncementProvider>
-              <CustomerProvider>
-                <UserProvider>
-                  <BrowserRouter>
-                    <AppRoutes />
-                  </BrowserRouter>
-                </UserProvider>
-              </CustomerProvider>
-            </AnnouncementProvider>
-          </TicketProvider>
-        </FeedProvider>
-      </PromotionalProvider>
+      <ProductProvider>
+        <PromotionalProvider>
+          <FeedProvider>
+            <TicketProvider>
+              <AnnouncementProvider>
+                <CustomerProvider>
+                  <UserProvider>
+                    <BrowserRouter>
+                      <AppRoutes />
+                    </BrowserRouter>
+                  </UserProvider>
+                </CustomerProvider>
+              </AnnouncementProvider>
+            </TicketProvider>
+          </FeedProvider>
+        </PromotionalProvider>
+      </ProductProvider>
     </AuthProvider>
   );
 }
