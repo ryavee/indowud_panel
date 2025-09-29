@@ -13,6 +13,7 @@ import Announcements from "../Pages/Announcements";
 import AdminLayout from "../Components/Layout/AdminLayout";
 import Settings from "../Pages/Settings";
 import ManageTickets from "../Pages/ManageTickets";
+import Dealers from "../Pages/Dealers";
 
 const AppRoutes = () => {
   return (
@@ -28,6 +29,7 @@ const AppRoutes = () => {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/users/factoryUsers" element={<AdminUsers />} />
         <Route path="users/customers" element={<Customers />} />
+        <Route path="users/dealers" element={<Dealers />} />
         <Route path="/sales/products" element={<Products />} />
         <Route path="/sales/qr" element={<QRGeneration />} />
         <Route path="/sales/track" element={<QRTrack />} />

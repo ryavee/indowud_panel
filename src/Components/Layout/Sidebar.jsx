@@ -28,6 +28,7 @@ const menuItems = [
     items: [
       { name: "Factory Users", icon: FaUsers, path: "/users/factoryUsers" },
       { name: "Customers", icon: FaUser, path: "/users/customers" },
+      { name: "Dealers", icon: FaUser, path: "/users/dealers" },
     ],
   },
   {
