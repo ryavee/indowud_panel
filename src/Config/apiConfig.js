@@ -1,6 +1,6 @@
-export const BASE_URL = 
-// "http://localhost:2000";
-"https://indowud-main-engine.onrender.com";
+export const BASE_URL =
+  // "http://localhost:2000";
+  "https://indowud-main-engine.onrender.com";
 export const ENDPOINTS = {
   LOGIN: "/api/v1/auth/login",
   GETUSERDATA: "/api/v1/auth/users/:uid",
@@ -37,6 +37,10 @@ export const ENDPOINTS = {
   GETALLPRODUCTS: "/api/v10/products/all-products",
   CREATEPRODUCTS: "/api/v10/products/create-new-product",
   DELETEPRODUCTS: "/api/v10/products/delete-product",
+  // GENERATE QR
+  GENERATEQR: "/api/v11/qrCodes/generate-qr-code",
+  GETALLBATCHES:"/api/v11/qrCodes/all-batches",
+  GETBATCHBYID:"/api/v11/qrCodes/get-batch-by-id",
   // DEALERS
   GETALLDEALERS: "/api/v12/dealers/get-dealers",
   CREATENEWDEALER: "/api/v12/dealers/create-new-dealer",
