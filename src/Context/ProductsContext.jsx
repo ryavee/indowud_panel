@@ -84,6 +84,7 @@ export const ProductProvider = ({ children }) => {
       setError(null);
 
       const trimmedName = productData.productName.trim();
+      const trimmedProductUnit = productData.productUnit.trim();
 
       if (!trimmedName) {
         throw new Error("Product name cannot be empty");
@@ -100,6 +101,7 @@ export const ProductProvider = ({ children }) => {
 
       const response = await createProduct(token, {
         productName: trimmedName,
+        productUnit: trimmedProductUnit,
       });
 
       let newProduct;
@@ -151,7 +153,7 @@ export const ProductProvider = ({ children }) => {
       if (!productExists) {
         throw new Error("Product not found");
       }
-      const response = await deleteProduct(token,productId);
+      const response = await deleteProduct(token, productId);
       if (response && response.success === false) {
         throw new Error(response.message || "Failed to delete product");
       }

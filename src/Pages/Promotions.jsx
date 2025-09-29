@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { usePromotionalContext } from "../Context/PromotionalContext";
+import { useProductContext } from "../Context/ProductsContext";
+import ProductSelectComponent from "../Components/select_product";
 
 const StatusBadge = ({ status }) => {
   const getStatusColor = (isActive) => {
@@ -77,6 +79,12 @@ const Promotions = () => {
     clearError,
   } = usePromotionalContext();
 
+  const {
+    products,
+    loading: productsLoading,
+    error: productsError,
+  } = useProductContext();
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
@@ -90,6 +98,7 @@ const Promotions = () => {
 
   const [formData, setFormData] = useState({
     productName: "",
+    productId: "",
     Discription: "",
     isActive: true,
     category: "Bonus",
@@ -98,10 +107,21 @@ const Promotions = () => {
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
+
+    if (name === "productName") {
+      
+      const selectedProduct = products.find((p) => p.productName === value);
+      setFormData((prev) => ({
+        ...prev,
+        productName: value,
+        productId: selectedProduct ? selectedProduct.id : "",
+      }));
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: type === "checkbox" ? checked : value,
+      }));
+    }
   };
 
   const handleFormSubmit = async () => {
@@ -135,6 +155,7 @@ const Promotions = () => {
   const resetForm = () => {
     setFormData({
       productName: "",
+      productId: "",
       Discription: "",
       isActive: true,
       category: "Bonus",
@@ -150,6 +171,7 @@ const Promotions = () => {
       setEditingPromotion(promotion);
       setFormData({
         productName: promotion.productName || "",
+        productId: promotion.productId || "",
         Discription: promotion.Discription || "",
         isActive: promotion.isActive ?? true,
         category: promotion.category || "Bonus",
@@ -209,7 +231,6 @@ const Promotions = () => {
 
   const safePromotions = promotions.map((promotion, index) => ({
     ...promotion,
-
     uniqueKey:
       promotion.id ||
       `promotion-${index}-${promotion.productName || "unknown"}`,
@@ -402,20 +423,10 @@ const Promotions = () => {
             </div>
 
             <div className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Product Name *
-                </label>
-                <input
-                  type="text"
-                  name="productName"
-                  value={formData.productName}
-                  onChange={handleInputChange}
-                  placeholder="e.g., Zerowud 18mm"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  required
-                />
-              </div>
+              <ProductSelectComponent
+                formData={formData}
+                handleInputChange={handleInputChange}
+              />
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -488,7 +499,11 @@ const Promotions = () => {
                 </button>
                 <button
                   onClick={handleFormSubmit}
-                  disabled={createOrUpdateLoading}
+                  disabled={
+                    createOrUpdateLoading ||
+                    productsLoading ||
+                    products.length === 0
+                  }
                   className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
                 >
                   {createOrUpdateLoading ? (

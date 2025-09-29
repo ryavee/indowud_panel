@@ -12,6 +12,7 @@ export async function loginToAdminPortal(email, password) {
     if (!res.ok) throw new Error("Login failed");
     return res.json();
   } catch (error) {
+    console.log(error);
     return false;
   }
 }
