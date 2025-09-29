@@ -7,14 +7,29 @@ import {
   Upload,
   Download,
 } from "lucide-react";
+import { useCodesContext } from "../Context/CodesContext";
 import DealerSelectComponent from "../Components/searchDealers";
 import ProductSelectComponent from "../Components/select_product";
+import QRCode from "qrcode";
+import jsPDF from "jspdf";
 
 const QRGeneration = () => {
   const [showForm, setShowForm] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showImportMenu, setShowImportMenu] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [generatingPDF, setGeneratingPDF] = useState(null);
   const fileInputRef = useRef(null);
+
+  const {
+    batches,
+    loading,
+    error,
+    generateQRCodes,
+    fetchAllBatches,
+    fetchBatchById,
+  } = useCodesContext();
+
   const [formData, setFormData] = useState({
     numberOfCodes: "",
     productName: "",
@@ -28,37 +43,15 @@ const QRGeneration = () => {
     customDate: "",
   });
 
-  const [qrCodes, setQrCodes] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
+  useEffect(() => {
+    fetchAllBatches();
+  }, []);
+
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(qrCodes.length / itemsPerPage);
+  const totalPages = Math.ceil(batches.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = qrCodes.slice(startIndex, endIndex);
-
-  const parseProductName = (productName) => {
-    if (!productName || typeof productName !== "string") {
-      return { shortName: "", thickness: "" };
-    }
-    const parts = productName.trim().split(/\s+/);
-    if (parts.length === 0) {
-      return { shortName: "", thickness: "" };
-    }
-    const thickness = parts[parts.length - 1];
-    const nameWithoutThickness = parts.slice(0, -1).join(" ");
-    let shortName = "";
-    if (nameWithoutThickness) {
-      if (parts.length === 2) {
-        shortName = nameWithoutThickness.substring(0, 3).toUpperCase();
-      } else {
-        shortName = nameWithoutThickness
-          .split(/\s+/)
-          .map((word) => word.charAt(0).toUpperCase())
-          .join("");
-      }
-    }
-    return { shortName, thickness };
-  };
+  const currentData = batches.slice(startIndex, endIndex);
 
   const generateBatchId = (dealerId, productId, productUnit) => {
     if (!dealerId || !productId || !productUnit) {
@@ -71,7 +64,7 @@ const QRGeneration = () => {
     const today = new Date();
     const day = String(today.getDate()).padStart(2, "0");
     const month = String(today.getMonth() + 1).padStart(2, "0");
-    const year = String(today.getFullYear()).slice(-2); 
+    const year = String(today.getFullYear()).slice(-2);
     const dateStr = `${day}${month}${year}`;
     const autoIncrement = String(Math.floor(Math.random() * 9999) + 1).padStart(
       4,
@@ -92,9 +85,115 @@ const QRGeneration = () => {
     } else {
       setFormData((prev) => ({ ...prev, batchId: "" }));
     }
-  }, [formData.productName]);
+  }, [
+    formData.productName,
+    formData.dealerName,
+    formData.dealerId,
+    formData.productId,
+    formData.productUnit,
+  ]);
 
-  const handleReset = () => {
+  const generateQRCodePDF = async (qrCodesData, productName, batchId) => {
+    try {
+      setGeneratingPDF(true);
+
+      const pdf = new jsPDF({
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4",
+      });
+
+      const pageWidth = 210;
+      const pageHeight = 297;
+      const margin = 5;
+
+      const cardWidth = 90;
+      const cardHeight = 50;
+      const qrSize = 32;
+      const gapX = 5;
+      const gapY = 5;
+
+      const cardsPerRow = 2;
+      const cardsPerColumn = 5;
+      const printDate = new Date().toLocaleDateString("en-GB");
+
+      for (let i = 0; i < qrCodesData.length; i++) {
+        const qrData = qrCodesData[i];
+
+        const cardIndex = i % (cardsPerRow * cardsPerColumn);
+        const pageIndex = Math.floor(i / (cardsPerRow * cardsPerColumn));
+
+        if (i > 0 && cardIndex === 0) pdf.addPage();
+
+        const row = Math.floor(cardIndex / cardsPerRow);
+        const col = cardIndex % cardsPerRow;
+
+        const cardX = margin + col * (cardWidth + gapX);
+        const cardY = margin + row * (cardHeight + gapY);
+
+        pdf.setDrawColor(200);
+        pdf.setLineWidth(0.3);
+        pdf.rect(cardX, cardY, cardWidth, cardHeight);
+
+        const padding = 5;
+        const qrX = cardX + padding;
+        const qrY = cardY + 10;
+
+        pdf.setFontSize(9);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(20);
+        pdf.text(productName, qrX, cardY + 5);
+
+        const qrCodeDataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
+          width: 250,
+          margin: 1,
+          errorCorrectionLevel: "M",
+        });
+        pdf.addImage(qrCodeDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
+
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0);
+
+        const rightX = qrX + qrSize + 2;
+        let textY = qrY;
+
+        pdf.setFontSize(12);
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(20);
+
+        textY += 14;
+        pdf.setFontSize(8);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(80);
+        pdf.text("Batch No:", rightX, textY);
+
+        pdf.setFont("helvetica", "bold");
+        pdf.setTextColor(0);
+        pdf.text(batchId, rightX + 13, textY);
+
+        textY += 8;
+        pdf.setFontSize(7);
+        pdf.setFont("helvetica", "normal");
+        pdf.setTextColor(100);
+        pdf.text("Label Print Date:", rightX, textY);
+
+        pdf.setTextColor(60);
+        pdf.text(printDate, rightX + 19, textY);
+
+        pdf.setTextColor(0);
+      }
+
+      pdf.save(`QR_VisitingCards_${batchId}_${Date.now()}.pdf`);
+      setGeneratingPDF(false);
+    } catch (error) {
+      console.error("Error generating PDF:", error);
+      alert("Error generating PDF. Please try again.");
+      setGeneratingPDF(false);
+    }
+  };
+
+  const resetForm = () => {
     setFormData({
       numberOfCodes: "",
       productName: "",
@@ -132,8 +231,7 @@ const QRGeneration = () => {
     }
   };
 
-  const handleGenerate = () => {
-    
+  const handleGenerate = async () => {
     if (
       !formData.numberOfCodes ||
       !formData.productName ||
@@ -145,45 +243,73 @@ const QRGeneration = () => {
       return;
     }
 
-    console.log("=== QR Code Generation Data ===");
-    console.log("Number of Codes:", formData.numberOfCodes);
-    console.log("Product Name:", formData.productName);
-    console.log("Product ID:", formData.productId);
-    console.log("Dealer Name:", formData.dealerName);
-    console.log("Dealer ID:", formData.dealerId);
-    console.log("Batch ID:", formData.batchId);
-    console.log("Expiry Type:", formData.expiryType);
-    console.log("Custom Date:", formData.customDate);
-    console.log("Remarks:", formData.remarks);
-    console.log("Complete Form Data:", formData);
-    console.log("===============================");
+    const result = await generateQRCodes(formData);
 
-    setShowForm(false);
-    setFormData({
-      numberOfCodes: "",
-      productName: "",
-      productId: "",
-      dealerName: "",
-      dealerId: "",
-      batchId: "",
-      remarks: "",
-      expiryType: "None",
-      customDate: "",
-    });
+    if (result.success) {
+      await fetchAllBatches();
+
+      const batchResult = await fetchBatchById(formData.batchId);
+
+      if (batchResult.success && batchResult.data.qrCodes) {
+        await generateQRCodePDF(
+          batchResult.data.qrCodes,
+          formData.productName,
+          formData.batchId
+        );
+
+        alert(
+          `Successfully generated ${formData.numberOfCodes} QR codes and downloaded PDF!`
+        );
+      } else {
+        alert(
+          "QR codes generated but PDF download failed. Please try downloading from the list."
+        );
+      }
+
+      setShowForm(false);
+      resetForm();
+    } else {
+      alert(`Error: ${result.error}`);
+    }
   };
 
   const handleCancel = () => {
     setShowForm(false);
-    setFormData({
-      numberOfCodes: "",
-      productName: "",
-      productId: "",
-      dealerName: "",
-      dealerId: "",
-      batchId: "",
-      remarks: "",
-      expiryType: "None",
-      customDate: "",
+    resetForm();
+  };
+
+  const handleDownloadPDF = async (batch) => {
+    try {
+      setGeneratingPDF(batch.batchId);
+
+      const result = await fetchBatchById(batch.batchId);
+
+      if (result.success && result.data.qrCodes) {
+        await generateQRCodePDF(
+          result.data.qrCodes,
+          batch.productName,
+          batch.batchId
+        );
+      } else {
+        alert("Failed to fetch QR codes for this batch. Please try again.");
+      }
+    } catch (error) {
+      console.error("Error downloading PDF:", error);
+      alert("Error downloading PDF. Please try again.");
+    } finally {
+      setGeneratingPDF(null);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    const date = new Date(dateString);
+    return date.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
     });
   };
 
@@ -226,13 +352,19 @@ const QRGeneration = () => {
             </h2>
             {formData.batchId && (
               <button
-                onClick={handleReset}
+                onClick={resetForm}
                 className="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors font-medium"
               >
                 Reset
               </button>
             )}
           </div>
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-800 px-4 py-3 rounded-md">
+              {error}
+            </div>
+          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -247,19 +379,22 @@ const QRGeneration = () => {
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder="Enter number of codes"
                 min="1"
+                disabled={loading || generatingPDF}
               />
             </div>
 
             <DealerSelectComponent
               formData={formData}
               handleInputChange={handleInputChange}
-              disabled={!!formData.batchId}
+              disabled={!!formData.batchId || loading || generatingPDF}
             />
+
             <ProductSelectComponent
               formData={formData}
               handleInputChange={handleInputChange}
-              disabled={!!formData.batchId}
+              disabled={!!formData.batchId || loading || generatingPDF}
             />
+
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Batch ID *
@@ -283,6 +418,7 @@ const QRGeneration = () => {
                 value={formData.expiryType}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading || generatingPDF}
               >
                 <option value="None">None</option>
                 <option value="3months">3 Months</option>
@@ -305,6 +441,7 @@ const QRGeneration = () => {
                 value={formData.customDate}
                 onChange={handleInputChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                disabled={loading || generatingPDF}
               />
             </div>
           )}
@@ -320,19 +457,26 @@ const QRGeneration = () => {
               rows="3"
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter any remarks"
+              disabled={loading || generatingPDF}
             />
           </div>
 
           <div className="flex gap-3 pt-4">
             <button
               onClick={handleGenerate}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium"
+              disabled={loading || generatingPDF}
+              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Generate
+              {loading
+                ? "Generating..."
+                : generatingPDF
+                ? "Creating PDF..."
+                : "Generate"}
             </button>
             <button
               onClick={handleCancel}
-              className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors font-medium"
+              disabled={loading || generatingPDF}
+              className="flex-1 bg-gray-200 text-gray-700 py-2 px-4 rounded-md hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               Cancel
             </button>
@@ -356,7 +500,14 @@ const QRGeneration = () => {
       </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
-        {qrCodes.length === 0 ? (
+        {loading && batches.length === 0 ? (
+          <div className="p-8 text-center">
+            <div className="mb-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+            </div>
+            <p className="text-gray-600">Loading batches...</p>
+          </div>
+        ) : batches.length === 0 ? (
           <div className="p-8 text-center">
             <div className="mb-4">
               <Calendar size={48} className="mx-auto text-gray-400" />
@@ -373,8 +524,8 @@ const QRGeneration = () => {
           <>
             <div className="p-4 border-b border-gray-200 flex justify-between items-center">
               <p className="text-sm text-gray-600">
-                Showing {startIndex + 1}-{Math.min(endIndex, qrCodes.length)} of{" "}
-                {qrCodes.length}
+                Showing {startIndex + 1}-{Math.min(endIndex, batches.length)} of{" "}
+                {batches.length}
               </p>
 
               <div className="flex gap-3 relative">
@@ -486,13 +637,16 @@ const QRGeneration = () => {
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      ID
+                      Batch ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Product Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Batch ID
+                      Dealer Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Points
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Expiry Date
@@ -501,38 +655,42 @@ const QRGeneration = () => {
                       Created At
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                      Actions
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {currentData.map((item) => (
-                    <tr key={item.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.id}
+                  {currentData.map((batch) => (
+                    <tr key={batch.batchId} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                        {batch.batchId}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {item.productName}
+                        {batch.productName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {item.batchId}
+                        {batch.dealerName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {item.expiryDate}
+                        {batch.points}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {item.createdAt}
+                        {batch.expiryDate || "None"}
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`px-2 py-1 text-xs font-medium rounded-full ${
-                            item.status === "Active"
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                        {formatDate(batch.createdAt)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm">
+                        <button
+                          onClick={() => handleDownloadPDF(batch)}
+                          disabled={generatingPDF === batch.batchId}
+                          className="flex items-center gap-1 text-blue-600 hover:text-blue-800 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {item.status}
-                        </span>
+                          <Download size={16} />
+                          {generatingPDF === batch.batchId
+                            ? "Loading..."
+                            : "PDF"}
+                        </button>
                       </td>
                     </tr>
                   ))}
