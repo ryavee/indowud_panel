@@ -34,10 +34,7 @@ export const PromotionalProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-
-      console.log("Creating promotion with data:", promotionData);
       const response = await createNewPromotion(promotionData);
-      console.log("Create promotion response:", response);
 
       // Handle different possible response structures
       let newPromotion;

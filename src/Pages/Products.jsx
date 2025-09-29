@@ -25,6 +25,7 @@ const Products = () => {
   } = useProductContext();
 
   const [newProductName, setNewProductName] = useState("");
+  const [newProductUnit, setNewProductUnit] = useState("");
   const [formError, setFormError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState("");
@@ -45,8 +46,16 @@ const Products = () => {
         setFormError("Product name is required");
         return;
       }
-      await addProduct({ productName: newProductName.trim() });
+      if (!newProductUnit.trim()) {
+        setFormError("Product unit is required");
+        return;
+      }
+      await addProduct({ 
+        productName: newProductName.trim(),
+        productUnit: newProductUnit.trim()
+      });
       setNewProductName("");
+      setNewProductUnit("");
       setShowSuccessMessage(`"${newProductName.trim()}" added successfully!`);
     } catch (err) {
       setFormError(err.message || "Failed to add product");
@@ -93,16 +102,11 @@ const Products = () => {
           </div>
         </div>
       )}
+      
       {/* Add Product Form */}
       <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Add New Product</h2>
-          <button
-            onClick={refreshProducts}
-            disabled={loading}
-            className="p-2 text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors disabled:opacity-50"
-            title="Refresh products"
-          ></button>
         </div>
 
         {/* Form Error */}
@@ -115,23 +119,50 @@ const Products = () => {
           </div>
         )}
 
-        <div className="flex gap-3">
-          <input
-            type="text"
-            value={newProductName}
-            onChange={(e) => {
-              setNewProductName(e.target.value);
-              if (formError) setFormError("");
-            }}
-            placeholder="Enter product name"
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-            onKeyPress={handleKeyPress}
-            disabled={creating}
-          />
+        <div className="space-y-3">
+          {/* Product Name Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Name
+            </label>
+            <input
+              type="text"
+              value={newProductName}
+              onChange={(e) => {
+                setNewProductName(e.target.value);
+                if (formError) setFormError("");
+              }}
+              placeholder="Enter product name"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              onKeyPress={handleKeyPress}
+              disabled={creating}
+            />
+          </div>
+
+          {/* Product Unit Input */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Product Unit
+            </label>
+            <input
+              type="text"
+              value={newProductUnit}
+              onChange={(e) => {
+                setNewProductUnit(e.target.value);
+                if (formError) setFormError("");
+              }}
+              placeholder="Enter unit (e.g., 08 mm, 15mm, 20 mm, etc.)"
+              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+              onKeyPress={handleKeyPress}
+              disabled={creating}
+            />
+          </div>
+
+          {/* Add Button */}
           <button
             onClick={handleAddProduct}
-            disabled={creating || !newProductName.trim()}
-            className="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[140px]"
+            disabled={creating || !newProductName.trim() || !newProductUnit.trim()}
+            className="w-full px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {creating ? (
               <>
@@ -193,16 +224,18 @@ const Products = () => {
               >
                 <div className="flex-1">
                   <h3 className="text-lg font-medium text-gray-900">
-                    {product.name}
+                    {product.name || product.productName} {product.productUnit}
                   </h3>
-                  {product.id && (
-                    <p className="text-sm text-gray-500">
-                      {product.productName}
-                    </p>
-                  )}
+                  <div className="space-y-1">
+                    {product.id && (
+                      <p className="text-xs text-gray-500">
+                        ID: {product.id}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <button
-                  onClick={() => handleDeleteProduct(product.id, product.name)}
+                  onClick={() => handleDeleteProduct(product.id, product.name || product.productName)}
                   disabled={deleting === product.id}
                   className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[40px] flex items-center justify-center"
                   title={
