@@ -144,7 +144,7 @@ const QRGeneration = () => {
         pdf.setTextColor(20);
         pdf.text(productName, qrX, cardY + 5);
 
-        const qrCodeDataUrl = await QRCode.toDataURL(JSON.stringify(qrData), {
+        const qrCodeDataUrl = await QRCode.toDataURL(`${qrData.qrId}_${batchId}`, {
           width: 250,
           margin: 1,
           errorCorrectionLevel: "M",
@@ -184,7 +184,7 @@ const QRGeneration = () => {
         pdf.setTextColor(0);
       }
 
-      pdf.save(`QR_VisitingCards_${batchId}_${Date.now()}.pdf`);
+      pdf.save(`QR_Indowud_${batchId}_${Date.now()}.pdf`);
       setGeneratingPDF(false);
     } catch (error) {
       console.error("Error generating PDF:", error);
