@@ -11,11 +11,11 @@ import {
   FaBook,
   FaBullhorn,
   FaUser,
-  FaBell,
   FaGift,
   FaCog,
   FaSignOutAlt,
   FaClipboard,
+  FaUserTie
 } from "react-icons/fa";
 
 const menuItems = [
@@ -26,9 +26,9 @@ const menuItems = [
   {
     section: "USERS",
     items: [
-      { name: "Factory Users", icon: FaUsers, path: "/users/factoryUsers" },
-      { name: "Customers", icon: FaUser, path: "/users/customers" },
-      { name: "Dealers", icon: FaUser, path: "/users/dealers" },
+      { name: "Factory Users", icon: FaUser, path: "/users/factoryUsers" },
+      { name: "Customers", icon: FaUsers, path: "/users/customers" },
+      { name: "Dealers", icon:FaUserTie, path: "/users/dealers" },
     ],
   },
   {

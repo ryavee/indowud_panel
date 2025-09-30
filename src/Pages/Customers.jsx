@@ -11,6 +11,10 @@ import {
   ShieldCheck,
   Loader2,
   ExternalLink,
+  MoreVertical,
+  CheckCircle,
+  Locate,
+  CircleStar,
 } from "lucide-react";
 import { CustomerContext } from "../Context/CustomerContext";
 
@@ -134,22 +138,20 @@ const Customers = () => {
                     {selectedCustomer.loyaltyPoint} Loyalty Points
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      selectedCustomer.isKYCVerified
-                        ? "bg-green-400 text-green-900"
-                        : "bg-yellow-400 text-yellow-900"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm ${selectedCustomer.isKYCVerified
+                      ? "bg-green-400 text-green-900"
+                      : "bg-yellow-400 text-yellow-900"
+                      }`}
                   >
                     {selectedCustomer.isKYCVerified
                       ? "KYC Verified"
                       : "KYC Pending"}
                   </span>
                   <span
-                    className={`px-3 py-1 rounded-full text-sm ${
-                      selectedCustomer.isBlocked
-                        ? "bg-red-400 text-red-900"
-                        : "bg-green-400 text-green-900"
-                    }`}
+                    className={`px-3 py-1 rounded-full text-sm ${selectedCustomer.isBlocked
+                      ? "bg-red-400 text-red-900"
+                      : "bg-green-400 text-green-900"
+                      }`}
                   >
                     {selectedCustomer.isBlocked ? "Blocked" : "Active"}
                   </span>
@@ -279,11 +281,10 @@ const Customers = () => {
                       </span>
                       <div className="flex items-center space-x-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            selectedCustomer.aadhaarCardFrontImage
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${selectedCustomer.aadhaarCardFrontImage
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                            }`}
                         >
                           {selectedCustomer.aadhaarCardFrontImage
                             ? "Uploaded"
@@ -312,11 +313,10 @@ const Customers = () => {
                       </span>
                       <div className="flex items-center space-x-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            selectedCustomer.aadhaarCardBackImage
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${selectedCustomer.aadhaarCardBackImage
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                            }`}
                         >
                           {selectedCustomer.aadhaarCardBackImage
                             ? "Uploaded"
@@ -345,11 +345,10 @@ const Customers = () => {
                       </span>
                       <div className="flex items-center space-x-2">
                         <span
-                          className={`px-3 py-1 rounded-full text-sm font-medium ${
-                            selectedCustomer.panCardImage
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
+                          className={`px-3 py-1 rounded-full text-sm font-medium ${selectedCustomer.panCardImage
+                            ? "bg-green-100 text-green-800"
+                            : "bg-red-100 text-red-800"
+                            }`}
                         >
                           {selectedCustomer.panCardImage
                             ? "Uploaded"
@@ -379,24 +378,23 @@ const Customers = () => {
                   actionLoading.block === selectedCustomer.uid ||
                   blockLoading === selectedCustomer.uid
                 }
-                className={`px-6 py-2 rounded-lg font-medium flex items-center transition-all ${
-                  selectedCustomer.isBlocked
-                    ? "bg-green-600 hover:bg-green-700 text-white disabled:bg-green-400"
-                    : "bg-red-600 hover:bg-red-700 text-white disabled:bg-red-400"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+                className={`px-6 py-2 rounded-lg font-medium flex items-center transition-all ${selectedCustomer.isBlocked
+                  ? "bg-green-600 hover:bg-green-700 text-white disabled:bg-green-400"
+                  : "bg-red-600 hover:bg-red-700 text-white disabled:bg-red-400"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {actionLoading.block === selectedCustomer.uid ||
-                blockLoading === selectedCustomer.uid ? (
+                  blockLoading === selectedCustomer.uid ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <Shield className="w-4 h-4 mr-2" />
                 )}
                 {actionLoading.block === selectedCustomer.uid ||
-                blockLoading === selectedCustomer.uid
+                  blockLoading === selectedCustomer.uid
                   ? "Processing..."
                   : selectedCustomer.isBlocked
-                  ? "Unblock Customer"
-                  : "Block Customer"}
+                    ? "Unblock Customer"
+                    : "Block Customer"}
               </button>
 
               <button
@@ -405,24 +403,23 @@ const Customers = () => {
                   actionLoading.kyc === selectedCustomer.uid ||
                   kycLoading === selectedCustomer.uid
                 }
-                className={`px-6 py-2 rounded-lg font-medium flex items-center transition-all ${
-                  selectedCustomer.isKYCVerified
-                    ? "bg-orange-600 hover:bg-orange-700 text-white disabled:bg-orange-400"
-                    : "bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-400"
-                } disabled:cursor-not-allowed disabled:opacity-60`}
+                className={`px-6 py-2 rounded-lg font-medium flex items-center transition-all ${selectedCustomer.isKYCVerified
+                  ? "bg-orange-600 hover:bg-orange-700 text-white disabled:bg-orange-400"
+                  : "bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-400"
+                  } disabled:cursor-not-allowed disabled:opacity-60`}
               >
                 {actionLoading.kyc === selectedCustomer.uid ||
-                kycLoading === selectedCustomer.uid ? (
+                  kycLoading === selectedCustomer.uid ? (
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                 ) : (
                   <ShieldCheck className="w-4 h-4 mr-2" />
                 )}
                 {actionLoading.kyc === selectedCustomer.uid ||
-                kycLoading === selectedCustomer.uid
+                  kycLoading === selectedCustomer.uid
                   ? "Processing..."
                   : selectedCustomer.isKYCVerified
-                  ? "Revoke KYC"
-                  : "Verify KYC"}
+                    ? "Revoke KYC"
+                    : "Verify KYC"}
               </button>
             </div>
           </div>
@@ -447,25 +444,37 @@ const Customers = () => {
             </div>
           ) : (
             <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
+              <thead className="bg-gray-200">
                 <tr>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Customer
+                    <div className="flex items-center gap-1">
+                      <User className="h-4 w-4" /> Customer
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Contact
+                    <div className="flex items-center gap-1">
+                      <Phone className="h-4 w-4" /> Contact
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Location
+                    <div className="flex items-center gap-1">
+                      <Locate className="h-4 w-4" /> Location
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Loyalty Points
+                    <div className="flex items-center gap-1">
+                      <CircleStar className="h-4 w-4" /> Loyalty points
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" /> status
+                    </div>
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
+                    <div className="flex items-center gap-1">
+                      <MoreVertical className="h-4 w-4" /> Action
+                    </div>
                   </th>
                 </tr>
               </thead>
@@ -517,22 +526,20 @@ const Customers = () => {
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex flex-col space-y-1">
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            customer.isKYCVerified
-                              ? "bg-green-100 text-green-800"
-                              : "bg-yellow-100 text-yellow-800"
-                          }`}
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isKYCVerified
+                            ? "bg-green-100 text-green-800"
+                            : "bg-yellow-100 text-yellow-800"
+                            }`}
                         >
                           {customer.isKYCVerified
                             ? "KYC Verified"
                             : "KYC Pending"}
                         </span>
                         <span
-                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            customer.isBlocked
-                              ? "bg-red-100 text-red-800"
-                              : "bg-green-100 text-green-800"
-                          }`}
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isBlocked
+                            ? "bg-red-100 text-red-800"
+                            : "bg-green-100 text-green-800"
+                            }`}
                         >
                           {customer.isBlocked ? "Blocked" : "Active"}
                         </span>
