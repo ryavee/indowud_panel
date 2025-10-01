@@ -4,7 +4,6 @@ import { LayoutDashboard,Users } from "lucide-react";
 import { MdFeed, MdFactory } from "react-icons/md";
 import { FaMapLocationDot } from "react-icons/fa6";
 
-
 import {
   FaUsers,
   FaQrcode,
@@ -15,7 +14,8 @@ import {
   FaCog,
   FaSignOutAlt,
   FaClipboard,
-  FaUserTie
+  FaUserTie,
+  FaCoins
 } from "react-icons/fa";
 
 const menuItems = [
@@ -39,6 +39,7 @@ const menuItems = [
       { name: "QR Track", icon: FaMapLocationDot, path: "/sales/Track" },
       { name: "Catalogue", icon: FaBook, path: "/sales/catalogue" },
       { name: "Promotions", icon: FaGift, path: "/sales/promotions" },
+      { name: "Manage Redeemption", icon: FaCoins, path: "/sales/redeemption" },
     ],
   },
   {

@@ -14,6 +14,7 @@ import AdminLayout from "../Components/Layout/AdminLayout";
 import Settings from "../Pages/Settings";
 import ManageTickets from "../Pages/ManageTickets";
 import Dealers from "../Pages/Dealers";
+import Redeemption from "../Pages/Redeemption";
 
 const AppRoutes = () => {
   return (
@@ -35,6 +36,7 @@ const AppRoutes = () => {
         <Route path="/sales/track" element={<QRTrack />} />
         <Route path="/sales/catalogue" element={<Catalogue />} />
         <Route path="/sales/promotions" element={<Promotions />} />
+        <Route path="/sales/Redeemption" element={<Redeemption />} />
         <Route path="/system/settings" element={<Settings />} />
         <Route path="/system/tickets" element={<ManageTickets />} />
         <Route path="/system/feed" element={<Feed />} />
