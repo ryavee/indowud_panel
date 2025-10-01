@@ -1,6 +1,6 @@
 import { NavLink } from "react-router-dom";
 import "./Sidebar.css";
-import { LayoutDashboard } from "lucide-react";
+import { LayoutDashboard,Users } from "lucide-react";
 import { MdFeed, MdFactory } from "react-icons/md";
 import { FaMapLocationDot } from "react-icons/fa6";
 
