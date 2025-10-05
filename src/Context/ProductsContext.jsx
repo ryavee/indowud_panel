@@ -90,15 +90,6 @@ export const ProductProvider = ({ children }) => {
         throw new Error("Product name cannot be empty");
       }
 
-      const isDuplicate = products.some(
-        (product) =>
-          product.productName.toLowerCase() === trimmedName.toLowerCase()
-      );
-
-      if (isDuplicate) {
-        throw new Error("A product with this name already exists");
-      }
-
       const response = await createProduct(token, {
         productName: trimmedName,
         productUnit: trimmedProductUnit,
