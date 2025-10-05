@@ -10,31 +10,34 @@ import { PromotionalProvider } from "./Context/PromotionalContext";
 import { ProductProvider } from "./Context/ProductsContext";
 import { DealersContextProvider } from "./Context/DealersContext";
 import { CodesProvider } from "./Context/CodesContext";
+import { TrackQRDataProvider } from "./Context/TrackQRDataContext";
 
 function App() {
   return (
     <AuthProvider>
-      <CodesProvider>
-        <DealersContextProvider>
-          <ProductProvider>
-            <PromotionalProvider>
-              <FeedProvider>
-                <TicketProvider>
-                  <AnnouncementProvider>
-                    <CustomerProvider>
-                      <UserProvider>
-                        <BrowserRouter>
-                          <AppRoutes />
-                        </BrowserRouter>
-                      </UserProvider>
-                    </CustomerProvider>
-                  </AnnouncementProvider>
-                </TicketProvider>
-              </FeedProvider>
-            </PromotionalProvider>
-          </ProductProvider>
-        </DealersContextProvider>
-      </CodesProvider>
+      <TrackQRDataProvider>
+        <CodesProvider>
+          <DealersContextProvider>
+            <ProductProvider>
+              <PromotionalProvider>
+                <FeedProvider>
+                  <TicketProvider>
+                    <AnnouncementProvider>
+                      <CustomerProvider>
+                        <UserProvider>
+                          <BrowserRouter>
+                            <AppRoutes />
+                          </BrowserRouter>
+                        </UserProvider>
+                      </CustomerProvider>
+                    </AnnouncementProvider>
+                  </TicketProvider>
+                </FeedProvider>
+              </PromotionalProvider>
+            </ProductProvider>
+          </DealersContextProvider>
+        </CodesProvider>
+      </TrackQRDataProvider>
     </AuthProvider>
   );
 }
