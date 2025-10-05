@@ -54,7 +54,7 @@ const Login = () => {
             <img src={logo} alt="Logo" className="w-10 h-10" />
           </div>
           <h1 className="text-lg font-bold text-white">
-            INDOWUN NFC PRIVATE LIMITED
+            INDOWUD NFC PRIVATE LIMITED
           </h1>
         </div>
       </header>
