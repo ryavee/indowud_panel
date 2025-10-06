@@ -4,7 +4,6 @@ import {
   CreditCard,
   TrendingUp,
   CheckCircle,
-  AlertTriangle,
   ArrowRight,
 } from "lucide-react";
 import {
@@ -41,13 +40,13 @@ const pieData = [
 const COLORS = ["#22c55e", "#facc15"];
 
 const topUsers = [
-  { name: "Ravi raj", points: 1200, status: "Verified" },
-  { name: "Nashi ", points: 950, status: "Pending" },
+  { name: "Ravi Raj", points: 1200, status: "Verified" },
+  { name: "Nashi", points: 950, status: "Pending" },
   { name: "Pravat", points: 870, status: "Verified" },
 ];
 
 const recentTransactions = [
-  { user: "Ravi raj", type: "Redeemed", amount: 500, date: "2025-09-29" },
+  { user: "Ravi Raj", type: "Redeemed", amount: 500, date: "2025-09-29" },
   { user: "Nashi", type: "Claimed", amount: 200, date: "2025-09-28" },
   { user: "Pravat", type: "Redeemed", amount: 300, date: "2025-09-28" },
 ];
@@ -55,72 +54,89 @@ const recentTransactions = [
 const recentActivity = [
   "User Ravi claimed 50 points",
   "User Nashi redeemed 100 points",
-  "New user pravat registered",
+  "New user Pravat registered",
   "KYC approved for Abhi",
 ];
 
 const Dashboard = () => {
   return (
-    <div className="p-6 space-y-8 bg-gray-50 min-h-screen">
+    <div className="space-y-8 bg-gray-50 min-h-screen">
       {/* Header */}
-      <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
 
       {/* Quick Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="bg-white shadow rounded-lg p-5 flex items-center space-x-4">
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-blue-500 hover:shadow-md transition">
           <Users className="w-10 h-10 text-blue-500" />
           <div>
             <p className="text-sm text-gray-500">Total Users</p>
-            <p className="text-xl font-semibold">1,245</p>
+            <p className="text-xl font-semibold text-gray-800">1,245</p>
           </div>
         </div>
-        <div className="bg-white shadow rounded-lg p-5 flex items-center space-x-4">
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-green-500 hover:shadow-md transition">
           <CreditCard className="w-10 h-10 text-green-500" />
           <div>
             <p className="text-sm text-gray-500">Points Claimed</p>
-            <p className="text-xl font-semibold">8,540</p>
+            <p className="text-xl font-semibold text-gray-800">8,540</p>
           </div>
         </div>
-        <div className="bg-white shadow rounded-lg p-5 flex items-center space-x-4">
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-purple-500 hover:shadow-md transition">
           <TrendingUp className="w-10 h-10 text-purple-500" />
           <div>
             <p className="text-sm text-gray-500">Points Redeemed</p>
-            <p className="text-xl font-semibold">6,230</p>
+            <p className="text-xl font-semibold text-gray-800">6,230</p>
           </div>
         </div>
-        <div className="bg-white shadow rounded-lg p-5 flex items-center space-x-4">
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-yellow-500 hover:shadow-md transition">
           <CheckCircle className="w-10 h-10 text-yellow-500" />
           <div>
             <p className="text-sm text-gray-500">KYC Verified</p>
-            <p className="text-xl font-semibold">780</p>
+            <p className="text-xl font-semibold text-gray-800">780</p>
           </div>
         </div>
       </div>
 
-      {/* Charts */}
+      {/* Charts Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white shadow rounded-lg p-6 col-span-2">
-          <h2 className="text-lg font-semibold mb-4">Points Earned vs Redeemed</h2>
-          <ResponsiveContainer width="100%" height={300}>
+        {/* Line Chart (Full Width on Large Screens) */}
+        <div className="bg-white shadow rounded-lg p-6 col-span-2 md:col-span-2">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">
+            Points Earned vs Redeemed
+          </h2>
+          <ResponsiveContainer width="100%" height={320}>
             <LineChart data={lineData}>
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="day" />
               <YAxis />
               <Tooltip />
-              <Line type="monotone" dataKey="earned" stroke="#3b82f6" strokeWidth={2} />
-              <Line type="monotone" dataKey="redeemed" stroke="#ef4444" strokeWidth={2} />
+              <Line
+                type="monotone"
+                dataKey="earned"
+                stroke="#3b82f6"
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="redeemed"
+                stroke="#ef4444"
+                strokeWidth={2}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>
+
+        {/* Pie Chart (Enlarged) */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">KYC Status</h2>
-          <ResponsiveContainer width="100%" height={300}>
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">
+            KYC Status Overview
+          </h2>
+          <ResponsiveContainer width="100%" height={320}>
             <PieChart>
               <Pie
                 data={pieData}
                 dataKey="value"
                 nameKey="name"
-                outerRadius={100}
+                outerRadius={120}
                 label
               >
                 {pieData.map((entry, index) => (
@@ -137,12 +153,14 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recent Activity */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">
+            Recent Activity
+          </h2>
           <ul className="space-y-3">
             {recentActivity.map((activity, idx) => (
               <li
                 key={idx}
-                className="flex items-center text-sm text-gray-700 border-b pb-2"
+                className="flex items-center text-sm text-gray-700 border-b pb-2 last:border-b-0"
               >
                 <ArrowRight className="w-4 h-4 text-blue-500 mr-2" />
                 {activity}
@@ -153,7 +171,7 @@ const Dashboard = () => {
 
         {/* Top Users */}
         <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-lg font-semibold mb-4">Top Users</h2>
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">Top Users</h2>
           <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 text-left">
@@ -187,7 +205,9 @@ const Dashboard = () => {
 
       {/* Recent Transactions */}
       <div className="bg-white shadow rounded-lg p-6">
-        <h2 className="text-lg font-semibold mb-4">Latest Transactions</h2>
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">
+          Latest Transactions
+        </h2>
         <table className="w-full text-sm">
           <thead>
             <tr className="text-gray-500 text-left">
@@ -202,8 +222,8 @@ const Dashboard = () => {
               <tr key={idx} className="border-t">
                 <td className="py-2">{tx.user}</td>
                 <td className="py-2">{tx.type}</td>
-                <td className="py-2 font-medium">₹{tx.amount}</td>
-                <td className="py-2">{tx.date}</td>
+                <td className="py-2 font-medium text-gray-800">₹{tx.amount}</td>
+                <td className="py-2 text-gray-500">{tx.date}</td>
               </tr>
             ))}
           </tbody>
