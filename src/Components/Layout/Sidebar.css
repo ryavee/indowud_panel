@@ -1,34 +1,42 @@
-/* Hide scrollbar by default */
-.custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
+/* Sidebar.css */
+
+/* Give sidebar a distinguishable background */
+
+
+aside {
+  background-color: #f4f6f8; 
+} 
+
+/* Scrollbar styles for the scrollable menu */
+.custom-scrollbar {
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;                  /* Firefox baseline */
+  scrollbar-color: transparent transparent; /* hidden by default */
 }
 
-/* Scrollbar track (background area) */
+/* ===== WebKit (Chrome, Safari, Edge) ===== */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
 .custom-scrollbar::-webkit-scrollbar-track {
   background: transparent;
 }
 
-/* Scroll thumb (the draggable part) */
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background-color: rgba(22, 150, 152, 0.4); /* Indowud teal tone */
-  border-radius: 9999px; /* fully rounded */
-  transition: background-color 0.3s ease, width 0.3s ease;
+  background: transparent; /* hidden until hover */
+  border-radius: 9999px;
+  transition: background-color 0.2s ease;
 }
 
-/* Hover effect - scrollbar becomes visible & vibrant */
+/* Show thumb on hover */
+aside:hover .custom-scrollbar::-webkit-scrollbar-thumb,
 .custom-scrollbar:hover::-webkit-scrollbar-thumb {
-  background-color: rgba(22, 150, 152, 0.7);
+  background: rgba(100, 100, 100, 0.4); /* soft gray */
 }
 
-/* For Firefox */
-.custom-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(22, 150, 152, 0.5) transparent;
-}
-
-/* Optional: fade-in effect for container */
-.custom-scrollbar {
-  transition: all 0.3s ease-in-out;
+/* ===== Firefox hover effect ===== */
+aside:hover .custom-scrollbar {
+  scrollbar-color: rgba(100, 100, 100, 0.4) transparent;
 }
