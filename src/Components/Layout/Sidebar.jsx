@@ -3,7 +3,7 @@ import "./Sidebar.css";
 import logo_icon from "../../assets/Icon_Indowud.png";
 import { X } from "lucide-react";
 
-// ✅ Premium unified icon set (Lucide)
+// ✅ Premium unified icon set(Lucide)
 import {
   LayoutDashboard,
   Users,
