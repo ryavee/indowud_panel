@@ -156,173 +156,181 @@ const AdminUsers = () => {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
-  <div className="max-w-7xl mx-auto">
-    {/* Header */}
-    <div className="mb-8">
-      <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
-        Admin Users
-      </h1>
-      <p className="text-sm text-gray-600 mt-1">
-        Manage admin accounts, roles, and access controls within your system.
-      </p>
-    </div>
+    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl">
+      {/* Page Header */}
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Admin Users</h1>
+          <p className="text-gray-600">
+            Manage admins, assign roles, and control access to the system.
+          </p>
+        </div>
 
-    {/* Controls */}
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-      <div className="relative flex-1 max-w-sm">
-        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search users..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10 pr-4 py-2 w-full text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500 transition"
-        />
-      </div>
+        {/* Controls */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-3">
+          {/* Search */}
+          <div className="relative flex-1 max-w-sm">
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search users..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          </div>
 
-      <select
-        value={roleFilter}
-        onChange={(e) => setRoleFilter(e.target.value)}
-        className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
-      >
-        <option value="All">All Roles</option>
-        <option value="SuperAdmin">SuperAdmin</option>
-        <option value="Admin">Admin</option>
-        <option value="Factory User">Factory User</option>
-      </select>
+          {/* Role Filter */}
+          <select
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            className="border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+          >
+            <option value="All">All Roles</option>
+            <option value="SuperAdmin">SuperAdmin</option>
+            <option value="Admin">Admin</option>
+            <option value="Factory User">Factory User</option>
+          </select>
 
-      <button
-        onClick={handleAddUser}
-        disabled={createOrUpdateUserLoading}
-        className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
-      >
-        {createOrUpdateUserLoading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : (
-          <span className="text-lg leading-none">+</span>
-        )}
-        {createOrUpdateUserLoading ? "Adding..." : "Add User"}
-      </button>
-    </div>
-
-    {/* Table */}
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-      {filteredUsers.length === 0 ? (
-        <div className="p-10 text-center">
-          <p className="text-gray-500 mb-4">No users found</p>
+          {/* Add User */}
           <button
             onClick={handleAddUser}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm"
+            disabled={createOrUpdateUserLoading}
+            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-md text-sm font-medium flex items-center gap-2 transition-colors disabled:bg-green-400 disabled:cursor-not-allowed"
           >
-            Add First User
+            {createOrUpdateUserLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <span className="text-lg">+</span>
+            )}
+            {createOrUpdateUserLoading ? "Adding..." : "Add User"}
           </button>
         </div>
-      ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
-              <tr>
-                {[
-                  ["User", User],
-                  ["Contact", Phone],
-                  ["Role", Shield],
-                  ["Status", CheckCircle],
-                  ["Joined On", Calendar],
-                  ["Action", MoreVertical],
-                ].map(([label, Icon]) => (
-                  <th
-                    key={label}
-                    className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                  >
+
+        {/* Users Table */}
+        <div className="bg-white rounded-lg shadow overflow-hidden">
+          {filteredUsers.length === 0 ? (
+            <div className="p-12 text-center">
+              <p className="text-gray-500 mb-3">No users found.</p>
+              <button
+                onClick={handleAddUser}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm"
+              >
+                Add First User
+              </button>
+            </div>
+          ) : (
+            <table className="min-w-full divide-y divide-gray-200">
+              <thead className="bg-gray-200">
+                <tr>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     <div className="flex items-center gap-1">
-                      <Icon className="h-4 w-4 text-gray-500" /> {label}
+                      <User className="h-4 w-4" /> User
                     </div>
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-100 bg-white">
-              {filteredUsers.map((user) => (
-                <tr
-                  key={user.uid}
-                  className="hover:bg-orange-50/40 transition-all"
-                >
-                  <td className="px-6 py-4">
-                    <div className="text-sm font-medium text-gray-900">
-                      {`${user.firstName} ${user.lastName}`}
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <Phone className="h-4 w-4" /> Contact
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {user.email || "-"}
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <Shield className="h-4 w-4" /> Role
                     </div>
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {user.phone || "-"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <RoleBadge role={user.role || "Unknown"} />
-                  </td>
-                  <td className="px-6 py-4">
-                    <StatusBadge
-                      status={user.isUserInActive ? "Inactive" : "Active"}
-                    />
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-700">
-                    {user.createdAt
-                      ? formatDateToDDMMYYYY(user.createdAt)
-                      : "-"}
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    <ActionButtons
-                      onEdit={() => handleEditUser(user)}
-                      onDelete={() => handleDeleteUser(user)}
-                      loadingEdit={
-                        actionLoading.edit === user.uid ||
-                        createOrUpdateUserLoading
-                      }
-                      loadingDelete={
-                        actionLoading.delete === user.uid || deleteLoading
-                      }
-                    />
-                  </td>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <CheckCircle className="h-4 w-4" /> status
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-4 w-4" /> Joined on
+                    </div>
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <div className="flex items-center gap-1">
+                      <MoreVertical className="h-4 w-4" /> Action
+                    </div>
+                  </th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+
+              <tbody className="divide-y divide-gray-200 odd:bg-white even:bg-gray-50">
+                {filteredUsers.map((user) => (
+                  <tr key={user.uid} className="hover:bg-blue-50 transition-colors">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {`${user.firstName} ${user.lastName}`}
+                      </div>
+                      <div className="text-sm text-gray-500">{user.email || "-"}</div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {user.phone || "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <RoleBadge role={user.role || "Unknown"} />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <StatusBadge
+                        status={user.isUserInActive ? "Inactive" : "Active"}
+                      />
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {user.createdAt
+                        ? formatDateToDDMMYYYY(user.createdAt)
+                        : "-"}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm">
+                      <ActionButtons
+                        onEdit={() => handleEditUser(user)}
+                        onDelete={() => handleDeleteUser(user)}
+                        loadingEdit={
+                          actionLoading.edit === user.uid || createOrUpdateUserLoading
+                        }
+                        loadingDelete={
+                          actionLoading.delete === user.uid || deleteLoading
+                        }
+                      />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
         </div>
-      )}
+      </div>
+
+      {/* Add/Edit User Modal */}
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        title={editingUser ? "Edit Admin User" : "Add New Admin User"}
+      >
+        <UserForm
+          onSubmit={handleFormSubmit}
+          onCancel={handleCloseModal}
+          initialData={editingUser}
+          isLoading={createOrUpdateUserLoading}
+        />
+      </Modal>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={isConfirmationOpen}
+        onClose={handleCancelDelete}
+        onConfirm={handleConfirmDelete}
+        title="Delete User"
+        message={
+          userToDelete
+            ? `Are you sure you want to delete "${userToDelete.firstName} ${userToDelete.lastName}"?`
+            : ""
+        }
+        confirmText="Delete"
+        cancelText="Cancel"
+        isLoading={deleteLoading}
+      />
     </div>
-  </div>
-
-  {/* Modals */}
-  <Modal
-    isOpen={isModalOpen}
-    onClose={handleCloseModal}
-    title={editingUser ? "Edit Admin User" : "Add New Admin User"}
-  >
-    <UserForm
-      onSubmit={handleFormSubmit}
-      onCancel={handleCloseModal}
-      initialData={editingUser}
-      isLoading={createOrUpdateUserLoading}
-    />
-  </Modal>
-
-  <ConfirmationModal
-    isOpen={isConfirmationOpen}
-    onClose={handleCancelDelete}
-    onConfirm={handleConfirmDelete}
-    title="Delete User"
-    message={
-      userToDelete
-        ? `Are you sure you want to delete "${userToDelete.firstName} ${userToDelete.lastName}"?`
-        : ""
-    }
-    confirmText="Delete"
-    cancelText="Cancel"
-    isLoading={deleteLoading}
-  />
-</div>
   );
 };
 
