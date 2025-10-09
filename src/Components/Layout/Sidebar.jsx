@@ -4,6 +4,7 @@ import { LayoutDashboard,Users } from "lucide-react";
 import { MdFeed, MdFactory } from "react-icons/md";
 import { FaMapLocationDot } from "react-icons/fa6";
 
+// ✅ Premium unified icon set(Lucide)
 import {
   FaUsers,
   FaQrcode,
