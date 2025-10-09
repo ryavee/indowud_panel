@@ -9,16 +9,19 @@ import {
 import {
   LineChart,
   Line,
-  CartesianGrid,
-  Tooltip,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
+  CartesianGrid,
+  Tooltip,
   PieChart,
   Pie,
   Cell,
   ResponsiveContainer,
 } from "recharts";
 
+// Dummy Data
 const lineData = [
   { day: "Mon", earned: 120, redeemed: 90 },
   { day: "Tue", earned: 200, redeemed: 150 },
@@ -34,7 +37,7 @@ const pieData = [
   { name: "Pending KYC", value: 35 },
 ];
 
-const COLORS = ["#169698", "#D7145D"];
+const COLORS = ["#22c55e", "#facc15"];
 
 const topUsers = [
   { name: "Ravi Raj", points: 1200, status: "Verified" },
@@ -57,147 +60,109 @@ const recentActivity = [
 
 const Dashboard = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8 py-6 space-y-8 transition-all duration-500">
+    <div className="space-y-8 bg-gray-50 min-h-screen">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight">
-            Dashboard
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Welcome back! Here’s what’s happening today.
-          </p>
-        </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] transition">
-            Refresh Data
-          </button>
-          <button className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">
-            Export
-          </button>
-        </div>
-      </div>
+      <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
 
       {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {[
-          {
-            title: "Total Users",
-            value: "1,245",
-            icon: <Users className="w-8 h-8 sm:w-10 sm:h-10 text-[#169698]" />,
-            border: "border-[#169698]",
-          },
-          {
-            title: "Points Claimed",
-            value: "8,540",
-            icon: (
-              <CreditCard className="w-8 h-8 sm:w-10 sm:h-10 text-[#22c55e]" />
-            ),
-            border: "border-[#22c55e]",
-          },
-          {
-            title: "Points Redeemed",
-            value: "6,230",
-            icon: <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-[#D7145D]" />,
-            border: "border-[#D7145D]",
-          },
-          {
-            title: "KYC Verified",
-            value: "780",
-            icon: <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-[#eab308]" />,
-            border: "border-[#eab308]",
-          },
-        ].map((card, i) => (
-          <div
-            key={i}
-            className={`bg-white rounded-xl shadow-sm border-l-4 ${card.border} p-4 sm:p-5 flex items-center gap-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
-          >
-            <div className="bg-gray-50 p-3 rounded-lg">{card.icon}</div>
-            <div>
-              <p className="text-xs sm:text-sm text-gray-500">{card.title}</p>
-              <p className="text-lg sm:text-2xl font-bold text-gray-800">
-                {card.value}
-              </p>
-            </div>
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-blue-500 hover:shadow-md transition">
+          <Users className="w-10 h-10 text-blue-500" />
+          <div>
+            <p className="text-sm text-gray-500">Total Users</p>
+            <p className="text-xl font-semibold text-gray-800">1,245</p>
           </div>
-        ))}
+        </div>
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-green-500 hover:shadow-md transition">
+          <CreditCard className="w-10 h-10 text-green-500" />
+          <div>
+            <p className="text-sm text-gray-500">Points Claimed</p>
+            <p className="text-xl font-semibold text-gray-800">8,540</p>
+          </div>
+        </div>
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-purple-500 hover:shadow-md transition">
+          <TrendingUp className="w-10 h-10 text-purple-500" />
+          <div>
+            <p className="text-sm text-gray-500">Points Redeemed</p>
+            <p className="text-xl font-semibold text-gray-800">6,230</p>
+          </div>
+        </div>
+        <div className="bg-white shadow-sm rounded-lg p-5 flex items-center space-x-4 border-l-4 border-yellow-500 hover:shadow-md transition">
+          <CheckCircle className="w-10 h-10 text-yellow-500" />
+          <div>
+            <p className="text-sm text-gray-500">KYC Verified</p>
+            <p className="text-xl font-semibold text-gray-800">780</p>
+          </div>
+        </div>
       </div>
 
       {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Line Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Line Chart (Full Width on Large Screens) */}
+        <div className="bg-white shadow rounded-lg p-6 col-span-2 md:col-span-2">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">
             Points Earned vs Redeemed
           </h2>
-          <div className="h-64 sm:h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={lineData}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis dataKey="day" stroke="#9ca3af" />
-                <YAxis stroke="#9ca3af" />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="earned"
-                  stroke="#169698"
-                  strokeWidth={3}
-                  dot={{ r: 3 }}
-                />
-                <Line
-                  type="monotone"
-                  dataKey="redeemed"
-                  stroke="#D7145D"
-                  strokeWidth={3}
-                  dot={{ r: 3 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <LineChart data={lineData}>
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="day" />
+              <YAxis />
+              <Tooltip />
+              <Line
+                type="monotone"
+                dataKey="earned"
+                stroke="#3b82f6"
+                strokeWidth={2}
+              />
+              <Line
+                type="monotone"
+                dataKey="redeemed"
+                stroke="#ef4444"
+                strokeWidth={2}
+              />
+            </LineChart>
+          </ResponsiveContainer>
         </div>
 
-        {/* Pie Chart */}
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+        {/* Pie Chart (Enlarged) */}
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">
             KYC Status Overview
           </h2>
-          <div className="h-64 sm:h-80">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius="70%"
-                  label
-                >
-                  {pieData.map((entry, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
-                  ))}
-                </Pie>
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <ResponsiveContainer width="100%" height={320}>
+            <PieChart>
+              <Pie
+                data={pieData}
+                dataKey="value"
+                nameKey="name"
+                outerRadius={120}
+                label
+              >
+                {pieData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={COLORS[index]} />
+                ))}
+              </Pie>
+              <Tooltip />
+            </PieChart>
+          </ResponsiveContainer>
         </div>
       </div>
 
       {/* Activity + Top Users */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-[#169698]" /> Recent
-            Activity
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">
+            Recent Activity
           </h2>
           <ul className="space-y-3">
             {recentActivity.map((activity, idx) => (
               <li
                 key={idx}
-                className="text-sm sm:text-base text-gray-700 border-b pb-2 last:border-b-0 flex items-start gap-2"
+                className="flex items-center text-sm text-gray-700 border-b pb-2 last:border-b-0"
               >
-                <div className="w-2 h-2 mt-1 bg-[#169698] rounded-full"></div>
+                <ArrowRight className="w-4 h-4 text-blue-500 mr-2" />
                 {activity}
               </li>
             ))}
@@ -205,80 +170,64 @@ const Dashboard = () => {
         </div>
 
         {/* Top Users */}
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
-            Top Users
-          </h2>
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm sm:text-base">
-              <thead>
-                <tr className="text-gray-500 text-left">
-                  <th className="pb-2">Name</th>
-                  <th className="pb-2">Points</th>
-                  <th className="pb-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topUsers.map((user, idx) => (
-                  <tr
-                    key={idx}
-                    className="border-t hover:bg-gray-50 transition"
-                  >
-                    <td className="py-2 font-medium text-gray-700">
-                      {user.name}
-                    </td>
-                    <td className="py-2">{user.points}</td>
-                    <td className="py-2">
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${
-                          user.status === "Verified"
-                            ? "bg-green-100 text-green-700"
-                            : "bg-yellow-100 text-yellow-700"
-                        }`}
-                      >
-                        {user.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      {/* Recent Transactions */}
-      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
-          Latest Transactions
-        </h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm sm:text-base">
+        <div className="bg-white shadow rounded-lg p-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-800">Top Users</h2>
+          <table className="w-full text-sm">
             <thead>
               <tr className="text-gray-500 text-left">
-                <th className="pb-2">User</th>
-                <th className="pb-2">Type</th>
-                <th className="pb-2">Amount</th>
-                <th className="pb-2">Date</th>
+                <th className="pb-2">Name</th>
+                <th className="pb-2">Points</th>
+                <th className="pb-2">Status</th>
               </tr>
             </thead>
             <tbody>
-              {recentTransactions.map((tx, idx) => (
-                <tr
-                  key={idx}
-                  className="border-t hover:bg-gray-50 transition"
-                >
-                  <td className="py-2">{tx.user}</td>
-                  <td className="py-2">{tx.type}</td>
-                  <td className="py-2 font-semibold text-gray-800">
-                    ₹{tx.amount}
+              {topUsers.map((user, idx) => (
+                <tr key={idx} className="border-t">
+                  <td className="py-2">{user.name}</td>
+                  <td className="py-2 font-medium">{user.points}</td>
+                  <td className="py-2">
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        user.status === "Verified"
+                          ? "bg-green-100 text-green-800"
+                          : "bg-yellow-100 text-yellow-800"
+                      }`}
+                    >
+                      {user.status}
+                    </span>
                   </td>
-                  <td className="py-2 text-gray-500">{tx.date}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Recent Transactions */}
+      <div className="bg-white shadow rounded-lg p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-800">
+          Latest Transactions
+        </h2>
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="text-gray-500 text-left">
+              <th className="pb-2">User</th>
+              <th className="pb-2">Type</th>
+              <th className="pb-2">Amount</th>
+              <th className="pb-2">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {recentTransactions.map((tx, idx) => (
+              <tr key={idx} className="border-t">
+                <td className="py-2">{tx.user}</td>
+                <td className="py-2">{tx.type}</td>
+                <td className="py-2 font-medium text-gray-800">₹{tx.amount}</td>
+                <td className="py-2 text-gray-500">{tx.date}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
