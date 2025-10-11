@@ -17,7 +17,7 @@ import {
 } from "lucide-react";
 
 import { CustomerContext } from "../Context/CustomerContext";
-import CustomerDetails from "../components/CustomerDetails";
+import CustomerDetails from "../Components/CustomerDetails";
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
