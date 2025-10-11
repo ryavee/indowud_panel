@@ -12,6 +12,8 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { useDealersContext } from "../Context/DealersContext";
+import ConfirmationModal from "../Components/ConfirmationModal";
+
 
 const Dealers = () => {
   const {
@@ -197,7 +199,7 @@ const Dealers = () => {
                   ["Name", User],
                   ["City", MapPin],
                   ["State", Globe],
-                  ["Actions", MoreVertical],
+                  ["Action", MoreVertical],
                 ].map(([label, Icon]) => (
                   <th
                     key={label}
@@ -307,59 +309,38 @@ const Dealers = () => {
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {showConfirm && dealerToDelete && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-100 transform scale-95 animate-modalPop">
-            <h3 className="text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              Confirm Delete
-            </h3>
-            <p className="text-gray-600 mb-4">
+      <ConfirmationModal
+        isOpen={showConfirm && !!dealerToDelete}
+        title="Confirm Delete"
+        message={
+          dealerToDelete ? (
+            <span>
               Are you sure you want to delete{" "}
-              <span className="font-semibold text-gray-900">
+              <span className="font-semibold text-[#169698]">
                 {dealerToDelete.firstName} {dealerToDelete.lastName}
-              </span>{" "}
-              from{" "}
-              <span className="font-medium text-orange-600">
+              </span>
+              {" "}from{" "}
+              <span className="text-orange-600 font-medium">
                 {dealerToDelete.city}
               </span>
-              ? This action cannot be undone.
-            </p>
+              ?{" "}
+              <br />
+              <span className="text-gray-600">
+                This action cannot be undone.
+              </span>
+            </span>
+          ) : (
+            ""
+          )
+        }
+        onCancel={cancelDelete}
+        onConfirm={confirmDelete}
+        isLoading={operationLoading}
+        type="danger"
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
 
-            {localError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                <p className="text-sm text-red-700">{localError}</p>
-              </div>
-            )}
-
-            <div className="flex justify-end gap-3 mt-4">
-              <button
-                onClick={cancelDelete}
-                disabled={operationLoading}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium transition-all duration-200 transform hover:scale-[1.05] active:scale-[0.97]"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={confirmDelete}
-                disabled={operationLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-all duration-200 transform hover:scale-[1.05] active:scale-[0.97] shadow-sm hover:shadow-md disabled:opacity-50"
-              >
-                {operationLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Deleting...
-                  </>
-                ) : (
-                  "Delete"
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

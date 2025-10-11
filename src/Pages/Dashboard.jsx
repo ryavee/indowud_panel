@@ -5,6 +5,8 @@ import {
   TrendingUp,
   CheckCircle,
   ArrowRight,
+  RefreshCw,
+  Download,
 } from "lucide-react";
 import {
   LineChart,
@@ -19,6 +21,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// === Demo Data ===
 const lineData = [
   { day: "Mon", earned: 120, redeemed: 90 },
   { day: "Tue", earned: 200, redeemed: 150 },
@@ -58,22 +61,25 @@ const recentActivity = [
 const Dashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8 py-6 space-y-8 transition-all duration-500">
+      
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 tracking-tight">
+          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
             Dashboard
           </h1>
           <p className="text-gray-500 text-sm mt-1">
             Welcome back! Here’s what’s happening today.
           </p>
         </div>
-        <div className="flex items-center gap-2 sm:gap-3">
-          <button className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] transition">
-            Refresh Data
+
+        {/* Header Buttons */}
+        <div className="flex items-center gap-3">
+          <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all">
+            <RefreshCw className="w-4 h-4" /> Refresh
           </button>
-          <button className="flex-1 sm:flex-none px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg hover:bg-gray-100 transition">
-            Export
+          <button className="flex items-center gap-2 px-4 py-2 text-sm font-medium border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-all">
+            <Download className="w-4 h-4" /> Export
           </button>
         </div>
       </div>
@@ -84,40 +90,36 @@ const Dashboard = () => {
           {
             title: "Total Users",
             value: "1,245",
-            icon: <Users className="w-8 h-8 sm:w-10 sm:h-10 text-[#169698]" />,
+            icon: <Users className="w-8 h-8 text-[#169698]" />,
             border: "border-[#169698]",
           },
           {
             title: "Points Claimed",
             value: "8,540",
-            icon: (
-              <CreditCard className="w-8 h-8 sm:w-10 sm:h-10 text-[#22c55e]" />
-            ),
-            border: "border-[#22c55e]",
+            icon: <CreditCard className="w-8 h-8 text-[#22C55E]" />,
+            border: "border-[#22C55E]",
           },
           {
             title: "Points Redeemed",
             value: "6,230",
-            icon: <TrendingUp className="w-8 h-8 sm:w-10 sm:h-10 text-[#D7145D]" />,
+            icon: <TrendingUp className="w-8 h-8 text-[#D7145D]" />,
             border: "border-[#D7145D]",
           },
           {
             title: "KYC Verified",
             value: "780",
-            icon: <CheckCircle className="w-8 h-8 sm:w-10 sm:h-10 text-[#eab308]" />,
-            border: "border-[#eab308]",
+            icon: <CheckCircle className="w-8 h-8 text-[#EAB308]" />,
+            border: "border-[#EAB308]",
           },
         ].map((card, i) => (
           <div
             key={i}
-            className={`bg-white rounded-xl shadow-sm border-l-4 ${card.border} p-4 sm:p-5 flex items-center gap-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-300`}
+            className={`bg-white rounded-xl shadow-sm border-l-4 ${card.border} p-5 flex items-center gap-4 hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
           >
-            <div className="bg-gray-50 p-3 rounded-lg">{card.icon}</div>
+            <div className="bg-[#F9FAFB] p-3 rounded-lg">{card.icon}</div>
             <div>
-              <p className="text-xs sm:text-sm text-gray-500">{card.title}</p>
-              <p className="text-lg sm:text-2xl font-bold text-gray-800">
-                {card.value}
-              </p>
+              <p className="text-sm text-gray-500">{card.title}</p>
+              <p className="text-2xl font-bold text-gray-800">{card.value}</p>
             </div>
           </div>
         ))}
@@ -125,12 +127,13 @@ const Dashboard = () => {
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
         {/* Line Chart */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Points Earned vs Redeemed
           </h2>
-          <div className="h-64 sm:h-80">
+          <div className="h-72 sm:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={lineData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
@@ -157,11 +160,11 @@ const Dashboard = () => {
         </div>
 
         {/* Pie Chart */}
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
             KYC Status Overview
           </h2>
-          <div className="h-64 sm:h-80">
+          <div className="h-72 sm:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -185,17 +188,17 @@ const Dashboard = () => {
 
       {/* Activity + Top Users */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        
         {/* Recent Activity */}
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 text-[#169698]" /> Recent
-            Activity
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+            <ArrowRight className="w-5 h-5 text-[#169698]" /> Recent Activity
           </h2>
           <ul className="space-y-3">
             {recentActivity.map((activity, idx) => (
               <li
                 key={idx}
-                className="text-sm sm:text-base text-gray-700 border-b pb-2 last:border-b-0 flex items-start gap-2"
+                className="text-sm text-gray-700 border-b pb-2 last:border-b-0 flex items-start gap-2"
               >
                 <div className="w-2 h-2 mt-1 bg-[#169698] rounded-full"></div>
                 {activity}
@@ -205,14 +208,14 @@ const Dashboard = () => {
         </div>
 
         {/* Top Users */}
-        <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4">
             Top Users
           </h2>
           <div className="overflow-x-auto">
-            <table className="w-full text-sm sm:text-base">
+            <table className="w-full text-sm">
               <thead>
-                <tr className="text-gray-500 text-left">
+                <tr className="text-gray-500 text-left border-b">
                   <th className="pb-2">Name</th>
                   <th className="pb-2">Points</th>
                   <th className="pb-2">Status</th>
@@ -222,15 +225,15 @@ const Dashboard = () => {
                 {topUsers.map((user, idx) => (
                   <tr
                     key={idx}
-                    className="border-t hover:bg-gray-50 transition"
+                    className="border-t hover:bg-[#169698]/5 transition"
                   >
-                    <td className="py-2 font-medium text-gray-700">
+                    <td className="py-2 font-medium text-gray-800">
                       {user.name}
                     </td>
                     <td className="py-2">{user.points}</td>
                     <td className="py-2">
                       <span
-                        className={`px-2 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${
                           user.status === "Verified"
                             ? "bg-green-100 text-green-700"
                             : "bg-yellow-100 text-yellow-700"
@@ -248,14 +251,14 @@ const Dashboard = () => {
       </div>
 
       {/* Recent Transactions */}
-      <div className="bg-white rounded-xl shadow-sm p-4 sm:p-6 border border-gray-100 hover:shadow-md transition">
-        <h2 className="text-base sm:text-lg font-semibold text-gray-800 mb-4">
+      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4">
           Latest Transactions
         </h2>
         <div className="overflow-x-auto">
-          <table className="w-full text-sm sm:text-base">
+          <table className="w-full text-sm">
             <thead>
-              <tr className="text-gray-500 text-left">
+              <tr className="text-gray-500 text-left border-b">
                 <th className="pb-2">User</th>
                 <th className="pb-2">Type</th>
                 <th className="pb-2">Amount</th>
@@ -266,7 +269,7 @@ const Dashboard = () => {
               {recentTransactions.map((tx, idx) => (
                 <tr
                   key={idx}
-                  className="border-t hover:bg-gray-50 transition"
+                  className="border-t hover:bg-[#169698]/5 transition"
                 >
                   <td className="py-2">{tx.user}</td>
                   <td className="py-2">{tx.type}</td>
