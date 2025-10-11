@@ -3,11 +3,9 @@ import {
   Trash2,
   Plus,
   RefreshCw,
-  X,
   AlertCircle,
   Loader,
   Package,
-  Search,
 } from "lucide-react";
 import { useProductContext } from "../Context/ProductsContext";
 
@@ -15,50 +13,42 @@ const Products = () => {
   const {
     products,
     loading,
-    error,
     creating,
     deleting,
     addProduct,
     removeProduct,
-    clearError,
     refreshProducts,
   } = useProductContext();
 
   const [newProductName, setNewProductName] = useState("");
   const [newProductUnit, setNewProductUnit] = useState("");
   const [formError, setFormError] = useState("");
-  const [searchTerm, setSearchTerm] = useState("");
   const [showSuccessMessage, setShowSuccessMessage] = useState("");
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   useEffect(() => {
     if (showSuccessMessage) {
-      const timer = setTimeout(() => {
-        setShowSuccessMessage("");
-      }, 3000);
+      const timer = setTimeout(() => setShowSuccessMessage(""), 3000);
       return () => clearTimeout(timer);
     }
   }, [showSuccessMessage]);
 
   const handleAddProduct = async () => {
+    setFormError("");
+    if (!newProductName.trim() || !newProductUnit.trim()) {
+      setFormError("Both fields are required");
+      return;
+    }
     try {
-      setFormError("");
-      if (!newProductName.trim()) {
-        setFormError("Product name is required");
-        return;
-      }
-      if (!newProductUnit.trim()) {
-        setFormError("Product unit is required");
-        return;
-      }
-      await addProduct({ 
+      await addProduct({
         productName: newProductName.trim(),
-        productUnit: newProductUnit.trim()
+        productUnit: newProductUnit.trim(),
       });
       setNewProductName("");
       setNewProductUnit("");
       setShowSuccessMessage(`"${newProductName.trim()}" added successfully!`);
     } catch (err) {
-      setFormError(err.message || "Failed to add product");
+      setFormError("Failed to add product");
     }
   };
 
@@ -73,18 +63,39 @@ const Products = () => {
     }
   };
 
-  const handleKeyPress = (e) => {
-    if (e.key === "Enter") {
-      handleAddProduct();
-    }
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await refreshProducts();
+    setTimeout(() => setIsRefreshing(false), 600);
   };
 
   return (
-    <div className=" mx-auto space-y-6">
-      {/* Success Message */}
-      {showSuccessMessage && (
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="flex items-center gap-3">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Header */}
+        <div className="flex items-center justify-between flex-wrap gap-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              Products
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Manage your product list and inventory.
+            </p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.97]"
+          >
+            <RefreshCw
+              className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
+            />
+            Refresh
+          </button>
+        </div>
+
+        {/* Success Message */}
+        {showSuccessMessage && (
+          <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm">
             <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
               <svg
                 className="w-3 h-3 text-white"
@@ -100,158 +111,143 @@ const Products = () => {
             </div>
             <p className="text-green-800 font-medium">{showSuccessMessage}</p>
           </div>
-        </div>
-      )}
-      
-      {/* Add Product Form */}
-      <div className="bg-white rounded-lg p-6 mb-6 shadow-sm">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Add New Product</h2>
-        </div>
-
-        {/* Form Error */}
-        {formError && (
-          <div className="bg-red-50 border border-red-200 rounded-md p-3 mb-4">
-            <div className="flex items-center gap-2">
-              <AlertCircle className="text-red-500" size={16} />
-              <p className="text-red-700 text-sm">{formError}</p>
-            </div>
-          </div>
         )}
 
-        <div className="space-y-3">
-          {/* Product Name Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Product Name
-            </label>
+        {/* Add Product Form */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 space-y-4">
+          <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+            <Plus className="w-5 h-5 text-orange-500" /> Add New Product
+          </h2>
+
+          {formError && (
+            <div className="flex items-center gap-2 bg-red-50 border border-red-200 text-red-700 p-3 rounded-lg">
+              <AlertCircle className="w-5 h-5 text-red-500" />
+              <p className="text-sm">{formError}</p>
+            </div>
+          )}
+
+          <div className="grid sm:grid-cols-2 gap-4">
             <input
               type="text"
+              placeholder="Product Name"
               value={newProductName}
-              onChange={(e) => {
-                setNewProductName(e.target.value);
-                if (formError) setFormError("");
-              }}
-              placeholder="Enter product name"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              onKeyPress={handleKeyPress}
-              disabled={creating}
+              onChange={(e) => setNewProductName(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
             />
-          </div>
-
-          {/* Product Unit Input */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Product Unit
-            </label>
             <input
               type="text"
+              placeholder="Unit (e.g., 08 mm, 15mm, etc.)"
               value={newProductUnit}
-              onChange={(e) => {
-                setNewProductUnit(e.target.value);
-                if (formError) setFormError("");
-              }}
-              placeholder="Enter unit (e.g., 08 mm, 15mm, 20 mm, etc.)"
-              className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
-              onKeyPress={handleKeyPress}
-              disabled={creating}
+              onChange={(e) => setNewProductUnit(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
             />
           </div>
 
-          {/* Add Button */}
           <button
             onClick={handleAddProduct}
             disabled={creating || !newProductName.trim() || !newProductUnit.trim()}
-            className="w-full px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
           >
             {creating ? (
               <>
-                <Loader size={16} className="animate-spin" />
-                Adding...
+                <Loader className="w-4 h-4 animate-spin" /> Adding...
               </>
             ) : (
               <>
-                <Plus size={16} />
-                Add Product
+                <Plus className="w-4 h-4" /> Add Product
               </>
             )}
           </button>
         </div>
-      </div>
 
-      {/* Products List */}
-      <div className="bg-white rounded-lg shadow-sm">
-        <div className="p-6 border-b border-gray-200">
-          <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">
-              Product List ({products.length})
-            </h2>
+        {/* Product Table */}
+        <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900 tracking-tight">
+                Products
+              </h2>
+              <p className="text-xs text-gray-500">
+                {products.length} {products.length === 1 ? "item" : "items"}
+              </p>
+            </div>
             {loading && (
-              <div className="flex items-center gap-2 text-gray-600">
-                <Loader size={16} className="animate-spin" />
-                <span className="text-sm">Loading...</span>
+              <div className="flex items-center gap-2 text-gray-500 text-sm">
+                <Loader className="w-4 h-4 animate-spin" /> Updating...
               </div>
             )}
           </div>
-        </div>
 
-        {loading && products.length === 0 ? (
-          <div className="p-8 text-center">
-            <Loader
-              size={24}
-              className="animate-spin mx-auto mb-3 text-gray-400"
-            />
-            <p className="text-gray-500">Loading products...</p>
-          </div>
-        ) : products.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">
-            <div className="mb-4">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                <Plus size={24} className="text-gray-400" />
-              </div>
+          {loading && products.length === 0 ? (
+            <div className="p-10 text-center text-gray-500">
+              <Loader size={24} className="animate-spin mx-auto mb-3 text-gray-400" />
+              Loading products...
             </div>
-            <h3 className="font-medium mb-2">No products found</h3>
-            <p className="text-sm">
-              Add your first product above to get started.
-            </p>
-          </div>
-        ) : (
-          <div className="divide-y divide-gray-200">
-            {products.map((product) => (
-              <div
-                key={product.id}
-                className="p-4 flex items-center justify-between hover:bg-gray-50 transition-colors duration-150"
-              >
-                <div className="flex-1">
-                  <h3 className="text-lg font-medium text-gray-900">
-                    {product.name || product.productName} {product.productUnit}
-                  </h3>
-                  <div className="space-y-1">
-                    {product.id && (
-                      <p className="text-xs text-gray-500">
-                        ID: {product.id}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button
-                  onClick={() => handleDeleteProduct(product.id, product.name || product.productName)}
-                  disabled={deleting === product.id}
-                  className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-md transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed min-w-[40px] flex items-center justify-center"
-                  title={
-                    deleting === product.id ? "Deleting..." : "Delete product"
-                  }
-                >
-                  {deleting === product.id ? (
-                    <Loader size={18} className="animate-spin" />
-                  ) : (
-                    <Trash2 size={18} />
-                  )}
-                </button>
-              </div>
-            ))}
-          </div>
-        )}
+          ) : products.length === 0 ? (
+            <div className="p-10 text-center text-gray-500">
+              <Package className="mx-auto mb-3 text-orange-400" size={26} />
+              No products found
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="min-w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider w-10">
+                      #
+                    </th>
+                    <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider">
+                      Product Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider">
+                      Unit
+                    </th>
+                    <th className="px-6 py-3 text-right text-gray-500 font-medium uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+
+                <tbody className="divide-y divide-gray-100">
+                  {products.map((product, index) => (
+                    <tr
+                      key={product.id}
+                      className="hover:bg-orange-50/40 transition-all duration-200"
+                    >
+                      <td className="px-6 py-4 text-gray-600 font-medium">
+                        {index + 1}
+                      </td>
+                      <td className="px-6 py-4 text-gray-900 font-medium">
+                        {product.name || product.productName}
+                      </td>
+                      <td className="px-6 py-4 text-gray-700">
+                        {product.productUnit}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() =>
+                            handleDeleteProduct(
+                              product.id,
+                              product.name || product.productName
+                            )
+                          }
+                          disabled={deleting === product.id}
+                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition disabled:opacity-50"
+                        >
+                          {deleting === product.id ? (
+                            <Loader className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <Trash2 size={18} />
+                          )}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

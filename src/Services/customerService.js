@@ -1,6 +1,5 @@
 import { BASE_URL, ENDPOINTS } from "../Config/apiConfig";
 export async function getCustomers(token) {
-  console.log("APi Calling getCustomers");
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.GETCUSTOMERS}`, {
       method: "GET",
@@ -19,8 +18,6 @@ export async function getCustomers(token) {
 
 // Block User
 export async function blockCustomer(token, uid, isUserInActive) {
-  console.log("APi Calling blockCustomer");
-
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.BLOCKCUSTOMER}`, {
       method: "POST",
@@ -40,8 +37,6 @@ export async function blockCustomer(token, uid, isUserInActive) {
 
 // KYC Verification
 export async function customerKYCVerification(token, uid, isKYCverifed) {
-  console.log("APi Calling customerKYCVerification");
-
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.KYCVERIFICATION}`, {
       method: "POST",

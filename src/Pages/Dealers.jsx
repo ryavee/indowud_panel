@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-
 import {
   Trash2,
   AlertCircle,
@@ -12,8 +11,6 @@ import {
   Globe,
   MoreVertical,
 } from "lucide-react";
-
-
 import { useDealersContext } from "../Context/DealersContext";
 
 const Dealers = () => {
@@ -97,7 +94,6 @@ const Dealers = () => {
     }
 
     const result = await addDealer(newDealer);
-
     if (result.success) {
       setShowAddModal(false);
       setNewDealer({ firstName: "", lastName: "", city: "", state: "" });
@@ -132,7 +128,7 @@ const Dealers = () => {
     return (
       <div className="flex items-center justify-center min-h-96">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-blue-600 mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
           <p className="text-gray-600">Loading dealers...</p>
         </div>
       </div>
@@ -142,18 +138,15 @@ const Dealers = () => {
   // ❌ Error State
   if (error && !loading) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+      <div className="bg-red-50 border border-red-200 rounded-xl p-6 shadow-sm">
         <div className="flex items-start gap-3">
           <AlertCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <h3 className="text-red-800 font-semibold mb-1">
-              Error Loading Dealers
-            </h3>
+            <h3 className="text-red-800 font-semibold mb-1">Error Loading Dealers</h3>
             <p className="text-red-700 mb-4">{error}</p>
             <button
               onClick={handleRetry}
-              className="px-4 py-2 bg-red-600 text-white rounded-lg 
-                hover:bg-red-700 active:scale-[0.97] transition-all shadow-sm cursor-pointer"
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.97]"
             >
               Retry
             </button>
@@ -164,17 +157,16 @@ const Dealers = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl">
+    <div className="min-h-screen bg-gradient-to-b from-white via-orange-50/10 to-gray-50 p-6">
       <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Dealers</h1>
-          <p className="text-gray-600">Manage your dealer network.</p>
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">Dealers</h1>
+          <p className="text-sm text-gray-600">Manage your dealer network and onboarding process.</p>
         </div>
 
-        {/* Search & Add */}
+        {/* Search + Add */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
-          {/* Search box */}
           <div className="relative flex-1 max-w-sm w-full">
             <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
             <input
@@ -182,92 +174,58 @@ const Dealers = () => {
               placeholder="Search dealer name, city, or state..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md 
-        focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm"
             />
           </div>
 
-          {/* Add Dealer button (aligned to right) */}
-          <div className="flex justify-end w-full sm:w-auto">
-            <button
-              onClick={handleAddDealerClick}
-              disabled={operationLoading}
-              className="flex items-center justify-center gap-2 px-5 py-2 
-                     bg-green-600 hover:bg-green-700 text-white rounded-md 
-                     text-sm font-medium transition-all duration-200 transform 
-                     hover:scale-[1.05] active:scale-[0.97] shadow-sm hover:shadow-md 
-                     disabled:bg-green-400 disabled:cursor-not-allowed cursor-pointer"
-            >
-              <Plus className="w-4 h-4" /> Add Dealer
-            </button>
-          </div>
+          <button
+            onClick={handleAddDealerClick}
+            disabled={operationLoading}
+            className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
+          >
+            <Plus className="w-4 h-4" /> Add Dealer
+          </button>
         </div>
 
-
         {/* Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-200">
-
+        <div className="bg-white rounded-xl shadow-premium border border-gray-100 overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200 text-sm">
+            <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  <div className="flex items-center gap-1.5">
-                    <Hash className="h-4 w-4" /> Dealer ID
-                  </div>
-                </th>
-
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  <div className="flex items-center gap-1.5">
-                    <User className="h-4 w-4" /> Name
-                  </div>
-                </th>
-
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  <div className="flex items-center gap-1.5">
-                    <MapPin className="h-4 w-4" /> City
-                  </div>
-                </th>
-
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  <div className="flex items-center gap-1.5">
-                    <Globe className="h-4 w-4" /> State
-                  </div>
-                </th>
-
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                  <div className="flex items-center gap-1.5">
-                    <MoreVertical className="h-4 w-4" /> Actions
-                  </div>
-                </th>
+                {[
+                  ["Dealer ID", Hash],
+                  ["Name", User],
+                  ["City", MapPin],
+                  ["State", Globe],
+                  ["Actions", MoreVertical],
+                ].map(([label, Icon]) => (
+                  <th
+                    key={label}
+                    className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                  >
+                    <div className="flex items-center gap-1.5">
+                      <Icon className="h-4 w-4 text-gray-500" /> {label}
+                    </div>
+                  </th>
+                ))}
               </tr>
             </thead>
 
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white divide-y divide-gray-100">
               {filteredDealers.length > 0 ? (
                 filteredDealers.map((dealer) => (
-                  <tr
-                    key={dealer.dealersId}
-                    className="hover:bg-gray-50 transition-colors"
-                  >
-                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                      {dealer.dealersId}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
+                  <tr key={dealer.dealersId} className="hover:bg-orange-50/40 transition-all">
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-800">{dealer.dealersId}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-800">
                       {dealer.firstName} {dealer.lastName}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                      {dealer.city}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-900 whitespace-nowrap">
-                      {dealer.state}
-                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">{dealer.city}</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">{dealer.state}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                       <button
                         onClick={() => handleDeleteClick(dealer)}
                         disabled={operationLoading}
-                        className="text-red-600 hover:text-red-800 hover:bg-red-50 
-                          p-2 rounded transition-all duration-150 disabled:opacity-50 
-                          disabled:cursor-not-allowed cursor-pointer"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <Trash2 size={18} />
                       </button>
@@ -276,10 +234,7 @@ const Dealers = () => {
                 ))
               ) : (
                 <tr>
-                  <td
-                    colSpan="5"
-                    className="text-center py-12 text-gray-500 text-sm"
-                  >
+                  <td colSpan="5" className="text-center py-12 text-gray-500 text-sm">
                     No dealers found.
                   </td>
                 </tr>
@@ -289,19 +244,12 @@ const Dealers = () => {
         </div>
       </div>
 
-      {/* ✅ Add Dealer Modal */}
+      {/* Add Dealer Modal */}
       {showAddModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 
-               bg-black/10 backdrop-blur-sm transition-all duration-300 animate-fadeIn"
-        >
-          <div
-            className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-100 
-                 transform scale-95 animate-modalPop relative transition-transform duration-300"
-          >
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-100 transform scale-95 animate-modalPop">
             <h3 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
-              <Plus className="w-5 h-5 text-blue-600 mr-2" />
-              Add New Dealer
+              <Plus className="w-5 h-5 text-orange-600 mr-2" /> Add New Dealer
             </h3>
 
             <div className="space-y-4">
@@ -319,8 +267,7 @@ const Dealers = () => {
                     name={field}
                     value={newDealer[field]}
                     onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md 
-                         focus:ring-1 focus:ring-blue-500 focus:outline-none text-sm"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm"
                     placeholder={`Enter ${field}`}
                   />
                 </div>
@@ -334,25 +281,18 @@ const Dealers = () => {
               </div>
             )}
 
-            <div className="flex gap-3 justify-end mt-6">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={cancelAddDealer}
                 disabled={operationLoading}
-                className="px-4 py-2 border border-gray-300 rounded-md 
-                     hover:bg-gray-50 text-sm font-medium transition-all 
-                     duration-200 transform hover:scale-[1.05] 
-                     active:scale-[0.97] cursor-pointer"
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium transition-all duration-200 transform hover:scale-[1.05] active:scale-[0.97]"
               >
                 Cancel
               </button>
               <button
                 onClick={handleCreateDealer}
                 disabled={operationLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-blue-600 
-                     hover:bg-blue-700 text-white rounded-md text-sm font-medium 
-                     transition-all duration-200 transform hover:scale-[1.05] 
-                     active:scale-[0.97] shadow-sm hover:shadow-md 
-                     disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-all duration-200 transform hover:scale-[1.05] active:scale-[0.97] shadow-sm hover:shadow-md disabled:opacity-50"
               >
                 {operationLoading ? (
                   <>
@@ -367,14 +307,10 @@ const Dealers = () => {
         </div>
       )}
 
-      {/* 🗑️ Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal */}
       {showConfirm && dealerToDelete && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 
-                bg-black/10 backdrop-blur-sm transition-all duration-300 animate-fadeIn">
-          <div
-            className="bg-white rounded-xl p-6 max-w-md w-full mx-4 shadow-2xl border border-gray-100 
-                 transform scale-95 animate-modalPop relative transition-transform duration-300"
-          >
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-100 transform scale-95 animate-modalPop">
             <h3 className="text-lg font-semibold mb-2 text-gray-800 flex items-center gap-2">
               <AlertCircle className="w-5 h-5 text-red-600" />
               Confirm Delete
@@ -384,7 +320,8 @@ const Dealers = () => {
               <span className="font-semibold text-gray-900">
                 {dealerToDelete.firstName} {dealerToDelete.lastName}
               </span>{" "}
-              from <span className="font-medium text-blue-600">
+              from{" "}
+              <span className="font-medium text-orange-600">
                 {dealerToDelete.city}
               </span>
               ? This action cannot be undone.
@@ -401,10 +338,7 @@ const Dealers = () => {
               <button
                 onClick={cancelDelete}
                 disabled={operationLoading}
-                className="px-4 py-2 border border-gray-300 rounded-md 
-                     hover:bg-gray-50 text-sm font-medium transition-all 
-                     duration-200 transform hover:scale-[1.05] 
-                     active:scale-[0.97] cursor-pointer"
+                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium transition-all duration-200 transform hover:scale-[1.05] active:scale-[0.97]"
               >
                 Cancel
               </button>
@@ -412,11 +346,7 @@ const Dealers = () => {
               <button
                 onClick={confirmDelete}
                 disabled={operationLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-red-600 
-                     hover:bg-red-700 text-white rounded-md text-sm font-medium 
-                     transition-all duration-200 transform hover:scale-[1.05] 
-                     active:scale-[0.97] shadow-sm hover:shadow-md 
-                     disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md text-sm font-medium transition-all duration-200 transform hover:scale-[1.05] active:scale-[0.97] shadow-sm hover:shadow-md disabled:opacity-50"
               >
                 {operationLoading ? (
                   <>
