@@ -11,10 +11,12 @@ import { ProductProvider } from "./Context/ProductsContext";
 import { DealersContextProvider } from "./Context/DealersContext";
 import { CodesProvider } from "./Context/CodesContext";
 import { TrackQRDataProvider } from "./Context/TrackQRDataContext";
+import { RedemptionsContextProvider } from "./Context/RedemptionContext";
 
 function App() {
   return (
     <AuthProvider>
+      <RedemptionsContextProvider>
       <TrackQRDataProvider>
         <CodesProvider>
           <DealersContextProvider>
@@ -38,6 +40,7 @@ function App() {
           </DealersContextProvider>
         </CodesProvider>
       </TrackQRDataProvider>
+      </RedemptionsContextProvider>
     </AuthProvider>
   );
 }
