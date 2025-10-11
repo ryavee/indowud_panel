@@ -1,9 +1,55 @@
 @import "tailwindcss";
 
+/* =======================
+   GLOBAL BASE STYLES
+======================= */
 :root {
   font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
 }
 
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #f9fafb;
+}
+
+/* =======================
+   ANIMATIONS
+======================= */
+
+/* Smooth fade-in for modals, cards, etc. */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+/* Pop-in modal animation (more expressive) */
+@keyframes modalPop {
+  0% {
+    transform: scale(0.9);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.animate-modalPop {
+  animation: modalPop 0.25s ease-out forwards;
+}
+
+/* Reverse spin for custom icons (used in reset/spin buttons) */
 @keyframes spin-reverse {
   from {
     transform: rotate(0deg);
@@ -17,38 +63,41 @@
   animation: spin-reverse 0.6s linear;
 }
 
+/* =======================
+   PREMIUM SCROLLBAR
+======================= */
 
-body {
-  margin: 0;
-  padding: 0;
+/* Hide scrollbar by default */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
 
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
+/* Scrollbar track */
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
 }
 
-@keyframes modalPop {
-  0% {
-    transform: scale(0.9);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+/* Scroll thumb */
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(22, 150, 152, 0.4); /* Indowud teal tone */
+  border-radius: 9999px;
+  transition: background-color 0.3s ease, width 0.3s ease;
 }
 
-.animate-fadeIn {
-  animation: fadeIn 0.25s ease-out forwards;
+/* Hover effect */
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background-color: rgba(22, 150, 152, 0.7);
 }
 
-.animate-modalPop {
-  animation: modalPop 0.25s ease-out forwards;
+/* For Firefox */
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 150, 152, 0.5) transparent;
 }
 
+/* Optional fade-in effect for scrollable container */
+.custom-scrollbar {
+  transition: all 0.3s ease-in-out;
+}
