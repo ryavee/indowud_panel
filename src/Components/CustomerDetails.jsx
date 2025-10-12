@@ -201,7 +201,7 @@ const CustomerDetails = ({
 
             {/* KYC Documents */}
             <div
-              ref={kycCardRef}
+             
               className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-grow"
             >
               <h3 className="flex items-center text-lg font-semibold text-gray-800 mb-4">
@@ -321,7 +321,7 @@ const CustomerDetails = ({
             {/* Send Notification Card */}
             <div
               className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-grow flex flex-col justify-between"
-              style={{ height: kycCardHeight ? `${kycCardHeight}px` : "auto" }}
+              
             >
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">
