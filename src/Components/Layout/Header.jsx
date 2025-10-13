@@ -50,8 +50,8 @@ const Header = ({ toggleSidebar }) => {
           </button>
 
           <div className="flex items-center gap-2">
-            <div className="w-10 h-10 bg-[#169698]/10 rounded-lg flex items-center justify-center">
-              <img src={logo} alt="Logo" className="w-8 h-8 object-contain" />
+            <div className="w-14 h-14 bg-[#169698]/10 rounded-md flex items-center justify-center">
+              <img src={logo} alt="Logo" className="w-12 h-12 object-contain rounded-sm"/>
             </div>
             <h1 className="hidden sm:block text-lg font-bold text-[#169698] leading-tight tracking-tight">
               INDOWUD NFC PRIVATE LIMITED
