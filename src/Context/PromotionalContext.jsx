@@ -20,8 +20,6 @@ export const PromotionalProvider = ({ children }) => {
       setLoading(true);
       setError(null);
       const data = await getAllPromotions();
-      console.log("Fetched promotions:", data);
-
       setPromotions(data.promotions || []);
     } catch (err) {
       setError(err.message || "Failed to fetch promotions");
