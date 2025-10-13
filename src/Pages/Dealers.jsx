@@ -159,7 +159,7 @@ const Dealers = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-orange-50/10 to-gray-50 p-6">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">

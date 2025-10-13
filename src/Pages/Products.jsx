@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import {
-  Trash2,
   Plus,
   RefreshCw,
   AlertCircle,
   Loader,
   Package,
+  CheckCircle,
 } from "lucide-react";
 import { useProductContext } from "../Context/ProductsContext";
+import ActionButtons from "../Components/Reusable/ActionButtons";
+import ConfirmationModal from "../Components/ConfirmationModal";
 
 const Products = () => {
   const {
@@ -18,25 +20,30 @@ const Products = () => {
     addProduct,
     removeProduct,
     refreshProducts,
+    updateProduct, // ✅ Make sure this exists in context
   } = useProductContext();
 
   const [newProductName, setNewProductName] = useState("");
   const [newProductUnit, setNewProductUnit] = useState("");
   const [formError, setFormError] = useState("");
-  const [showSuccessMessage, setShowSuccessMessage] = useState("");
+  const [toastMsg, setToastMsg] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [editTarget, setEditTarget] = useState(null);
+  const [editLoading, setEditLoading] = useState(false);
+
   useEffect(() => {
-    if (showSuccessMessage) {
-      const timer = setTimeout(() => setShowSuccessMessage(""), 3000);
+    if (toastMsg) {
+      const timer = setTimeout(() => setToastMsg(""), 3000);
       return () => clearTimeout(timer);
     }
-  }, [showSuccessMessage]);
+  }, [toastMsg]);
 
   const handleAddProduct = async () => {
     setFormError("");
     if (!newProductName.trim() || !newProductUnit.trim()) {
-      setFormError("Both fields are required");
+      setFormError("Both fields are required.");
       return;
     }
     try {
@@ -44,22 +51,48 @@ const Products = () => {
         productName: newProductName.trim(),
         productUnit: newProductUnit.trim(),
       });
+      setToastMsg(`✅ "${newProductName}" added successfully!`);
       setNewProductName("");
       setNewProductUnit("");
-      setShowSuccessMessage(`"${newProductName.trim()}" added successfully!`);
-    } catch (err) {
-      setFormError("Failed to add product");
+    } catch {
+      setFormError("Failed to add product. Please try again.");
     }
   };
 
-  const handleDeleteProduct = async (productId, productName) => {
-    if (window.confirm(`Are you sure you want to delete "${productName}"?`)) {
-      try {
-        await removeProduct(productId);
-        setShowSuccessMessage(`"${productName}" deleted successfully!`);
-      } catch (err) {
-        console.error("Delete failed:", err);
-      }
+  const handleDelete = (product) => setDeleteTarget(product);
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    try {
+      await removeProduct(deleteTarget.id);
+      setToastMsg(`🗑️ "${deleteTarget.productName}" deleted successfully!`);
+      setDeleteTarget(null);
+    } catch {
+      setFormError("Error deleting product.");
+    }
+  };
+
+  const handleEdit = (product) => {
+    setEditTarget({
+      ...product,
+      productName: product.productName || product.name,
+      productUnit: product.productUnit,
+    });
+  };
+
+  const handleUpdateProduct = async () => {
+    if (!editTarget.productName.trim() || !editTarget.productUnit.trim()) return;
+    setEditLoading(true);
+    try {
+      await updateProduct(editTarget.id, {
+        productName: editTarget.productName.trim(),
+        productUnit: editTarget.productUnit.trim(),
+      });
+      setToastMsg(`✏️ "${editTarget.productName}" updated successfully!`);
+      setEditTarget(null);
+    } catch {
+      setFormError("Error updating product.");
+    } finally {
+      setEditLoading(false);
     }
   };
 
@@ -70,8 +103,8 @@ const Products = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-8">
+      <div className="w-full max-w-7xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
@@ -82,9 +115,10 @@ const Products = () => {
               Manage your product list and inventory.
             </p>
           </div>
+
           <button
             onClick={handleRefresh}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-gradient-to-r from-orange-500 to-orange-600 rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.97]"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#169698] hover:bg-[#128083] rounded-lg shadow-sm hover:shadow-md transition-all active:scale-[0.97]"
           >
             <RefreshCw
               className={`w-4 h-4 ${isRefreshing ? "animate-spin" : ""}`}
@@ -93,30 +127,18 @@ const Products = () => {
           </button>
         </div>
 
-        {/* Success Message */}
-        {showSuccessMessage && (
-          <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-lg shadow-sm">
-            <div className="w-5 h-5 bg-green-500 rounded-full flex items-center justify-center">
-              <svg
-                className="w-3 h-3 text-white"
-                fill="currentColor"
-                viewBox="0 0 20 20"
-              >
-                <path
-                  fillRule="evenodd"
-                  d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <p className="text-green-800 font-medium">{showSuccessMessage}</p>
+        {/* Toast */}
+        {toastMsg && (
+          <div className="fixed top-6 right-6 flex items-center gap-3 bg-green-50 border border-green-200 px-4 py-3 rounded-lg shadow-lg animate-fade-in-down z-50">
+            <CheckCircle className="w-5 h-5 text-green-500" />
+            <p className="text-green-800 text-sm font-medium">{toastMsg}</p>
           </div>
         )}
 
         {/* Add Product Form */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-100 p-6 space-y-4">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 space-y-4">
           <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
-            <Plus className="w-5 h-5 text-orange-500" /> Add New Product
+            <Plus className="w-5 h-5 text-[#169698]" /> Add New Product
           </h2>
 
           {formError && (
@@ -132,21 +154,21 @@ const Products = () => {
               placeholder="Product Name"
               value={newProductName}
               onChange={(e) => setNewProductName(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#169698] focus:outline-none"
             />
             <input
               type="text"
-              placeholder="Unit (e.g., 08 mm, 15mm, etc.)"
+              placeholder="Unit (e.g., 08 mm, 15 mm)"
               value={newProductUnit}
               onChange={(e) => setNewProductUnit(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-[#169698] focus:outline-none"
             />
           </div>
 
           <button
             onClick={handleAddProduct}
-            disabled={creating || !newProductName.trim() || !newProductUnit.trim()}
-            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-lg text-white bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50"
+            disabled={creating}
+            className="flex items-center justify-center gap-2 w-full sm:w-auto px-5 py-2.5 text-sm font-semibold rounded-lg text-white bg-[#169698] hover:bg-[#128083] transition-all shadow-sm hover:shadow-md disabled:opacity-50"
           >
             {creating ? (
               <>
@@ -161,11 +183,11 @@ const Products = () => {
         </div>
 
         {/* Product Table */}
-        <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold text-gray-900 tracking-tight">
-                Products
+                Product List
               </h2>
               <p className="text-xs text-gray-500">
                 {products.length} {products.length === 1 ? "item" : "items"}
@@ -185,7 +207,7 @@ const Products = () => {
             </div>
           ) : products.length === 0 ? (
             <div className="p-10 text-center text-gray-500">
-              <Package className="mx-auto mb-3 text-orange-400" size={26} />
+              <Package className="mx-auto mb-3 text-[#169698]" size={28} />
               No products found
             </div>
           ) : (
@@ -207,12 +229,11 @@ const Products = () => {
                     </th>
                   </tr>
                 </thead>
-
                 <tbody className="divide-y divide-gray-100">
                   {products.map((product, index) => (
                     <tr
                       key={product.id}
-                      className="hover:bg-orange-50/40 transition-all duration-200"
+                      className="hover:bg-[#169698]/5 transition-all duration-200"
                     >
                       <td className="px-6 py-4 text-gray-600 font-medium">
                         {index + 1}
@@ -224,22 +245,12 @@ const Products = () => {
                         {product.productUnit}
                       </td>
                       <td className="px-6 py-4 text-right">
-                        <button
-                          onClick={() =>
-                            handleDeleteProduct(
-                              product.id,
-                              product.name || product.productName
-                            )
-                          }
-                          disabled={deleting === product.id}
-                          className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md transition disabled:opacity-50"
-                        >
-                          {deleting === product.id ? (
-                            <Loader className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 size={18} />
-                          )}
-                        </button>
+                        <ActionButtons
+                          onEdit={() => handleEdit(product)}
+                          onDelete={() => handleDelete(product)}
+                          loadingDelete={deleting === product.id}
+                          disableAll={creating || loading}
+                        />
                       </td>
                     </tr>
                   ))}
@@ -249,6 +260,54 @@ const Products = () => {
           )}
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={!!deleteTarget}
+        title="Confirm Deletion"
+        message={`Are you sure you want to delete "${deleteTarget?.productName}"?`}
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteTarget(null)}
+        isLoading={deleting === deleteTarget?.id}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
+
+      {/* Edit Modal */}
+      <ConfirmationModal
+        isOpen={!!editTarget}
+        title="Edit Product"
+        message={
+          <div className="space-y-3">
+            <input
+              type="text"
+              value={editTarget?.productName || ""}
+              onChange={(e) =>
+                setEditTarget((prev) => ({ ...prev, productName: e.target.value }))
+              }
+              placeholder="Product Name"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#169698] focus:outline-none"
+            />
+            <input
+              type="text"
+              value={editTarget?.productUnit || ""}
+              onChange={(e) =>
+                setEditTarget((prev) => ({ ...prev, productUnit: e.target.value }))
+              }
+              placeholder="Product Unit"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#169698] focus:outline-none"
+            />
+          </div>
+        }
+        onConfirm={handleUpdateProduct}
+        onCancel={() => setEditTarget(null)}
+        isLoading={editLoading}
+        confirmText="Update"
+        cancelText="Cancel"
+        type="info"
+        closeOnBackdrop={false}
+      />
     </div>
   );
 };
