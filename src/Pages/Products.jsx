@@ -10,6 +10,8 @@ import {
 import { useProductContext } from "../Context/ProductsContext";
 import ActionButtons from "../Components/Reusable/ActionButtons";
 import ConfirmationModal from "../Components/ConfirmationModal";
+import Pagination from "../Components/Reusable/Pagination";
+
 
 const Products = () => {
   const {
@@ -101,6 +103,17 @@ const Products = () => {
     await refreshProducts();
     setTimeout(() => setIsRefreshing(false), 600);
   };
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.ceil(products.length / pageSize);
+  const paginatedProducts = products.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
+  );
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-8">
@@ -230,7 +243,7 @@ const Products = () => {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {products.map((product, index) => (
+                  {paginatedProducts.map((product, index) => (
                     <tr
                       key={product.id}
                       className="hover:bg-[#169698]/5 transition-all duration-200"
@@ -256,7 +269,22 @@ const Products = () => {
                   ))}
                 </tbody>
               </table>
+            {/* Pagination Component */}
+            <div className="bg-gray-50 border-t border-gray-100 ">
+          <Pagination
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={setCurrentPage}
+            pageSize={pageSize}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setCurrentPage(1);
+            }}
+            />
+
             </div>
+            </div>
+
           )}
         </div>
       </div>

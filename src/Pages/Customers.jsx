@@ -18,6 +18,7 @@ import {
 
 import { CustomerContext } from "../Context/CustomerContext";
 import CustomerDetails from "../Components/CustomerDetails";
+import Pagination from "../Components/Reusable/Pagination";
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -63,10 +64,17 @@ const Customers = () => {
     });
   }, [customersList, searchTerm, statusFilter]);
 
-  // Pagination
+  // ✅ Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const [rowsPerPage, setRowsPerPage] = useState(30);
-  const totalPages = Math.max(1, Math.ceil(filteredCustomers.length / rowsPerPage));
+  const [pageSize, setPageSize] = useState(10);
+
+  const totalPages = Math.ceil(filteredCustomers.length / pageSize);
+
+  const paginatedCustomers = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return filteredCustomers.slice(start, start + pageSize);
+  }, [filteredCustomers, currentPage, pageSize]);
+
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -76,10 +84,6 @@ const Customers = () => {
     setCurrentPage(1);
   }, [searchTerm, statusFilter]);
 
-  const paginatedCustomers = useMemo(() => {
-    const start = (currentPage - 1) * rowsPerPage;
-    return filteredCustomers.slice(start, start + rowsPerPage);
-  }, [filteredCustomers, currentPage, rowsPerPage]);
 
   // Handlers
   const handleResetFilters = () => {
@@ -330,16 +334,14 @@ const Customers = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col space-y-1">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              customer.isKYCVerified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
-                            }`}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isKYCVerified ? "bg-green-100 text-green-800" : "bg-yellow-100 text-yellow-800"
+                              }`}
                           >
                             {customer.isKYCVerified ? "KYC Verified" : "KYC Pending"}
                           </span>
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              customer.isBlocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
-                            }`}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isBlocked ? "bg-red-100 text-red-800" : "bg-green-100 text-green-800"
+                              }`}
                           >
                             {customer.isBlocked ? "Blocked" : "Active"}
                           </span>
@@ -362,54 +364,22 @@ const Customers = () => {
                 </tbody>
               </table>
 
-              {/* Pagination */}
-              <div className="flex flex-col sm:flex-row justify-between items-center px-6 py-4 bg-white border-t border-gray-200">
-                <div className="flex items-center gap-3 text-sm text-gray-700 mb-2 sm:mb-0">
-                  <span>Rows per page:</span>
-                  <select
-                    value={rowsPerPage}
-                    onChange={(e) => setRowsPerPage(Number(e.target.value))}
-                    className="border border-gray-300 rounded-md px-2 py-1 text-sm focus:ring-1 focus:ring-blue-500 cursor-pointer"
-                  >
-                    {[30, 50, 100].map((num) => (
-                      <option key={num} value={num}>
-                        {num}
-                      </option>
-                    ))}
-                  </select>
+              {/* Pagination Component */}
+              <div className="bg-gray-50 border-t border-gray-100">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
+                />
 
-                  <span className="ml-4 text-sm text-gray-600">
-                    Showing{" "}
-                    {filteredCustomers.length === 0
-                      ? 0
-                      : Math.min((currentPage - 1) * rowsPerPage + 1, filteredCustomers.length)}{" "}
-                    - {Math.min(currentPage * rowsPerPage, filteredCustomers.length)} of{" "}
-                    {filteredCustomers.length}
-                  </span>
-                </div>
-
-                <div className="flex items-center gap-3 text-sm text-gray-700">
-                  <span>
-                    Page {currentPage} of {totalPages || 1}
-                  </span>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="px-3 py-1 border rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Prev
-                    </button>
-                    <button
-                      onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-                      disabled={currentPage === totalPages || totalPages === 0}
-                      className="px-3 py-1 border rounded-md text-gray-700 hover:bg-gray-100 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      Next
-                    </button>
-                  </div>
-                </div>
               </div>
+
+
             </>
           )}
         </div>

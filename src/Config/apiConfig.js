@@ -41,6 +41,8 @@ export const ENDPOINTS = {
   GETALLPRODUCTS: "/api/v10/products/all-products",
   CREATEPRODUCTS: "/api/v10/products/create-new-product",
   DELETEPRODUCTS: "/api/v10/products/delete-product",
+  UPDATEPRODUCTS: "/api/v10/products/update-product",
+
   // GENERATE QR
   GENERATEQR: "/api/v11/qrCodes/generate-qr-code",
   GETALLBATCHES: "/api/v11/qrCodes/all-batches",
