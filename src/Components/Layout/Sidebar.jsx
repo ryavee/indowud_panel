@@ -63,10 +63,10 @@ const Sidebar = ({ onLogout, onClose }) => {
       {/* ===== Header (Logo) ===== */}
       <div className="flex items-center justify-between px-5 py-4 border-b border-gray-200 bg-gray-50 sticky top-0 z-10">
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-[#169698]/10 rounded-lg flex items-center justify-center">
-            <img src={logo_icon} alt="Logo" className="w-6 h-6 object-contain" />
+          <div className="w-12 h-12 bg-[#169698]/10 rounded-md flex items-center justify-center">
+            <img src={logo_icon} alt="Logo" className="w-10 h-10 object-contain rounded-sm" />
           </div>
-          <h2 className="text-sm font-bold text-[#169698] tracking-wide">
+          <h2 className="text-md font-bold text-[#169698] tracking-wide">
             INDOWUD ADMIN
           </h2>
         </div>

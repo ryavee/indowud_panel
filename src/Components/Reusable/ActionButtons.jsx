@@ -1,24 +1,60 @@
 import React from "react";
-import { Edit2, Trash2 } from "lucide-react";
+import { Pencil, Trash2, Loader2 } from "lucide-react";
 
-const ActionButtons = ({ onEdit, onDelete, loadingEdit, loadingDelete }) => {
+const ActionButtons = ({
+  onEdit,
+  onDelete,
+  loadingEdit,
+  loadingDelete,
+  disableAll,
+}) => {
+  const baseClass =
+    "flex items-center justify-center p-2 rounded-md transition-all duration-200 cursor-pointer";
+
+  const editClass = `
+    ${baseClass} 
+    text-[#169698] hover:bg-[#169698]/10 
+    hover:text-[#0f7d7f] active:scale-[0.97]
+  `;
+
+  const deleteClass = `
+    ${baseClass} 
+    text-red-600 hover:bg-red-50 
+    hover:text-red-700 active:scale-[0.97]
+  `;
+
   return (
-    <div className="flex gap-2">
+    <div className="flex items-center gap-2">
+      {/* Edit Button */}
       <button
         onClick={onEdit}
-        disabled={loadingEdit}
-        className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 flex items-center gap-1 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={disableAll || loadingEdit || loadingDelete}
+        className={`${editClass} ${
+          (disableAll || loadingEdit || loadingDelete) &&
+          "opacity-60 cursor-not-allowed"
+        }`}
       >
-        <Edit2 size={14} />
-        Edit
+        {loadingEdit ? (
+          <Loader2 className="w-4 h-4 animate-spin text-[#169698]" />
+        ) : (
+          <Pencil className="w-4 h-4" />
+        )}
       </button>
+
+      {/* Delete Button */}
       <button
         onClick={onDelete}
-        disabled={loadingDelete}
-        className="text-red-600 hover:text-red-800 px-3 py-1 rounded-md hover:bg-red-50 flex items-center gap-1 text-sm transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+        disabled={disableAll || loadingEdit || loadingDelete}
+        className={`${deleteClass} ${
+          (disableAll || loadingEdit || loadingDelete) &&
+          "opacity-60 cursor-not-allowed"
+        }`}
       >
-        <Trash2 size={14} />
-        Delete
+        {loadingDelete ? (
+          <Loader2 className="w-4 h-4 animate-spin text-red-600" />
+        ) : (
+          <Trash2 className="w-4 h-4" />
+        )}
       </button>
     </div>
   );
