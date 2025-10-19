@@ -1,24 +1,17 @@
 import React, { useState } from "react";
-import { Plus, Trash2, FileText, Upload, X, Check } from "lucide-react";
+import { Plus, Trash2, FileText, Upload, X, Check, Eye } from "lucide-react";
+import { useCatalogContext } from "../Context/CatalogContext";
 
 const Catalogue = () => {
-  const [catalogues, setCatalogues] = useState([
-    {
-      id: 1,
-      name: "Summer Collection 2024",
-      pdfName: "summer-catalog.pdf",
-      createdAt: "2024-01-15",
-    },
-    {
-      id: 2,
-      name: "Electronics Inventory",
-      pdfName: "electronics-list.pdf",
-      createdAt: "2024-01-12",
-    },
-  ]);
+  const { catalogs, loading, deleting, addCatalog, removeCatalog } =
+    useCatalogContext();
 
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newCatalogue, setNewCatalogue] = useState({ name: "", pdf: null });
+  const [newCatalogue, setNewCatalogue] = useState({
+    name: "",
+    hindiName: "",
+    pdf: null,
+  });
   const [dragOver, setDragOver] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState({
@@ -27,28 +20,35 @@ const Catalogue = () => {
   });
 
   const handleCreateCatalogue = async () => {
-    if (!newCatalogue.name.trim() || !newCatalogue.pdf) return;
+    if (
+      !newCatalogue.name.trim() ||
+      !newCatalogue.hindiName.trim() ||
+      !newCatalogue.pdf
+    )
+      return;
 
     setIsCreating(true);
 
-    // Simulate API call delay
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    const catalogue = {
-      id: Date.now(),
+    // Pass the actual file object, not just the name
+    const catalogueData = {
       name: newCatalogue.name.trim(),
-      pdfName: newCatalogue.pdf.name,
-      createdAt: new Date().toISOString().split("T")[0],
+      hindiName: newCatalogue.hindiName.trim(),
+      pdf: newCatalogue.pdf, // Pass the actual File object
     };
 
-    setCatalogues((prev) => [catalogue, ...prev]);
-    setNewCatalogue({ name: "", pdf: null });
-    setShowCreateModal(false);
+    const result = await addCatalog(catalogueData);
+
+    if (result) {
+      setNewCatalogue({ name: "", hindiName: "", pdf: null });
+      setShowCreateModal(false);
+    }
+
     setIsCreating(false);
   };
 
-  const handleDeleteCatalogue = (id) => {
-    setCatalogues((prev) => prev.filter((cat) => cat.id !== id));
+  const handleDeleteCatalogue = async (id) => {
+    await removeCatalog(id);
+    setDeleteConfirm({ show: false, catalogue: null });
   };
 
   const handleFileSelect = (file) => {
@@ -84,6 +84,16 @@ const Catalogue = () => {
     });
   };
 
+  const confirmDelete = () => {
+    if (deleteConfirm.catalogue) {
+      handleDeleteCatalogue(deleteConfirm.catalogue.id);
+    }
+  };
+
+  const cancelDelete = () => {
+    setDeleteConfirm({ show: false, catalogue: null });
+  };
+
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex justify-between items-center mb-8">
@@ -97,14 +107,22 @@ const Catalogue = () => {
         </div>
         <button
           onClick={() => setShowCreateModal(true)}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"
+          disabled={loading || isCreating}
+          className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white px-6 py-3 rounded-lg flex items-center gap-2 font-medium transition-colors"
         >
           <Plus className="w-5 h-5" />
           Create Catalogue
         </button>
       </div>
 
-      {catalogues.length === 0 ? (
+      {loading && catalogs.length === 0 && (
+        <div className="text-center py-12">
+          <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <p className="text-gray-600 mt-4">Loading catalogues...</p>
+        </div>
+      )}
+
+      {Array.isArray(catalogs) && catalogs.length === 0 && !loading ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
           <FileText className="w-16 h-16 text-gray-400 mx-auto mb-4" />
           <h3 className="text-xl font-semibold text-gray-700 mb-2">
@@ -121,53 +139,53 @@ const Catalogue = () => {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {catalogues.map((catalogue) => (
-            <div
-              key={catalogue.id}
-              className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="bg-red-100 p-2 rounded-lg">
-                    <FileText className="w-5 h-5 text-red-600" />
+        Array.isArray(catalogs) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {catalogs.map((catalogue) => (
+              <div
+                key={catalogue.id}
+                className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3 flex-1">
+                    <div className="bg-red-100 p-2 rounded-lg">
+                      <FileText className="w-5 h-5 text-red-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-lg">
+                        {catalogue.name}
+                      </h3>
+                      <p className="text-sm text-gray-600">
+                        {catalogue.hindiName}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-gray-900 text-lg">
-                      {catalogue.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Created {formatDate(catalogue.createdAt)}
-                    </p>
+                  <div className="flex flex-col gap-2">
+                    <a
+                      href={catalogue.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 hover:bg-blue-50 p-2 rounded transition-colors"
+                      title="View catalogue"
+                    >
+                      <Eye className="w-5 h-5" />
+                    </a>
+                    <button
+                      onClick={() =>
+                        setDeleteConfirm({ show: true, catalogue: catalogue })
+                      }
+                      disabled={deleting}
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50 p-2 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Delete catalogue"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
                   </div>
                 </div>
-                <button
-                  onClick={() => handleDeleteCatalogue(catalogue)}
-                  className="text-red-600 hover:text-red-800 hover:bg-red-50 p-1 rounded transition-colors"
-                  title="Delete catalogue"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
               </div>
-
-              <div className="bg-gray-50 rounded-lg p-3 mb-4">
-                <div className="flex items-center gap-2 text-sm text-gray-600">
-                  <FileText className="w-4 h-4" />
-                  <span className="truncate">{catalogue.pdfName}</span>
-                </div>
-              </div>
-
-              <div className="flex gap-2">
-                <button className="flex-1 bg-blue-50 text-blue-700 py-2 px-4 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors">
-                  View
-                </button>
-                <button className="flex-1 bg-gray-50 text-gray-700 py-2 px-4 rounded-lg text-sm font-medium hover:bg-gray-100 transition-colors">
-                  Download
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )
       )}
 
       {/* Create Catalogue Modal */}
@@ -176,6 +194,7 @@ const Catalogue = () => {
           <div
             className="absolute inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
             onClick={() => !isCreating && setShowCreateModal(false)}
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
           ></div>
           <div className="relative bg-white rounded-lg w-full max-w-md shadow-xl">
             <div className="flex justify-between items-center p-6 border-b">
@@ -192,6 +211,16 @@ const Catalogue = () => {
             </div>
 
             <div className="p-6 space-y-6">
+              {isCreating && (
+                <div className="fixed inset-0 bg-black bg-opacity-20 rounded-lg z-40 flex items-center justify-center">
+                  <div className="text-center">
+                    <div className="inline-block w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="text-gray-700 mt-2 font-medium">
+                      Creating catalogue...
+                    </p>
+                  </div>
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Catalogue Name
@@ -206,6 +235,25 @@ const Catalogue = () => {
                     }))
                   }
                   placeholder="Enter catalogue name"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
+                  disabled={isCreating}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Catalogue Name (Hindi)
+                </label>
+                <input
+                  type="text"
+                  value={newCatalogue.hindiName}
+                  onChange={(e) =>
+                    setNewCatalogue((prev) => ({
+                      ...prev,
+                      hindiName: e.target.value,
+                    }))
+                  }
+                  placeholder="कैटलॉग का नाम दर्ज करें"
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition-colors"
                   disabled={isCreating}
                 />
@@ -270,7 +318,7 @@ const Catalogue = () => {
             <div className="flex gap-3 p-6 border-t bg-gray-50 rounded-b-lg">
               <button
                 onClick={() => setShowCreateModal(false)}
-                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:bg-gray-100 disabled:cursor-not-allowed font-medium transition-colors"
                 disabled={isCreating}
               >
                 Cancel
@@ -278,7 +326,10 @@ const Catalogue = () => {
               <button
                 onClick={handleCreateCatalogue}
                 disabled={
-                  !newCatalogue.name.trim() || !newCatalogue.pdf || isCreating
+                  !newCatalogue.name.trim() ||
+                  !newCatalogue.hindiName.trim() ||
+                  !newCatalogue.pdf ||
+                  isCreating
                 }
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed font-medium transition-colors flex items-center justify-center gap-2"
               >
@@ -302,6 +353,7 @@ const Catalogue = () => {
           <div
             className="absolute inset-0 bg-gray-900 bg-opacity-75 transition-opacity"
             onClick={cancelDelete}
+            style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
           ></div>
           <div className="relative bg-white rounded-lg w-full max-w-md shadow-xl">
             <div className="p-6">
@@ -320,23 +372,32 @@ const Catalogue = () => {
               </div>
 
               <p className="text-gray-700 mb-6">
-                Are you sure you want to delete "
-                <strong>{deleteConfirm.catalogue?.name}</strong>"? This will
+                Are you sure you want to delete{" "}
+                <strong>"{deleteConfirm.catalogue?.name}"</strong>? This will
                 permanently remove the catalogue and its associated PDF file.
               </p>
 
               <div className="flex gap-3">
                 <button
                   onClick={cancelDelete}
-                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors"
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={deleting}
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
-                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors"
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition-colors disabled:bg-red-400 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={deleting}
                 >
-                  Delete Catalogue
+                  {deleting ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete Catalogue"
+                  )}
                 </button>
               </div>
             </div>
