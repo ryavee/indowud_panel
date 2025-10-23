@@ -4,6 +4,7 @@ import {
   createUser,
   updateUser,
   deleteUser,
+  uploadUserData,
 } from "../Services/userService";
 import { useAuthContext } from "./AuthContext";
 
@@ -16,6 +17,7 @@ export const UserProvider = ({ children }) => {
   const [createOrUpdateUserLoading, setCreateOrUpdateUserLoading] =
     useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
+  const [uploadLoading, setUploadLoading] = useState(false);
   const hasFetched = useRef(false);
 
   const sortUsersByCreatedAt = (users) => {
@@ -59,34 +61,25 @@ export const UserProvider = ({ children }) => {
     try {
       const data = await createUser(token, newUserData);
       if (data.success) {
-        const newUser = {
-          ...data.user,
-        };
+        const newUser = { ...data.user };
         setUsersList((prev) => sortUsersByCreatedAt([newUser, ...prev]));
-        setCreateOrUpdateUserLoading(false);
-        return { success: true, data: data };
+        return { success: true, data };
       } else {
-        setCreateOrUpdateUserLoading(false);
         return {
           success: false,
           error: data.message || data.error || "Failed to create user",
         };
       }
     } catch (error) {
-      setCreateOrUpdateUserLoading(false);
-      let errorMessage = "An unexpected error occurred";
+      let errorMessage = error.message || "An unexpected error occurred";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
       }
-
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      return { success: false, error: errorMessage };
+    } finally {
+      setCreateOrUpdateUserLoading(false);
     }
   };
 
@@ -103,29 +96,23 @@ export const UserProvider = ({ children }) => {
           );
           return sortUsersByCreatedAt(updatedList);
         });
-        setCreateOrUpdateUserLoading(false);
-        return { success: true, data: data };
+        return { success: true, data };
       } else {
-        setCreateOrUpdateUserLoading(false);
         return {
           success: false,
           error: data.message || data.error || "Failed to update user",
         };
       }
     } catch (error) {
-      setCreateOrUpdateUserLoading(false);
-      let errorMessage = "An unexpected error occurred";
+      let errorMessage = error.message || "An unexpected error occurred";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
       }
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      return { success: false, error: errorMessage };
+    } finally {
+      setCreateOrUpdateUserLoading(false);
     }
   };
 
@@ -135,29 +122,50 @@ export const UserProvider = ({ children }) => {
       const data = await deleteUser(token, uid);
       if (data.success) {
         setUsersList((prev) => prev.filter((user) => user.uid !== uid));
-        setDeleteLoading(false);
-        return { success: true, data: data };
+        return { success: true, data };
       } else {
-        setDeleteLoading(false);
         return {
           success: false,
           error: data.message || data.error || "Failed to delete user",
         };
       }
     } catch (error) {
-      setDeleteLoading(false);
-      let errorMessage = "An unexpected error occurred";
+      let errorMessage = error.message || "An unexpected error occurred";
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.response?.data?.error) {
         errorMessage = error.response.data.error;
-      } else if (error.message) {
-        errorMessage = error.message;
       }
-      return {
-        success: false,
-        error: errorMessage,
-      };
+      return { success: false, error: errorMessage };
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
+  const uploadUserFile = async (file) => {
+    setUploadLoading(true);
+    try {
+      const data = await uploadUserData(file);
+
+      if (data.success) {
+        await fetchUserList();
+        return { success: true, message: data.message };
+      } else {
+        return {
+          success: false,
+          error: data.message || data.error || "File upload failed",
+        };
+      }
+    } catch (error) {
+      let errorMessage = error.message || "An unexpected error occurred";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.response?.data?.error) {
+        errorMessage = error.response.data.error;
+      }
+      return { success: false, error: errorMessage };
+    } finally {
+      setUploadLoading(false);
     }
   };
 
@@ -168,10 +176,12 @@ export const UserProvider = ({ children }) => {
         loading,
         createOrUpdateUserLoading,
         deleteLoading,
+        uploadLoading,
         fetchUserList,
         createUserAdminPortal,
         updateUserData,
         deleteUserFromPortal,
+        uploadUserFile,
       }}
     >
       {children}

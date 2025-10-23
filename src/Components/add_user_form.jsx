@@ -74,7 +74,7 @@ const UserForm = ({
     }
 
     // Role validation - Updated to match the roles used in badges
-    const validRoles = ["SuperAdmin", "Admin", "Factory User"];
+    const validRoles = [ "Admin", "QR Generate"];
     if (!validRoles.includes(formData.role)) {
       newErrors.role = "Please select a valid role";
     }
@@ -310,9 +310,8 @@ const UserForm = ({
             errors.role ? "border-red-500" : "border-gray-300"
           }`}
         >
-          <option value="SuperAdmin">SuperAdmin</option>
           <option value="Admin">Admin</option>
-          <option value="Factory User">Factory User</option>
+          <option value="QR Generate">QR Generate</option>
         </select>
         {errors.role && (
           <p className="mt-1 text-sm text-red-600">{errors.role}</p>

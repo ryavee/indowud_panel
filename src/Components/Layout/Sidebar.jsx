@@ -30,7 +30,7 @@ const menuItems = [
   {
     section: "USERS",
     items: [
-      { name: "Factory Users", icon: Building2, path: "/users/factoryUsers" },
+      { name: "Users", icon: Building2, path: "/users/factoryUsers" },
       { name: "Customers", icon: Users, path: "/users/customers" },
       { name: "Dealers", icon: Briefcase, path: "/users/dealers" },
     ],
