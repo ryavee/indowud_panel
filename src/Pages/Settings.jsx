@@ -487,8 +487,8 @@ const Settings = () => {
 
       {/* Delete Confirmation Modal */}
       {confirmDeleteEmail && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 w-80 mx-4">
+        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"  style={{	 backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
+          <div className="bg-white rounded-lg shadow-xl p-6 w-80 mx-4" >
             <h3 className="text-lg font-semibold text-gray-800 mb-2">
               Confirm Deletion
             </h3>

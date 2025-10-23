@@ -1,11 +1,22 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Loader2, Search, User, Phone, Shield, CheckCircle, Calendar, MoreVertical } from "lucide-react";
+import React, { useState, useEffect, useContext, useRef } from "react";
+import {
+  Loader2,
+  Search,
+  User,
+  Phone,
+  Shield,
+  CheckCircle,
+  Calendar,
+  MoreVertical,
+} from "lucide-react";
 import Modal from "../Components/Reusable/form";
 import UserForm from "../Components/add_user_form";
 import ConfirmationModal from "../Components/ConfirmationModal";
 import { UserContext } from "../Context/userContext";
 import { formatDateToDDMMYYYY } from "../utils/dateUtils";
 import ActionButtons from "../Components/Reusable/ActionButtons";
+import ExportButton from "../Components/export_button";
+import ImportCSVButton from "../Components/Import_button";
 
 const StatusBadge = ({ status }) => {
   const getStatusColor = (status) => {
@@ -33,11 +44,9 @@ const StatusBadge = ({ status }) => {
 const RoleBadge = ({ role }) => {
   const getRoleColor = (role) => {
     switch (role) {
-      case "SuperAdmin":
-        return "bg-purple-100 text-purple-800";
       case "Admin":
         return "bg-blue-100 text-blue-800";
-      case "Factory User":
+      case "QR Generate":
         return "bg-orange-100 text-orange-800";
       default:
         return "bg-gray-100 text-gray-800";
@@ -65,30 +74,23 @@ const AdminUsers = () => {
     createUserAdminPortal,
     updateUserData,
     deleteUserFromPortal,
+    uploadUserFile,
   } = useContext(UserContext);
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
   const [isConfirmationOpen, setIsConfirmationOpen] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
-  const [actionLoading, setActionLoading] = useState({ edit: null, delete: null });
+  const [actionLoading, setActionLoading] = useState({
+    edit: null,
+    delete: null,
+  });
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
 
   useEffect(() => {
     fetchUserList();
   }, []);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mx-auto mb-3" />
-          <p className="text-gray-600">Loading users...</p>
-        </div>
-      </div>
-    );
-  }
 
   const handleFormSubmit = async (formData) => {
     if (editingUser) {
@@ -155,6 +157,36 @@ const AdminUsers = () => {
     return matchesSearch && matchesRole;
   });
 
+  const exportColumns = [
+    { header: "First Name", key: "firstName" },
+    { header: "Last Name", key: "lastName" },
+    { header: "Email", key: "email" },
+    { header: "Password", key: "password" },
+    { header: "Phone", key: "phone" },
+    { header: "Role", key: "role" },
+    {
+      header: "Status",
+      key: "isUserInActive",
+      formatter: (value) => (value ? "Inactive" : "Active"),
+    },
+    {
+      header: "Joined On",
+      key: "createdAt",
+      formatter: (value) => (value ? formatDateToDDMMYYYY(value) : ""),
+    },
+  ];
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mx-auto mb-3" />
+          <p className="text-gray-600">Loading users...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-7xl mx-auto">
@@ -164,7 +196,8 @@ const AdminUsers = () => {
             Admin Users
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Manage admin accounts, roles, and access controls within your system.
+            Manage admin accounts, roles, and access controls within your
+            system.
           </p>
         </div>
 
@@ -187,23 +220,36 @@ const AdminUsers = () => {
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
             <option value="All">All Roles</option>
-            <option value="SuperAdmin">SuperAdmin</option>
             <option value="Admin">Admin</option>
-            <option value="Factory User">Factory User</option>
+            <option value="QR Generate">QR Generate</option>
           </select>
 
-          <button
-            onClick={handleAddUser}
-            disabled={createOrUpdateUserLoading}
-            className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
-          >
-            {createOrUpdateUserLoading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <span className="text-lg leading-none">+</span>
-            )}
-            {createOrUpdateUserLoading ? "Adding..." : "Add User"}
-          </button>
+          <div className="flex gap-2">
+            <ImportCSVButton
+              requiredHeaders={exportColumns}
+              onUpload={uploadUserFile}
+              label="Import Users"
+            />
+            <ExportButton
+              data={filteredUsers}
+              columns={exportColumns}
+              filename="admin-users"
+              disabled={false}
+            />
+
+            <button
+              onClick={handleAddUser}
+              disabled={createOrUpdateUserLoading}
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
+            >
+              {createOrUpdateUserLoading ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <span className="text-lg leading-none">+</span>
+              )}
+              {createOrUpdateUserLoading ? "Adding..." : "Add User"}
+            </button>
+          </div>
         </div>
 
         {/* Table */}
@@ -318,10 +364,11 @@ const AdminUsers = () => {
               <span className="font-semibold text-[#169698]">
                 {userToDelete.firstName} {userToDelete.lastName}
               </span>{" "}
-              (<span className="text-orange-600 font-medium">
+              (
+              <span className="text-orange-600 font-medium">
                 {userToDelete.email || "no email"}
-              </span>)?{" "}
-              <br />
+              </span>
+              )? <br />
               <span className="text-gray-600">
                 This action cannot be undone.
               </span>
@@ -337,7 +384,6 @@ const AdminUsers = () => {
         confirmText="Delete"
         cancelText="Cancel"
       />
-
     </div>
   );
 };
