@@ -63,7 +63,7 @@ const ConfirmationModal = ({
         {/* ❌ Close Icon */}
         <button
           onClick={onCancel}
-          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition"
+          className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 transition cursor-pointer"
         >
           <X className="w-5 h-5" />
         </button>
@@ -84,7 +84,7 @@ const ConfirmationModal = ({
           <button
             onClick={onCancel}
             disabled={isLoading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition-all active:scale-[0.98]"
+            className="px-4 py-2 text-sm font-medium text-gray-700 border border-gray-300 rounded-md hover:bg-gray-100 transition-all active:scale-[0.98] cursor-pointer"
           >
             {cancelText}
           </button>
@@ -92,7 +92,7 @@ const ConfirmationModal = ({
           <button
             onClick={onConfirm}
             disabled={isLoading}
-            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-md shadow-sm active:scale-[0.98] transition-all ${confirmClass}`}
+            className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-md shadow-sm active:scale-[0.98] transition-all cursor-pointer ${confirmClass}`}
           >
             {isLoading ? (
               <>

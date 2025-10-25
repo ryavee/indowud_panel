@@ -121,7 +121,7 @@ const Products = () => {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
               Products
             </h1>
             <p className="text-sm text-gray-600 mt-1">
@@ -224,8 +224,8 @@ const Products = () => {
               No products found
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="min-w-full text-sm">
+            <div className="bg-white  border border-gray-200 overflow-hidden">
+              <table className="min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
                   <tr>
                     <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider w-10">
@@ -269,20 +269,20 @@ const Products = () => {
                   ))}
                 </tbody>
               </table>
-            {/* Pagination Component */}
-            <div className="bg-gray-50 border-t border-gray-100 ">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={setCurrentPage}
-            pageSize={pageSize}
-            onPageSizeChange={(size) => {
-              setPageSize(size);
-              setCurrentPage(1);
-            }}
-            />
+              {/* Pagination Component */}
+              <div className="bg-gray-50 border-t border-gray-100 ">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
+                />
 
-            </div>
+              </div>
             </div>
 
           )}

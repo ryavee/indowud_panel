@@ -3,16 +3,17 @@ import { SettingsContext } from "../Context/SettingsContext";
 import {
   FaEnvelope,
   FaCoins,
-  FaTrash,
   FaSpinner,
   FaExclamationCircle,
+  FaGift,
 } from "react-icons/fa";
+import { Trash2 } from "lucide-react";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+import ConfirmationModal from "../Components/ConfirmationModal";
 
 const Settings = () => {
-  // Get all context values
   const contextValues = useContext(SettingsContext);
 
-  // Destructure with new loading states
   const {
     settings = {},
     loading = false,
@@ -30,36 +31,40 @@ const Settings = () => {
   const [emails, setEmails] = useState([]);
   const [redemptionLimit, setRedemptionLimit] = useState("");
   const [coinValue, setCoinValue] = useState("");
+  const [referralPoints, setReferralPoints] = useState("");
   const [emailError, setEmailError] = useState("");
   const [confirmDeleteEmail, setConfirmDeleteEmail] = useState(null);
   const [successMessage, setSuccessMessage] = useState("");
 
-  // Clear success message after 3 seconds
+  // NEW: local UI loaders so each button shows its own loader
+  const [savingLimits, setSavingLimits] = useState(false);
+  const [savingReferral, setSavingReferral] = useState(false);
+
   useEffect(() => {
     if (successMessage) {
-      const timer = setTimeout(() => {
-        setSuccessMessage("");
-      }, 3000);
+      const timer = setTimeout(() => setSuccessMessage(""), 3000);
       return () => clearTimeout(timer);
     }
   }, [successMessage]);
 
-  // Sync API values into local state
   useEffect(() => {
     if (settings) {
       setEmails(Array.isArray(settings.requestTo) ? settings.requestTo : []);
       setRedemptionLimit(settings.redemptionLimit?.toString() || "");
       setCoinValue(settings.ratio?.toString() || "");
+      setReferralPoints(
+        settings.referralPoints !== undefined && settings.referralPoints !== null
+          ? String(settings.referralPoints)
+          : ""
+      );
     }
   }, [settings]);
 
-  // Validate email format
   const isValidEmail = (email) => {
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     return emailRegex.test(email);
   };
 
-  // Check for demo/test emails
   const isDemoEmail = (email) => {
     const blockedDomains = ["example.com", "test.com", "demo.com"];
     return blockedDomains.some((domain) =>
@@ -67,19 +72,17 @@ const Settings = () => {
     );
   };
 
-  // Clear error messages
   const clearMessages = () => {
     setEmailError("");
     setSuccessMessage("");
   };
 
-  // Handle adding new email
+  // Add email — immediately saves via updateUserList
   const handleAddEmail = async () => {
     if (!newEmail.trim() || !updateUserList) return;
 
     clearMessages();
 
-    // Validation checks
     if (emails.length >= 5) {
       setEmailError("You can only add up to 5 emails.");
       return;
@@ -105,7 +108,6 @@ const Settings = () => {
     try {
       const response = await updateUserList({ requestTo: updatedEmails });
 
-      // Handle response - check if operation was successful
       if (response && response.success !== false) {
         setEmails(updatedEmails);
         setNewEmail("");
@@ -121,13 +123,17 @@ const Settings = () => {
     }
   };
 
-  // Confirm email removal
+  const handleEmailKeyDown = (e) => {
+    if (e.key === "Enter" && !updateUserLoading) {
+      handleAddEmail();
+    }
+  };
+
   const confirmRemoveEmail = (email) => {
     setConfirmDeleteEmail(email);
     clearMessages();
   };
 
-  // Handle confirmed email deletion using the new separate function
   const handleDeleteConfirmed = async () => {
     if (!confirmDeleteEmail || !removeUserFromRequestList) return;
 
@@ -135,10 +141,7 @@ const Settings = () => {
       const response = await removeUserFromRequestList(confirmDeleteEmail);
 
       if (response && response.success !== false) {
-        // Update local state - the context already handles this, but we'll sync it
-        setEmails((prev) =>
-          prev.filter((email) => email !== confirmDeleteEmail)
-        );
+        setEmails((prev) => prev.filter((email) => email !== confirmDeleteEmail));
         setConfirmDeleteEmail(null);
         setSuccessMessage("Email removed successfully!");
       } else {
@@ -148,63 +151,98 @@ const Settings = () => {
       }
     } catch (err) {
       console.error("Error removing email:", err);
-      setEmailError(
-        err?.message || "Failed to remove email. Please try again."
-      );
+      setEmailError(err?.message || "Failed to remove email. Please try again.");
     } finally {
       setConfirmDeleteEmail(null);
     }
   };
 
-  // Handle saving ratio and redemption limit using the new separate function
-  const handleSave = async () => {
+  // Save limits (coinValue + redemptionLimit). We preserve referralPoints by passing current referral value.
+  const handleSaveLimits = async () => {
     if (!updateRatioAndRedemptionLimit) return;
 
     clearMessages();
 
-    // Validate inputs
     if (redemptionLimit && isNaN(Number(redemptionLimit))) {
       setEmailError("Redemption limit must be a valid number.");
       return;
     }
-
     if (coinValue && isNaN(Number(coinValue))) {
       setEmailError("Coin value must be a valid number.");
       return;
     }
 
+    setSavingLimits(true);
     try {
       const ratioValue = coinValue ? Number(coinValue) : 0;
       const limitValue = redemptionLimit ? Number(redemptionLimit) : 0;
+      const referralValue = referralPoints ? Number(referralPoints) : 0;
 
       const response = await updateRatioAndRedemptionLimit(
         ratioValue,
-        limitValue
+        limitValue,
+        referralValue
       );
 
       if (response && response.success !== false) {
-        setSuccessMessage("Settings updated successfully!");
+        setSuccessMessage("Limits & coin value saved.");
       } else {
         const errorMessage =
-          response?.message || response?.error || "Failed to save settings";
+          response?.message || response?.error || "Failed to save limits";
         setEmailError(errorMessage);
       }
     } catch (err) {
-      console.error("Error saving settings:", err);
-      setEmailError(
-        err?.message || "Failed to save settings. Please try again."
+      console.error("Error saving limits:", err);
+      setEmailError(err?.message || "Failed to save limits. Please try again.");
+    } finally {
+      setSavingLimits(false);
+    }
+  };
+
+  // Save only referral points: preserve ratio & limit by passing current values.
+  const handleSaveReferral = async () => {
+    if (!updateRatioAndRedemptionLimit) return;
+
+    clearMessages();
+
+    if (referralPoints && isNaN(Number(referralPoints))) {
+      setEmailError("Referral points must be a valid number.");
+      return;
+    }
+
+    setSavingReferral(true);
+    try {
+      const ratioValue =
+        coinValue !== "" ? Number(coinValue) : Number(settings.ratio || 0);
+      const limitValue =
+        redemptionLimit !== ""
+          ? Number(redemptionLimit)
+          : Number(settings.redemptionLimit || 0);
+      const referralValue = referralPoints ? Number(referralPoints) : 0;
+
+      const response = await updateRatioAndRedemptionLimit(
+        ratioValue,
+        limitValue,
+        referralValue
       );
+
+      if (response && response.success !== false) {
+        setSuccessMessage("Referral points saved.");
+      } else {
+        const errorMessage =
+          response?.message || response?.error || "Failed to save referral points";
+        setEmailError(errorMessage);
+      }
+    } catch (err) {
+      console.error("Error saving referral points:", err);
+      setEmailError(
+        err?.message || "Failed to save referral points. Please try again."
+      );
+    } finally {
+      setSavingReferral(false);
     }
   };
 
-  // Handle Enter key press in email input
-  const handleEmailKeyDown = (e) => {
-    if (e.key === "Enter" && !updateUserLoading) {
-      handleAddEmail();
-    }
-  };
-
-  // Handle retry
   const handleRetry = () => {
     if (reloadSettings) {
       reloadSettings();
@@ -213,40 +251,19 @@ const Settings = () => {
     }
   };
 
-  // Loading spinner component
-  const LoadingSpinner = () => (
-    <div className="flex items-center justify-center h-screen bg-gray-50">
-      <div className="relative">
-        <div className="w-16 h-16 border-4 border-gray-200 border-t-blue-500 rounded-full animate-spin"></div>
-        <div
-          className="absolute top-2 left-2 w-12 h-12 border-3 border-gray-100 border-b-purple-400 rounded-full animate-spin"
-          style={{ animationDirection: "reverse", animationDuration: "1.5s" }}
-        ></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full animate-pulse"></div>
-        </div>
-        <div className="mt-6 text-center">
-          <p className="text-gray-600 text-sm font-medium animate-pulse">
-            Loading settings...
-          </p>
-        </div>
-      </div>
-    </div>
-  );
-
-  // Error component
   const ErrorMessage = ({ message, showRetry = false }) => (
-    <div className="p-6 bg-red-50 border border-red-200 rounded-md">
-      <div className="flex items-start space-x-3">
-        <FaExclamationCircle className="text-red-500 mt-0.5" size={20} />
+    <div className="p-6 bg-red-50 border border-red-200 rounded-xl shadow-sm max-w-2xl mx-auto">
+      <div className="flex items-start space-x-4">
+        <div className="flex-shrink-0">
+          <FaExclamationCircle className="text-red-500" size={28} />
+        </div>
         <div className="flex-1">
-          <p className="text-red-600 text-sm font-medium mb-2">
-            Error: {message}
-          </p>
+          <h4 className="text-red-800 font-semibold mb-1">Something went wrong</h4>
+          <p className="text-sm text-red-700 mb-4">{message}</p>
           {showRetry && (
             <button
               onClick={handleRetry}
-              className="px-3 py-1 text-xs bg-red-100 text-red-700 rounded hover:bg-red-200 transition"
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
             >
               Retry
             </button>
@@ -256,17 +273,15 @@ const Settings = () => {
     </div>
   );
 
-  // Success message component
   const SuccessMessage = ({ message }) => (
-    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md">
+    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md max-w-3xl mx-auto">
       <p className="text-green-600 text-sm font-medium">{message}</p>
     </div>
   );
 
-  // Context validation
   if (!contextValues) {
     return (
-      <div className="p-4">
+      <div className="p-6">
         <ErrorMessage
           message="Settings context not found. Please ensure the component is wrapped with SettingsProvider."
           showRetry={true}
@@ -281,7 +296,7 @@ const Settings = () => {
     !removeUserFromRequestList
   ) {
     return (
-      <div className="p-4">
+      <div className="p-6">
         <ErrorMessage
           message="Settings context not properly initialized. Please refresh the page."
           showRetry={true}
@@ -290,62 +305,57 @@ const Settings = () => {
     );
   }
 
-  // Loading state
   if (loading) {
-    return <LoadingSpinner />;
+    return <LoadingSpinner centered message="Loading settings..." />;
   }
 
-  // Error state
+
   if (error) {
     return (
-      <div className="p-4">
+      <div className="p-6">
         <ErrorMessage message={error} showRetry={true} />
       </div>
     );
   }
 
   return (
-    <div className="px-6 pb-6 bg-gray-50 min-h-screen font-sans">
-      <div className="max-w-3xl mx-auto pt-0">
-        <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
             Redemption Settings
           </h1>
-          <p className="text-gray-500 mt-1">
-            Manage your redemption preferences and system values.
+          <p className="text-sm text-gray-600 mt-1">
+            Manage email recipients, redemption limits, coin value, and referral points.
           </p>
         </div>
+      </div>
 
-        {/* Success Message */}
-        {successMessage && <SuccessMessage message={successMessage} />}
-
-        {/* Error Message */}
-        {emailError && (
-          <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-md">
+      {successMessage && <SuccessMessage message={successMessage} />}
+      {emailError && (
+        <div className="max-w-3xl mx-auto">
+          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
             <p className="text-red-600 text-sm font-medium">{emailError}</p>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Emails Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-200">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-blue-100 rounded-full">
-              <FaEnvelope className="text-blue-600" size={18} />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+        {/* Emails */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
+              <FaEnvelope />
             </div>
             <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Redemption Receipt Management
-              </h2>
-              <p className="text-gray-500 text-sm mt-1">
-                Add or remove users who receive redemption request emails.
-              </p>
+              <h2 className="text-lg font-semibold text-gray-900">Redemption Receipt Recipients</h2>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 mb-4">
+          <div className="flex gap-2 items-center mb-4">
             <input
               type="email"
-              placeholder="user@example.com"
+              placeholder="user@gmail.com"
               value={newEmail}
               onChange={(e) => {
                 setNewEmail(e.target.value);
@@ -353,182 +363,211 @@ const Settings = () => {
               }}
               onKeyDown={handleEmailKeyDown}
               disabled={updateUserLoading || emails.length >= 5}
-              className="flex-1 px-3 py-2 text-gray-700 bg-gray-100 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            />
+              className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
             <button
               onClick={handleAddEmail}
               disabled={
                 updateUserLoading || !newEmail.trim() || emails.length >= 5
               }
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-1"
+              className="px-4 py-2 bg-[#169698] hover:bg-[#128083] text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               {updateUserLoading ? (
-                <>
-                  <FaSpinner className="animate-spin" size={14} />
-                  <span>Adding...</span>
-                </>
+                <span className="inline-flex items-center gap-2"><FaSpinner className="animate-spin" /> Adding</span>
               ) : (
-                <span>+ Add</span>
+                "+ Add"
               )}
             </button>
           </div>
 
           {emails.length >= 5 && (
-            <p className="text-sm text-gray-500 mb-4">
-              You have reached the maximum of 5 emails.
-            </p>
+            <p className="text-xs text-gray-500 mb-3">Maximum of 5 emails reached.</p>
           )}
 
-          {emails.length > 0 && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {emails.map((email, index) => (
+          <div className="space-y-2">
+            {emails.length === 0 ? (
+              <div className="py-8 text-center text-gray-400">
+                <FaEnvelope className="mx-auto mb-2 text-2xl opacity-60" />
+                <div className="text-sm">No emails added yet</div>
+              </div>
+            ) : (
+              emails.map((email, idx) => (
                 <div
-                  key={index}
-                  className="flex items-center justify-between px-3 py-2 bg-gray-100 rounded-md text-sm font-medium text-gray-800 shadow-sm"
+                  key={email}
+                  className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 border border-gray-100"
                 >
-                  <span className="truncate flex-1 mr-2">{email}</span>
+                  <div className="flex items-center gap-3">
+                    <div className="text-xs text-gray-400">#{idx + 1}</div>
+                    <div className="text-sm font-medium text-gray-800">{email}</div>
+                  </div>
+
                   <button
                     onClick={() => confirmRemoveEmail(email)}
                     disabled={removeUserLoading}
-                    className="p-2 bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50 disabled:cursor-not-allowed flex-shrink-0"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-md transition-all flex items-center justify-center disabled:opacity-50 cursor-pointer"
                     title={`Remove ${email}`}
+                    style={{ lineHeight: 1 }}
                   >
                     {removeUserLoading && confirmDeleteEmail === email ? (
-                      <FaSpinner className="animate-spin" size={12} />
+                      <FaSpinner className="animate-spin text-sm" />
                     ) : (
-                      <FaTrash size={12} />
+                      <Trash2 size={18} />
                     )}
                   </button>
+
                 </div>
-              ))}
-            </div>
-          )}
-
-          {emails.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <FaEnvelope size={24} className="mx-auto mb-2 opacity-50" />
-              <p className="text-sm">
-                No emails added yet. Add an email to get started.
-              </p>
-            </div>
-          )}
-        </div>
-
-        {/* Limits Section */}
-        <div className="bg-white p-6 rounded-lg shadow-md mt-6 border border-gray-200">
-          <div className="flex items-center space-x-3 mb-4">
-            <div className="p-2 bg-green-100 rounded-full">
-              <FaCoins className="text-green-600" size={18} />
-            </div>
-            <div>
-              <h2 className="text-xl font-semibold text-gray-800">
-                Redemption Limit & Coin Value
-              </h2>
-              <p className="text-gray-500 text-sm mt-1">
-                Manage the limits and value for coin redemptions.
-              </p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Redemption Limit
-              </label>
-              <input
-                type="number"
-                value={redemptionLimit}
-                onChange={(e) => {
-                  setRedemptionLimit(e.target.value);
-                  if (emailError) setEmailError("");
-                }}
-                placeholder="Enter limit amount"
-                disabled={updateRatioRedemptionLoading}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Coin Value (Ratio)
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                value={coinValue}
-                onChange={(e) => {
-                  setCoinValue(e.target.value);
-                  if (emailError) setEmailError("");
-                }}
-                placeholder="Enter coin value"
-                disabled={updateRatioRedemptionLoading}
-                className="block w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 transition disabled:opacity-50 disabled:cursor-not-allowed"
-              />
-            </div>
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              onClick={handleSave}
-              disabled={updateRatioRedemptionLoading}
-              className="px-5 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
-            >
-              {updateRatioRedemptionLoading ? (
-                <>
-                  <FaSpinner className="animate-spin" size={14} />
-                  <span>Saving...</span>
-                </>
-              ) : (
-                <span>Save Changes</span>
-              )}
-            </button>
+              ))
+            )}
           </div>
         </div>
-      </div>
 
-      {/* Delete Confirmation Modal */}
-      {confirmDeleteEmail && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-50"  style={{	 backgroundColor: 'rgba(0, 0, 0, 0.5)' }}>
-          <div className="bg-white rounded-lg shadow-xl p-6 w-80 mx-4" >
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">
-              Confirm Deletion
-            </h3>
-            <p className="text-sm text-gray-600 mb-6">
-              Are you sure you want to remove{" "}
-              <span className="font-medium text-gray-800">
-                {confirmDeleteEmail}
-              </span>
-              ?
-              <br />
-              <span className="text-xs text-gray-500 mt-1 block">
-                This action cannot be undone.
-              </span>
-            </p>
-            <div className="flex justify-end space-x-3">
+        {/* Limits & Referral */}
+        <div className="space-y-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-green-50 text-green-600"><FaCoins /></div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Redemption Limits & Coin Value</h2>
+                <p className="text-sm text-gray-500">Control redemption limit and coin-to-rupee ratio.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="text-sm text-gray-600 mb-1 block">Redemption Limit</label>
+                <input
+                  type="number"
+                  value={redemptionLimit}
+                  onChange={(e) => {
+                    setRedemptionLimit(e.target.value);
+                    if (emailError) setEmailError("");
+                  }}
+                  placeholder="e.g., 1000"
+                  disabled={updateRatioRedemptionLoading || savingLimits}
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
+                <p className="text-xs text-gray-400 mt-1">Limit for redemptions (admin-controlled).</p>
+              </div>
+
+              <div>
+                <label className="text-sm text-gray-600 mb-1 block">Coin Value (Ratio)</label>
+                <input
+                  type="number"
+                  step="0.01"
+                  value={coinValue}
+                  onChange={(e) => {
+                    setCoinValue(e.target.value);
+                    if (emailError) setEmailError("");
+                  }}
+                  placeholder="e.g., 0.5"
+                  disabled={updateRatioRedemptionLoading || savingLimits}
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
+                <p className="text-xs text-gray-400 mt-1">How much 1 point equals in rupees (or other unit).</p>
+              </div>
+            </div>
+
+            <div className="mt-4 flex justify-end">
               <button
-                onClick={() => setConfirmDeleteEmail(null)}
-                disabled={removeUserLoading}
-                className="px-4 py-2 text-sm rounded-md bg-gray-200 hover:bg-gray-300 transition disabled:opacity-50"
+                onClick={handleSaveLimits}
+                disabled={updateRatioRedemptionLoading || savingLimits}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer"
               >
-                Cancel
-              </button>
-              <button
-                onClick={handleDeleteConfirmed}
-                disabled={removeUserLoading}
-                className="px-4 py-2 text-sm rounded-md bg-red-500 text-white hover:bg-red-600 transition disabled:opacity-50 flex items-center space-x-1"
-              >
-                {removeUserLoading ? (
-                  <>
-                    <FaSpinner className="animate-spin" size={12} />
-                    <span>Deleting...</span>
-                  </>
+                {(savingLimits || updateRatioRedemptionLoading) ? (
+                  <span className="inline-flex items-center gap-2"><FaSpinner className="animate-spin" /> Saving</span>
                 ) : (
-                  <span>Delete</span>
+                  "Save Limits"
                 )}
               </button>
             </div>
           </div>
+          {/* referral points */}
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><FaGift /></div>
+              <div>
+                <h2 className="text-lg font-semibold text-gray-900">Referral Points</h2>
+                <p className="text-sm text-gray-500">Points awarded to a referrer when a customer uses a referral code.</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
+              <div>
+                <label className="text-sm text-gray-600 mb-1 block">Referral Points</label>
+                <input
+                  type="number"
+                  value={referralPoints}
+                  onChange={(e) => {
+                    setReferralPoints(e.target.value);
+                    if (emailError) setEmailError("");
+                  }}
+                  placeholder="e.g., 50"
+                  disabled={updateRatioRedemptionLoading || savingReferral}
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
+                <p className="text-xs text-gray-400 mt-1">How many points to give per successful referral.</p>
+              </div>
+              <div className="flex items-center justify-end gap-3 mt-2">
+                <button
+                  onClick={() => setReferralPoints("")}
+                  className="px-4 py-2 h-10 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition flex items-center justify-center cursor-pointer"
+                >
+                  Reset
+                </button>
+
+                <button
+                  onClick={handleSaveReferral}
+                  disabled={updateRatioRedemptionLoading || savingReferral}
+                  className="flex items-center justify-center gap-2 px-5 py-2 h-10 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-60"
+                >
+                  {savingReferral ? (
+                    <span className="inline-flex items-center gap-2">
+                      <FaSpinner className="animate-spin" /> Saving
+                    </span>
+                  ) : (
+                    "Save Referral"
+                  )}
+                </button>
+              </div>
+
+            </div>
+          </div>
         </div>
-      )}
+      </div>
+
+      {/* Delete Confirmation Modal component */}
+      <ConfirmationModal
+        isOpen={!!confirmDeleteEmail}
+        title="Confirm Removal"
+        message={
+          confirmDeleteEmail ? (
+            <span>
+              Are you sure you want to remove{" "}
+              <span className="font-semibold text-[#169698]">{confirmDeleteEmail}</span>{" "}
+              from the recipients?
+              <br />
+              <span className="text-gray-600">This action cannot be undone.</span>
+            </span>
+          ) : (
+            ""
+          )
+        }
+        onCancel={() => setConfirmDeleteEmail(null)}
+        onConfirm={handleDeleteConfirmed}
+        isLoading={removeUserLoading}
+        type="danger"
+        confirmText="Delete"
+        cancelText="Cancel"
+      />
+
     </div>
   );
 };

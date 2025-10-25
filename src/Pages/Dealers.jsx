@@ -190,9 +190,9 @@ const Dealers = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-xl shadow-premium border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-50">
+            <thead className="bg-gray-100">
               <tr>
                 {[
                   ["Dealer ID", Hash],
@@ -227,7 +227,7 @@ const Dealers = () => {
                       <button
                         onClick={() => handleDeleteClick(dealer)}
                         disabled={operationLoading}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition-all disabled:opacity-50 cursor-pointer"
                       >
                         <Trash2 size={18} />
                       </button>
