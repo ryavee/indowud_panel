@@ -19,6 +19,8 @@ import {
 import { CustomerContext } from "../Context/CustomerContext";
 import CustomerDetails from "../Components/CustomerDetails";
 import Pagination from "../Components/Reusable/Pagination";
+import ExportButton from "../Components/export_button";
+import ImportButton from "../Components/Import_button";
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);

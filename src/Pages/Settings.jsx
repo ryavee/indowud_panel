@@ -342,14 +342,13 @@ const Settings = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Emails */}
-        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="p-2 rounded-lg bg-indigo-50 text-indigo-600">
               <FaEnvelope />
             </div>
             <div>
               <h2 className="text-lg font-semibold text-gray-900">Redemption Receipt Recipients</h2>
-              <p className="text-sm text-gray-500">Add up to 5 emails — saved immediately when you add.</p>
             </div>
           </div>
 
@@ -364,14 +363,16 @@ const Settings = () => {
               }}
               onKeyDown={handleEmailKeyDown}
               disabled={updateUserLoading || emails.length >= 5}
-              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-            />
+              className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
             <button
               onClick={handleAddEmail}
               disabled={
                 updateUserLoading || !newEmail.trim() || emails.length >= 5
               }
-              className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium shadow-sm disabled:opacity-50 cursor-pointer"
+              className="px-4 py-2 bg-[#169698] hover:bg-[#128083] text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               {updateUserLoading ? (
                 <span className="inline-flex items-center gap-2"><FaSpinner className="animate-spin" /> Adding</span>
@@ -424,7 +425,7 @@ const Settings = () => {
 
         {/* Limits & Referral */}
         <div className="space-y-6">
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-lg bg-green-50 text-green-600"><FaCoins /></div>
               <div>
@@ -445,8 +446,10 @@ const Settings = () => {
                   }}
                   placeholder="e.g., 1000"
                   disabled={updateRatioRedemptionLoading || savingLimits}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-                />
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
                 <p className="text-xs text-gray-400 mt-1">Limit for redemptions (admin-controlled).</p>
               </div>
 
@@ -462,8 +465,10 @@ const Settings = () => {
                   }}
                   placeholder="e.g., 0.5"
                   disabled={updateRatioRedemptionLoading || savingLimits}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-                />
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
                 <p className="text-xs text-gray-400 mt-1">How much 1 point equals in rupees (or other unit).</p>
               </div>
             </div>
@@ -483,7 +488,7 @@ const Settings = () => {
             </div>
           </div>
           {/* referral points */}
-          <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+          <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-4">
               <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><FaGift /></div>
               <div>
@@ -504,8 +509,10 @@ const Settings = () => {
                   }}
                   placeholder="e.g., 50"
                   disabled={updateRatioRedemptionLoading || savingReferral}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-                />
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
                 <p className="text-xs text-gray-400 mt-1">How many points to give per successful referral.</p>
               </div>
               <div className="flex items-center justify-end gap-3 mt-2">
