@@ -364,8 +364,10 @@ const Settings = () => {
               }}
               onKeyDown={handleEmailKeyDown}
               disabled={updateUserLoading || emails.length >= 5}
-              className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-            />
+              className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
             <button
               onClick={handleAddEmail}
               disabled={
@@ -445,8 +447,10 @@ const Settings = () => {
                   }}
                   placeholder="e.g., 1000"
                   disabled={updateRatioRedemptionLoading || savingLimits}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-                />
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
                 <p className="text-xs text-gray-400 mt-1">Limit for redemptions (admin-controlled).</p>
               </div>
 
@@ -462,8 +466,10 @@ const Settings = () => {
                   }}
                   placeholder="e.g., 0.5"
                   disabled={updateRatioRedemptionLoading || savingLimits}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-                />
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
                 <p className="text-xs text-gray-400 mt-1">How much 1 point equals in rupees (or other unit).</p>
               </div>
             </div>
@@ -504,8 +510,10 @@ const Settings = () => {
                   }}
                   placeholder="e.g., 50"
                   disabled={updateRatioRedemptionLoading || savingReferral}
-                  className="flex-1 px-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-                />
+                  className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
+                             focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
+                             focus:outline-none shadow-sm transition-all placeholder:text-gray-400
+                             disabled:bg-gray-100 disabled:text-gray-500"/>
                 <p className="text-xs text-gray-400 mt-1">How many points to give per successful referral.</p>
               </div>
               <div className="flex items-center justify-end gap-3 mt-2">
