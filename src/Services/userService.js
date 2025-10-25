@@ -83,3 +83,37 @@ export async function deleteUser(token, uid) {
     throw error;
   }
 }
+
+export async function uploadUserData(file) {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    console.log("📤 Uploading file:", file.name);
+
+    const res = await fetch(`${BASE_URL}${ENDPOINTS.IMPORTUSERSDATA}`, {
+      method: "POST",
+      body: formData, // ✅ no headers needed for FormData
+    });
+
+    const text = await res.text(); 
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      data = { message: text };
+    }
+
+    if (!res.ok) {
+      throw new Error(
+        data.message || data.error || `HTTP error! status: ${res.status}`
+      );
+    }
+
+    console.log("✅ Upload response:", data);
+    return data;
+  } catch (error) {
+    console.error("❌ Upload failed:", error);
+    throw error;
+  }
+}

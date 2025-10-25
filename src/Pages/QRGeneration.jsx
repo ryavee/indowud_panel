@@ -12,6 +12,7 @@ import DealerSelectComponent from "../Components/searchDealers";
 import ProductSelectComponent from "../Components/select_product";
 import QRCode from "qrcode";
 import jsPDF from "jspdf";
+import JSZip from "jszip";
 
 const QRGeneration = () => {
   const [showForm, setShowForm] = useState(false);
@@ -19,6 +20,8 @@ const QRGeneration = () => {
   const [showImportMenu, setShowImportMenu] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [generatingPDF, setGeneratingPDF] = useState(null);
+  const [selectedBatches, setSelectedBatches] = useState([]);
+  const [exporting, setExporting] = useState(false);
   const fileInputRef = useRef(null);
 
   const {
@@ -95,8 +98,6 @@ const QRGeneration = () => {
 
   const generateQRCodePDF = async (qrCodesData, productName, batchId) => {
     try {
-      setGeneratingPDF(true);
-
       const pdf = new jsPDF({
         orientation: "portrait",
         unit: "mm",
@@ -144,11 +145,14 @@ const QRGeneration = () => {
         pdf.setTextColor(20);
         pdf.text(productName, qrX, cardY + 5);
 
-        const qrCodeDataUrl = await QRCode.toDataURL(`${qrData.qrId}_${batchId}`, {
-          width: 250,
-          margin: 1,
-          errorCorrectionLevel: "M",
-        });
+        const qrCodeDataUrl = await QRCode.toDataURL(
+          `${qrData.qrId}_${batchId}`,
+          {
+            width: 250,
+            margin: 1,
+            errorCorrectionLevel: "M",
+          }
+        );
         pdf.addImage(qrCodeDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
 
         pdf.setFontSize(7);
@@ -184,12 +188,177 @@ const QRGeneration = () => {
         pdf.setTextColor(0);
       }
 
-      pdf.save(`QR_Indowud_${batchId}_${Date.now()}.pdf`);
-      setGeneratingPDF(false);
+      return pdf;
     } catch (error) {
       console.error("Error generating PDF:", error);
-      alert("Error generating PDF. Please try again.");
-      setGeneratingPDF(false);
+      throw error;
+    }
+  };
+
+  const generateCSV = (batchesData) => {
+    const headers = [
+      "Batch ID",
+      "Product Name",
+      "Dealer Name",
+      "Points",
+      "Expiry Date",
+      "Created At",
+      "Remarks",
+    ];
+    const rows = batchesData.map((batch) => [
+      batch.batchId,
+      batch.productName,
+      batch.dealerName,
+      batch.points,
+      batch.expiryDate || "None",
+      formatDate(batch.createdAt),
+      batch.remarks || "",
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(",")),
+    ].join("\n");
+
+    return csvContent;
+  };
+
+  const downloadFile = (content, filename, type) => {
+    const blob = new Blob([content], { type });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+   const handleSelect = (batchId) => {
+    setSelectedBatches((prev) =>
+      prev.includes(batchId)
+        ? prev.filter((id) => id !== batchId)
+        : [...prev, batchId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedBatches.length === currentData.length) {
+      setSelectedBatches([]);
+    } else {
+      setSelectedBatches(currentData.map((batch) => batch.batchId));
+    }
+  };
+
+  const handleExportSelected = async (format) => {
+    if (selectedBatches.length === 0) {
+      alert("Please select at least one batch to export");
+      return;
+    }
+
+    setExporting(true);
+    setShowExportMenu(false);
+
+    try {
+      const selectedBatchesData = batches.filter((batch) =>
+        selectedBatches.includes(batch.batchId)
+      );
+
+      if (format === "csv") {
+        const csvContent = generateCSV(selectedBatchesData);
+        downloadFile(csvContent, `QR_Batches_${Date.now()}.csv`, "text/csv");
+        alert("CSV exported successfully!");
+      } else if (format === "pdf") {
+        if (selectedBatches.length === 1) {
+          // Single PDF download
+          const batch = selectedBatchesData[0];
+          const result = await fetchBatchById(batch.batchId);
+
+          if (result.success && result.data.qrCodes) {
+            const pdf = await generateQRCodePDF(
+              result.data.qrCodes,
+              batch.productName,
+              batch.batchId
+            );
+            pdf.save(`QR_Indowud_${batch.batchId}_${Date.now()}.pdf`);
+            alert("PDF downloaded successfully!");
+          }
+        } else {
+          // Multiple PDFs - create ZIP
+          const zip = new JSZip();
+
+          for (const batch of selectedBatchesData) {
+            const result = await fetchBatchById(batch.batchId);
+
+            if (result.success && result.data.qrCodes) {
+              const pdf = await generateQRCodePDF(
+                result.data.qrCodes,
+                batch.productName,
+                batch.batchId
+              );
+              const pdfBlob = pdf.output("blob");
+              zip.file(`QR_Indowud_${batch.batchId}.pdf`, pdfBlob);
+            }
+          }
+
+          const zipBlob = await zip.generateAsync({ type: "blob" });
+          downloadFile(
+            zipBlob,
+            `QR_Batches_${Date.now()}.zip`,
+            "application/zip"
+          );
+          alert(`${selectedBatches.length} PDFs exported as ZIP successfully!`);
+        }
+      }
+
+      setSelectedBatches([]);
+    } catch (error) {
+      console.error("Error exporting:", error);
+      alert("Error exporting files. Please try again.");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const handleExport = async (type, format) => {
+    setExporting(true);
+    setShowExportMenu(false);
+
+    try {
+      let exportData = [];
+
+      if (type === "first10") {
+        exportData = batches.slice(0, 10);
+      } else if (type === "half") {
+        exportData = batches.slice(0, Math.ceil(batches.length / 2));
+      } else if (type === "full") {
+        exportData = batches;
+      }
+
+      if (format === "csv") {
+        const csvContent = generateCSV(exportData);
+        downloadFile(
+          csvContent,
+          `QR_Batches_${type}_${Date.now()}.csv`,
+          "text/csv"
+        );
+        alert("CSV exported successfully!");
+      } else if (format === "excel") {
+        // For Excel, we'll use CSV format (you can add a proper Excel library if needed)
+        const csvContent = generateCSV(exportData);
+        downloadFile(
+          csvContent,
+          `QR_Batches_${type}_${Date.now()}.csv`,
+          "text/csv"
+        );
+        alert("Excel file exported successfully!");
+      }
+    } catch (error) {
+      console.error("Error exporting:", error);
+      alert("Error exporting file. Please try again.");
+    } finally {
+      setExporting(false);
     }
   };
 
@@ -211,11 +380,6 @@ const QRGeneration = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleExport = (type, format) => {
-    console.log(`Exporting ${type} as ${format}`);
-    setShowExportMenu(false);
   };
 
   const handleImport = (format) => {
@@ -251,11 +415,14 @@ const QRGeneration = () => {
       const batchResult = await fetchBatchById(formData.batchId);
 
       if (batchResult.success && batchResult.data.qrCodes) {
-        await generateQRCodePDF(
+        setGeneratingPDF(true);
+        const pdf = await generateQRCodePDF(
           batchResult.data.qrCodes,
           formData.productName,
           formData.batchId
         );
+        pdf.save(`QR_Indowud_${formData.batchId}_${Date.now()}.pdf`);
+        setGeneratingPDF(false);
 
         alert(
           `Successfully generated ${formData.numberOfCodes} QR codes and downloaded PDF!`
@@ -285,11 +452,12 @@ const QRGeneration = () => {
       const result = await fetchBatchById(batch.batchId);
 
       if (result.success && result.data.qrCodes) {
-        await generateQRCodePDF(
+        const pdf = await generateQRCodePDF(
           result.data.qrCodes,
           batch.productName,
           batch.batchId
         );
+        pdf.save(`QR_Indowud_${batch.batchId}_${Date.now()}.pdf`);
       } else {
         alert("Failed to fetch QR codes for this batch. Please try again.");
       }
@@ -523,105 +691,49 @@ const QRGeneration = () => {
         ) : (
           <>
             <div className="p-4 border-b border-gray-200 flex justify-between items-center">
-              <p className="text-sm text-gray-600">
-                Showing {startIndex + 1}-{Math.min(endIndex, batches.length)} of{" "}
-                {batches.length}
-              </p>
+              <div className="flex items-center gap-4">
+                <p className="text-sm text-gray-600">
+                  Showing {startIndex + 1}-{Math.min(endIndex, batches.length)}{" "}
+                  of {batches.length}
+                </p>
+                {selectedBatches.length > 0 && (
+                  <span className="text-sm font-medium text-blue-600">
+                    {selectedBatches.length} selected
+                  </span>
+                )}
+              </div>
 
               <div className="flex gap-3 relative">
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setShowExportMenu(!showExportMenu);
-                      setShowImportMenu(false);
-                    }}
-                    className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors font-medium text-sm"
-                  >
-                    <Download size={18} />
-                    Export
-                  </button>
-                  {showExportMenu && (
-                    <div className="absolute right-0 mt-2 w-56 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                      <div className="py-1">
-                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                          Export as CSV
-                        </div>
-                        <button
-                          onClick={() => handleExport("first10", "csv")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          First 10 Records
-                        </button>
-                        <button
-                          onClick={() => handleExport("half", "csv")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Half Records
-                        </button>
-                        <button
-                          onClick={() => handleExport("full", "csv")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Full Records
-                        </button>
-                        <div className="border-t border-gray-200 my-1"></div>
-                        <div className="px-4 py-2 text-xs font-semibold text-gray-500 uppercase">
-                          Export as Excel
-                        </div>
-                        <button
-                          onClick={() => handleExport("first10", "excel")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          First 10 Records
-                        </button>
-                        <button
-                          onClick={() => handleExport("half", "excel")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Half Records
-                        </button>
-                        <button
-                          onClick={() => handleExport("full", "excel")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Full Records
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                <div className="relative">
-                  <button
-                    onClick={() => {
-                      setShowImportMenu(!showImportMenu);
-                      setShowExportMenu(false);
-                    }}
-                    className="flex items-center gap-2 bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700 transition-colors font-medium text-sm"
-                  >
-                    <Upload size={18} />
-                    Import
-                  </button>
-                  {showImportMenu && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                      <div className="py-1">
-                        <button
-                          onClick={() => handleImport("csv")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Upload CSV File
-                        </button>
-                        <button
-                          onClick={() => handleImport("excel")}
-                          className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                        >
-                          Upload Excel File
-                        </button>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
+                {selectedBatches.length > 0 && (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handleExportSelected("csv")}
+                      disabled={exporting}
+                      className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors font-medium text-sm disabled:opacity-50"
+                    >
+                      <Download size={18} />
+                      {exporting ? "Exporting..." : "Export CSV"}
+                    </button>
+                    <button
+                      onClick={() => handleExportSelected("pdf")}
+                      disabled={exporting}
+                      className="flex items-center gap-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors font-medium text-sm disabled:opacity-50"
+                    >
+                      <Download size={18} />
+                      {exporting
+                        ? "Exporting..."
+                        : selectedBatches.length > 1
+                        ? "Export ZIP"
+                        : "Export PDF"}
+                    </button>
+                    <button
+                      onClick={() => setSelectedBatches([])}
+                      className="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300 transition-colors font-medium text-sm"
+                    >
+                      Clear
+                    </button>
+                  </div>
+                )}
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -636,6 +748,17 @@ const QRGeneration = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
+                    {/* ✅ Select All checkbox */}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <input
+                        type="checkbox"
+                        checked={
+                          selectedBatches.length === currentData.length &&
+                          currentData.length > 0
+                        }
+                        onChange={handleSelectAll}
+                      />
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Batch ID
                     </th>
@@ -659,9 +782,19 @@ const QRGeneration = () => {
                     </th>
                   </tr>
                 </thead>
+
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentData.map((batch) => (
                     <tr key={batch.batchId} className="hover:bg-gray-50">
+                      {/* ✅ Individual row checkbox */}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        <input
+                          type="checkbox"
+                          checked={selectedBatches.includes(batch.batchId)}
+                          onChange={() => handleSelect(batch.batchId)}
+                        />
+                      </td>
+
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {batch.batchId}
                       </td>

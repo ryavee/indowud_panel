@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useContext } from "react";
+import { CustomerContext } from "../Context/CustomerContext";
 import {
   ArrowLeft,
   User,
@@ -25,21 +26,8 @@ const CustomerDetails = ({
   handleDocumentView,
   actionLoading,
 }) => {
-  const [notificationHistory, setNotificationHistory] = useState([
-    {
-      sender: "Customer",
-      message: "I’ve uploaded my PAN card again.",
-      time: "11 Oct 2025, 10:15 AM",
-    },
-    {
-      sender: "Admin",
-      message: "Please re-upload a clearer Aadhaar image.",
-      time: "11 Oct 2025, 09:42 AM",
-    },
-  ]);
-
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [customMessage, setCustomMessage] = useState("");
+  const { notifyCustomer, notificationLoading } = useContext(CustomerContext);
   const [sending, setSending] = useState(false);
   const [kycCardHeight, setKycCardHeight] = useState(0);
   const kycCardRef = useRef(null);
@@ -58,22 +46,19 @@ const CustomerDetails = ({
     }
   }, [customer]);
 
+  if (!customer) return null;
   const handleSendNotification = async () => {
     if (!customMessage.trim()) return;
     setSending(true);
-    setTimeout(() => {
-      const newNote = {
-        sender: "Admin",
-        message: customMessage,
-        time: new Date().toLocaleString(),
-      };
-      setNotificationHistory((prev) => [newNote, ...prev]);
+    try {
+      await notifyCustomer(customer.uid, customMessage);
       setCustomMessage("");
+    } catch (error) {
+      console.error("Failed to send notification:", error);
+    } finally {
       setSending(false);
-    }, 1000);
+    }
   };
-
-  if (!customer) return null;
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
@@ -127,13 +112,6 @@ const CustomerDetails = ({
 
           {/* Header Actions */}
           <div className="flex flex-wrap gap-3">
-            <button
-              onClick={() => setShowNotificationModal(true)}
-              className="flex items-center gap-2 px-5 py-2.5 bg-white text-orange-600 hover:bg-orange-50 rounded-md font-medium text-sm transition-all shadow-sm"
-            >
-              <Bell className="w-4 h-4" /> Notifications
-            </button>
-
             <button
               onClick={() => onBlockCustomer(customer.uid)}
               disabled={actionLoading.block === customer.uid}
@@ -200,10 +178,7 @@ const CustomerDetails = ({
             </div>
 
             {/* KYC Documents */}
-            <div
-             
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-grow"
-            >
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-grow">
               <h3 className="flex items-center text-lg font-semibold text-gray-800 mb-4">
                 <IdCard className="w-5 h-5 mr-2 text-orange-500" />
                 KYC Documents
@@ -319,10 +294,7 @@ const CustomerDetails = ({
             </div>
 
             {/* Send Notification Card */}
-            <div
-              className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-grow flex flex-col justify-between"
-              
-            >
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-grow flex flex-col justify-between">
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">
                   Send Notification to {customer.firstName}
@@ -355,10 +327,10 @@ const CustomerDetails = ({
               <div className="mt-4 flex justify-end">
                 <button
                   onClick={handleSendNotification}
-                  disabled={sending}
+                  disabled={sending || notificationLoading === customer.uid}
                   className="flex items-center gap-2 px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md shadow-sm disabled:opacity-60"
                 >
-                  {sending ? (
+                  {sending || notificationLoading === customer.uid ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
                     <Send className="w-4 h-4" />
@@ -370,42 +342,6 @@ const CustomerDetails = ({
           </div>
         </div>
       </div>
-
-      {/* Notification History Modal */}
-      {showNotificationModal && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl p-6 relative">
-            <button
-              onClick={() => setShowNotificationModal(false)}
-              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-            >
-              <X className="w-5 h-5" />
-            </button>
-            <h2 className="text-lg font-semibold text-gray-800 mb-3 flex items-center gap-2">
-              <Bell className="w-5 h-5 text-orange-500" /> Notification History
-            </h2>
-            <div className="max-h-[60vh] overflow-y-auto space-y-3">
-              {notificationHistory.map((note, i) => (
-                <div
-                  key={i}
-                  className={`p-3 rounded-lg border ${
-                    note.sender === "Admin"
-                      ? "bg-orange-50 border-orange-200"
-                      : "bg-gray-50 border-gray-200"
-                  }`}
-                >
-                  <p className="text-sm text-gray-800">
-                    <b>{note.sender}:</b> {note.message}
-                  </p>
-                  <p className="text-xs text-gray-500 mt-1 flex items-center gap-1">
-                    <Clock className="w-3 h-3" /> {note.time}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
