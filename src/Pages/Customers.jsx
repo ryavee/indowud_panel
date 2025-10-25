@@ -272,7 +272,7 @@ const Customers = () => {
         </div>
 
         {/* Table */}
-        <div className="bg-white rounded-lg shadow overflow-hidden">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
           {filteredCustomers.length === 0 ? (
             <div className="p-12 text-center text-gray-500">No customers found.</div>
           ) : (
