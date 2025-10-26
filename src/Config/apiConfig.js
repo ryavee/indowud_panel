@@ -47,6 +47,7 @@ export const ENDPOINTS = {
   CREATEPRODUCTS: "/api/v10/products/create-new-product",
   DELETEPRODUCTS: "/api/v10/products/delete-product",
   UPDATEPRODUCTS: "/api/v10/products/update-product",
+  IMPORTPRODUCTS: "/api/v10/products/import-products",
 
   // GENERATE QR
   GENERATEQR: "/api/v11/qrCodes/generate-qr-code",

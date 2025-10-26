@@ -74,10 +74,11 @@ export async function sendCustomerNotification(uid, message) {
 
 export async function importCustomersData(formData) {
   try {
-    console.log("Uploading formData:", formData.get("file"));
-
     const res = await fetch(`${BASE_URL}${ENDPOINTS.IMPORTCUSTOMERSDATA}`, {
       method: "POST",
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
       body: formData,
     });
 
@@ -93,4 +94,4 @@ export async function importCustomersData(formData) {
     console.error("Error importing customers:", error);
     throw error;
   }
-};
+}
