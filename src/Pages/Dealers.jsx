@@ -10,8 +10,10 @@ import {
   MapPin,
   MoreVertical,
 } from "lucide-react";
+import { toast } from "react-hot-toast";
 import { useDealersContext } from "../Context/DealersContext";
-import ConfirmationModal from "../Components/ConfirmationModal";
+import ExportButton from "../Components/export_button";
+import ImportCSVButton from "../Components/Import_button";
 
 const Dealers = () => {
   const {
@@ -23,20 +25,22 @@ const Dealers = () => {
     refreshDealers,
     clearError,
     addDealer,
+    generateNewDealerId,
+    importDealers,
   } = useDealersContext();
 
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
   const [dealerToDelete, setDealerToDelete] = useState(null);
-  const [localError, setLocalError] = useState(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [addError, setAddError] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [isGenerating, setIsGenerating] = useState(false);
 
   const [newDealer, setNewDealer] = useState({
-    companyName: "",
     dealerId: "",
+    companyName: "",
     city: "",
   });
 
@@ -44,23 +48,27 @@ const Dealers = () => {
     return () => clearError();
   }, [clearError]);
 
-  // 🗑️ Delete Dealer
   const handleDeleteClick = (dealer) => {
-    setDeleteId(dealer.dealerId);
+    if (!dealer?.id) {
+      toast.error("Invalid dealer ID");
+      return;
+    }
+    setDeleteId(dealer.id);
     setDealerToDelete(dealer);
     setShowConfirm(true);
-    setLocalError(null);
   };
 
   const confirmDelete = async () => {
-    setLocalError(null);
+    if (!deleteId) return toast.error("Invalid dealer ID");
+
     const result = await removeDealer(deleteId);
     if (result.success) {
+      toast.success("Dealer deleted successfully");
       setShowConfirm(false);
       setDeleteId(null);
       setDealerToDelete(null);
     } else {
-      setLocalError(result.error);
+      toast.error(result.error || "Failed to delete dealer");
     }
   };
 
@@ -68,14 +76,12 @@ const Dealers = () => {
     setShowConfirm(false);
     setDeleteId(null);
     setDealerToDelete(null);
-    setLocalError(null);
   };
 
-  // ➕ Add Dealer Modal Controls
   const handleAddDealerClick = () => {
     setShowAddModal(true);
     setAddError(null);
-    setNewDealer({ companyName: "", dealerId: "", city: "" });
+    setNewDealer({ dealerId: "", companyName: "", city: "" });
   };
 
   const handleInputChange = (e) => {
@@ -83,38 +89,62 @@ const Dealers = () => {
     setNewDealer((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleGenerateDealer = async () => {
+    setAddError(null);
+    setIsGenerating(true);
+    try {
+      const result = await generateNewDealerId();
+      if (result.success && result.dealerID) {
+        setNewDealer((prev) => ({ ...prev, dealerId: result.dealerID }));
+      } else {
+        toast.error(result.error || "Failed to generate dealer ID");
+      }
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleCreateDealer = async () => {
     setAddError(null);
-    if (
-      !newDealer.companyName.trim() ||
-      !newDealer.dealerId.trim() ||
-      !newDealer.city.trim()
-    ) {
-      setAddError("All fields are required");
-      return;
-    }
+
+    if (!newDealer.dealerId.trim()) return toast.error("Dealer ID is required");
+    if (!newDealer.companyName.trim())
+      return toast.error("Company name is required");
+    if (!newDealer.city.trim()) return toast.error("City is required");
 
     const result = await addDealer(newDealer);
     if (result.success) {
+      toast.success("Dealer added successfully");
       setShowAddModal(false);
-      setNewDealer({ companyName: "", dealerId: "", city: "" });
+      setNewDealer({ dealerId: "", companyName: "", city: "" });
     } else {
-      setAddError(result.error);
+      toast.error(result.error || "Failed to add dealer");
     }
   };
 
   const cancelAddDealer = () => {
     setShowAddModal(false);
     setAddError(null);
-    setNewDealer({ companyName: "", dealerId: "", city: "" });
+    setNewDealer({ dealerId: "", companyName: "", city: "" });
+  };
+
+  const handleImport = async (file) => {
+    const result = await importDealers(file);
+
+    if (result.success) {
+      const imported = result.data?.imported || result.data?.count || 0;
+      toast.success(
+        `Successfully imported ${imported} dealer${imported !== 1 ? "s" : ""}`
+      );
+    } else {
+      toast.error(result.error || "Failed to import dealers");
+    }
   };
 
   const handleRetry = () => {
     clearError();
     refreshDealers();
   };
-
-  // 🔍 Filter Dealers
   const filteredDealers = (Array.isArray(dealers) ? dealers : []).filter(
     (d) => {
       const q = searchTerm.toLowerCase();
@@ -126,7 +156,6 @@ const Dealers = () => {
     }
   );
 
-  // 🌀 Loading
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-96">
@@ -138,7 +167,6 @@ const Dealers = () => {
     );
   }
 
-  // ❌ Error State
   if (error && !loading) {
     return (
       <div className="bg-red-50 border border-red-200 rounded-xl p-6 shadow-sm">
@@ -177,236 +205,276 @@ const Dealers = () => {
             <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search company name, dealer ID, or city..."
+              placeholder="Search company, dealer ID, city..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm"
             />
           </div>
-          <button
-            onClick={handleAddDealerClick}
-            disabled={operationLoading}
-            className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
-          >
-            <Plus className="w-4 h-4" /> Add Dealer
-          </button>
+          <div className="flex gap-3">
+            <ExportButton
+              data={filteredDealers}
+              columns={[
+                { key: "dealerId", header: "Dealer ID" },
+                { key: "companyName", header: "Company Name" },
+                { key: "city", header: "City" },
+              ]}
+              filename="dealers_export"
+              disabled={operationLoading || filteredDealers.length === 0}
+            />
+            <ImportCSVButton
+              requiredHeaders={[
+                { key: "dealerId", header: "Dealer ID" },
+                { key: "companyName", header: "Company Name" },
+                { key: "city", header: "City" },
+              ]}
+              onUpload={handleImport}
+              label="Import Dealers"
+            />
+            <button
+              onClick={handleAddDealerClick}
+              disabled={operationLoading}
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
+            >
+              <Plus className="w-4 h-4" /> Add Dealer
+            </button>
+          </div>
         </div>
 
-        {/* Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200 text-sm">
-            <thead className="bg-gray-100">
-              <tr>
-                {[
-                  ["Dealer ID", Hash],
-                  ["Company Name", Building2],
-                  ["City", MapPin],
-                  ["Action", MoreVertical],
-                ].map(([label, Icon]) => (
-                  <th
-                    key={label}
-                    className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
-                  >
-                    <div className="flex items-center gap-1.5">
-                      <Icon className="h-4 w-4 text-gray-500" /> {label}
-                    </div>
-                  </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody className="bg-white divide-y divide-gray-100">
-              {filteredDealers.length > 0 ? (
-                filteredDealers.map((dealer) => (
-                  <tr
-                    key={dealer.dealerId}
-                    className="hover:bg-orange-50/40 transition-all"
-                  >
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-800">
-                      {dealer.dealerId}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-800">
-                      {dealer.companyName}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-gray-700">
-                      {dealer.city}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm">
-                      <button
-                        onClick={() => handleDeleteClick(dealer)}
-                        disabled={operationLoading}
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition-all disabled:opacity-50 cursor-pointer"
+          <div className="overflow-x-auto">
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-100">
+                <tr>
+                  {[
+                    ["Dealer ID", Hash],
+                    ["Company Name", Building2],
+                    ["City", MapPin],
+                    ["Action", MoreVertical],
+                  ].map(([label, Icon]) => (
+                    <th
+                      key={label}
+                      className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                    >
+                      <div className="flex items-center gap-1.5">
+                        <Icon className="h-4 w-4 text-gray-500" /> {label}
+                      </div>
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-100">
+                {filteredDealers.length > 0 ? (
+                  filteredDealers.map((dealer) => {
+                    const uniqueKey =
+                      dealer.dealerId || dealer.id || Math.random();
+                    return (
+                      <tr
+                        key={uniqueKey}
+                        className="hover:bg-orange-50/40 transition-all"
                       >
-                        <Trash2 size={18} />
-                      </button>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-800 font-medium">
+                          {dealer.dealerId || dealer.id || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-800">
+                          {dealer.companyName || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-700">
+                          {dealer.city || "N/A"}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteClick(dealer)}
+                            disabled={operationLoading}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                            aria-label={`Delete ${dealer.companyName}`}
+                          >
+                            <Trash2 size={18} />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                ) : (
+                  <tr>
+                    <td
+                      colSpan={4}
+                      className="px-6 py-12 text-center text-gray-500"
+                    >
+                      {searchTerm
+                        ? "No dealers match your search."
+                        : "No dealers found. Add your first dealer to get started."}
                     </td>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan="4"
-                    className="text-center py-12 text-gray-500 text-sm"
-                  >
-                    No dealers found.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
-      </div>
 
-      {/* ➕ Add Dealer Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/30 backdrop-blur-sm">
-          <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4 shadow-2xl border border-gray-100 transform scale-95 animate-modalPop">
-            <h3 className="text-lg font-semibold mb-4 flex items-center text-gray-800">
-              <Plus className="w-5 h-5 text-orange-600 mr-2" /> Add New Dealer
-            </h3>
+        {/* Add Dealer Modal */}
+        {showAddModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md animate-in fade-in zoom-in duration-200">
+              <h2 className="text-xl font-semibold mb-4 text-gray-900">
+                Add New Dealer
+              </h2>
 
-            {/* Input Fields */}
-            <div className="space-y-4">
-              {/* Company Name */}
-              <div>
-                <label
-                  htmlFor="companyName"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Company Name
-                </label>
-                <input
-                  type="text"
-                  id="companyName"
-                  name="companyName"
-                  value={newDealer.companyName}
-                  onChange={handleInputChange}
-                  placeholder="Enter company name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm"
-                />
-              </div>
+              {addError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-600 text-sm flex-1">{addError}</p>
+                </div>
+              )}
 
-              {/* Dealer ID + Generate */}
-              <div>
-                <label
-                  htmlFor="dealerId"
-                  className="block text-sm font-medium text-gray-700 mb-1"
-                >
-                  Dealer ID
-                </label>
-                <div className="flex gap-2">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Dealer ID *
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      name="dealerId"
+                      value={newDealer.dealerId}
+                      onChange={handleInputChange}
+                      placeholder="Enter or generate ID"
+                      className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent focus:outline-none"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleGenerateDealer}
+                      disabled={operationLoading || isGenerating}
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center gap-2 whitespace-nowrap"
+                    >
+                      {isGenerating ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        "Generate"
+                      )}
+                    </button>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    Company Name *
+                  </label>
                   <input
                     type="text"
-                    id="dealerId"
-                    name="dealerId"
-                    value={newDealer.dealerId}
+                    name="companyName"
+                    value={newDealer.companyName}
                     onChange={handleInputChange}
-                    placeholder="Auto-generate or enter manually"
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm"
+                    placeholder="Enter company name"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent focus:outline-none"
                   />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setNewDealer((prev) => ({
-                        ...prev,
-                        dealerId: `DLR-${Math.random()
-                          .toString(36)
-                          .substring(2, 8)
-                          .toUpperCase()}`,
-                      }))
-                    }
-                    className="px-3 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-all duration-200"
-                  >
-                    Generate
-                  </button>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                    City *
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={newDealer.city}
+                    onChange={handleInputChange}
+                    placeholder="Enter city"
+                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:border-transparent focus:outline-none"
+                  />
                 </div>
               </div>
 
-              {/* City */}
-              <div>
-                <label
-                  htmlFor="city"
-                  className="block text-sm font-medium text-gray-700 mb-1"
+              <div className="mt-6 flex justify-end gap-3">
+                <button
+                  onClick={cancelAddDealer}
+                  disabled={operationLoading}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  City
-                </label>
-                <input
-                  type="text"
-                  id="city"
-                  name="city"
-                  value={newDealer.city}
-                  onChange={handleInputChange}
-                  placeholder="Enter city name"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm"
-                />
+                  Cancel
+                </button>
+                <button
+                  onClick={handleCreateDealer}
+                  disabled={operationLoading || isGenerating}
+                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {operationLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save Dealer"
+                  )}
+                </button>
               </div>
-            </div>
-
-            {/* Error Message */}
-            {addError && (
-              <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600" />
-                <p className="text-sm text-red-700">{addError}</p>
-              </div>
-            )}
-
-            {/* Buttons */}
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={cancelAddDealer}
-                disabled={operationLoading}
-                className="px-4 py-2 border border-gray-300 rounded-md hover:bg-gray-50 text-sm font-medium transition-all duration-200"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleCreateDealer}
-                disabled={operationLoading}
-                className="flex items-center gap-2 px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md text-sm font-medium transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50"
-              >
-                {operationLoading ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" /> Creating...
-                  </>
-                ) : (
-                  "Create"
-                )}
-              </button>
             </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* 🗑️ Delete Confirmation */}
-      <ConfirmationModal
-        isOpen={showConfirm && !!dealerToDelete}
-        title="Confirm Delete"
-        message={
-          dealerToDelete ? (
-            <span>
-              Are you sure you want to delete{" "}
-              <span className="font-semibold text-[#169698]">
-                {dealerToDelete.companyName}
-              </span>{" "}
-              from{" "}
-              <span className="text-orange-600 font-medium">
-                {dealerToDelete.city}
-              </span>
-              ? <br />
-              <span className="text-gray-600">
-                This action cannot be undone.
-              </span>
-            </span>
-          ) : (
-            ""
-          )
-        }
-        onCancel={cancelDelete}
-        onConfirm={confirmDelete}
-        isLoading={operationLoading}
-        type="danger"
-        confirmText="Delete"
-        cancelText="Cancel"
-      />
+        {/* Confirmation Modal for Delete */}
+        {showConfirm && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-xl shadow-xl p-6 w-full max-w-md animate-in fade-in zoom-in duration-200">
+              <div className="flex items-start gap-3 mb-4">
+                <div className="flex-shrink-0 w-10 h-10 rounded-full bg-red-100 flex items-center justify-center">
+                  <AlertCircle className="w-6 h-6 text-red-600" />
+                </div>
+                <div className="flex-1">
+                  <h2 className="text-lg font-semibold text-gray-900 mb-1">
+                    Delete Dealer
+                  </h2>
+                  <p className="text-gray-600 text-sm">
+                    Are you sure you want to delete{" "}
+                    <span className="font-medium text-gray-900">
+                      {dealerToDelete?.companyName || "this dealer"}
+                    </span>
+                    ? This action cannot be undone.
+                  </p>
+                </div>
+              </div>
+
+              {localError && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 flex items-start gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-red-600 text-sm flex-1">{localError}</p>
+                </div>
+              )}
+
+              <div className="flex justify-end gap-3">
+                <button
+                  onClick={cancelDelete}
+                  disabled={operationLoading}
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={operationLoading}
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                >
+                  {operationLoading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Deleting...
+                    </>
+                  ) : (
+                    <>
+                      <Trash2 className="w-4 h-4" />
+                      Delete
+                    </>
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

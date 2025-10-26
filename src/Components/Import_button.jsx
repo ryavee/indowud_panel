@@ -27,9 +27,16 @@ const ImportCSVButton = ({
       preview: 1, // read only header
       complete: (results) => {
         const csvHeaders = Object.keys(results.data[0] || {}).map((h) =>
-          h.trim().toLowerCase()
+          h
+            .replace(/^\uFEFF/, "")
+            .trim()
+            .toLowerCase()
         );
-        const requiredKeys = requiredHeaders.map((h) => h.trim().toLowerCase());
+
+        const requiredKeys = requiredHeaders.map((h) =>
+          h.header.trim().toLowerCase()
+        );
+
         const missingKeys = requiredKeys.filter(
           (header) => !csvHeaders.includes(header)
         );
