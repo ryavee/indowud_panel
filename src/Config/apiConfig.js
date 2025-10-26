@@ -1,6 +1,6 @@
 export const BASE_URL = 
-// "http://localhost:2000";
-"https://indowud-main-engine.onrender.com";
+"http://localhost:2000";
+// "https://indowud-main-engine.onrender.com";
 export const ENDPOINTS = {
   LOGIN: "/api/v1/auth/login",
   GETUSERDATA: "/api/v1/auth/users/:uid",
@@ -25,6 +25,7 @@ export const ENDPOINTS = {
   UPDATEREQUESTUSERS: "/api/v3/settings/request-to-users",
   UPDATERATIOREDEMPTIONLIMIT: "/api/v3/settings/change-limit-ratio",
   REMOVEREQUESTUSERS: "/api/v3/settings/delete-request-user",
+  UPDATEREFERRALPOINTS: "/api/v3/settings/user-referral-points",
   // Tickets
   LOADALLTICKETS: "/api/v7/tickets/all-tickets",
   CHANGETICKETSTATUS: "/api/v7/tickets/change-tickets-status",
