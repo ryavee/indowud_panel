@@ -1,9 +1,11 @@
+// Context/SettingsContext.js
 import { createContext, useState, useCallback, useEffect } from "react";
 import {
   loadSettings,
   updateRequestUsers,
   updateRatioRedemptionLimit,
   removeRequestUsers,
+  updateRefferalPoint,
 } from "../Services/settingsService";
 
 export const SettingsContext = createContext();
@@ -13,15 +15,18 @@ export function SettingsProvider({ children }) {
     ratio: 0,
     redemptionLimit: 0,
     requestTo: [],
+    referralPoints: 0,
   });
+
   const [loading, setLoading] = useState(true);
   const [updateUserLoading, setUpdateUserLoading] = useState(false);
   const [updateRatioRedemptionLoading, setUpdateRatioRedemptionLoading] =
     useState(false);
+  const [updateReferralLoading, setUpdateReferralLoading] = useState(false);
   const [removeUserLoading, setRemoveUserLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Load settings when component mounts
+  // ✅ Fetch settings on mount
   useEffect(() => {
     const fetchSettings = async () => {
       try {
@@ -34,11 +39,12 @@ export function SettingsProvider({ children }) {
             ratio: response.ratio || 0,
             redemptionLimit: response.redemptionLimit || 0,
             requestTo: response.requestTo || [],
+            referralPoints: response.referralPoints || 0,
           });
         } else {
-          const errorMessage =
+          const message =
             response?.message || response?.error || "Failed to load settings";
-          setError(errorMessage);
+          setError(message);
         }
       } catch (err) {
         console.error("Error loading settings:", err);
@@ -47,49 +53,78 @@ export function SettingsProvider({ children }) {
         setLoading(false);
       }
     };
-
     fetchSettings();
   }, []);
 
-  // Update ratio
-  const updateRatio = useCallback((newRatio) => {
-    setSettings((prev) => ({ ...prev, ratio: newRatio }));
+  // ✅ Local state updates
+  const updateRatio = useCallback(
+    (newRatio) => setSettings((prev) => ({ ...prev, ratio: newRatio })),
+    []
+  );
+
+  const updateRedemptionLimit = useCallback(
+    (newLimit) =>
+      setSettings((prev) => ({ ...prev, redemptionLimit: newLimit })),
+    []
+  );
+
+  // ✅ Update referral points
+  const updateReferralPoints = useCallback(async (newPoints) => {
+    try {
+      setUpdateReferralLoading(true);
+      setError(null);
+
+      const response = await updateRefferalPoint(newPoints);
+
+      if (response?.success) {
+        // Use server value if returned (optional, here we keep newPoints)
+        setSettings((prev) => ({ ...prev, referralPoints: newPoints }));
+        return response;
+      } else {
+        const message =
+          response?.message ||
+          response?.error ||
+          "Failed to update referral points";
+        setError(message);
+        return { success: false, error: message };
+      }
+    } catch (err) {
+      console.error("Error updating referral points:", err);
+      setError(err.message || "Error updating referral points");
+      throw err;
+    } finally {
+      setUpdateReferralLoading(false);
+    }
   }, []);
 
-  // Update redemption limit
-  const updateRedemptionLimit = useCallback((newLimit) => {
-    setSettings((prev) => ({ ...prev, redemptionLimit: newLimit }));
-  }, []);
-
-  // Update request users (legacy method - kept for backward compatibility)
+  // ✅ Update email recipients
   const updateRequestTo = useCallback(async (newRequestUsers) => {
     try {
       setUpdateUserLoading(true);
       setError(null);
-      const response = await updateRequestUsers(newRequestUsers);
 
+      const response = await updateRequestUsers(newRequestUsers);
       if (response && response.success !== false) {
         setSettings((prev) => ({ ...prev, requestTo: newRequestUsers }));
         return response;
       } else {
-        const errorMessage =
+        const message =
           response?.message ||
           response?.error ||
           "Failed to update request users";
-        setError(errorMessage);
-        return response || { success: false, error: errorMessage };
+        setError(message);
+        return { success: false, error: message };
       }
     } catch (err) {
       console.error("Error updating request users:", err);
-      const errorMessage = err.message || "Error updating request users";
-      setError(errorMessage);
+      setError(err.message || "Error updating request users");
       throw err;
     } finally {
       setUpdateUserLoading(false);
     }
   }, []);
 
-  // Update ratio and redemption limit with separate loading state
+  // ✅ Update ratio & redemption limit together
   const updateRatioAndRedemptionLimit = useCallback(
     async (ratio, redemptionLimit) => {
       try {
@@ -100,27 +135,24 @@ export function SettingsProvider({ children }) {
           ratio,
           redemptionLimit
         );
-
         if (response && response.success !== false) {
           setSettings((prev) => ({
             ...prev,
-            ratio: ratio,
-            redemptionLimit: redemptionLimit,
+            ratio,
+            redemptionLimit,
           }));
           return response;
         } else {
-          const errorMessage =
+          const message =
             response?.message ||
             response?.error ||
             "Failed to update ratio and redemption limit";
-          setError(errorMessage);
-          return response || { success: false, error: errorMessage };
+          setError(message);
+          return { success: false, error: message };
         }
       } catch (err) {
-        console.error("Error updating ratio and redemption limit:", err);
-        const errorMessage =
-          err.message || "Error updating ratio and redemption limit";
-        setError(errorMessage);
+        console.error("Error updating ratio/redemption limit:", err);
+        setError(err.message || "Error updating ratio and redemption limit");
         throw err;
       } finally {
         setUpdateRatioRedemptionLoading(false);
@@ -129,167 +161,80 @@ export function SettingsProvider({ children }) {
     []
   );
 
-  // Remove specific user with separate loading state
+  // ✅ Remove email recipient
   const removeUserFromRequestList = useCallback(async (emailToRemove) => {
     try {
       setRemoveUserLoading(true);
       setError(null);
 
       const response = await removeRequestUsers(emailToRemove);
-
       if (response && response.success !== false) {
-        // Update local state by removing the email
         setSettings((prev) => ({
           ...prev,
           requestTo: prev.requestTo.filter((email) => email !== emailToRemove),
         }));
         return response;
       } else {
-        const errorMessage =
+        const message =
           response?.message || response?.error || "Failed to remove user";
-        setError(errorMessage);
-        return response || { success: false, error: errorMessage };
+        setError(message);
+        return { success: false, error: message };
       }
     } catch (err) {
       console.error("Error removing user:", err);
-      const errorMessage = err.message || "Error removing user";
-      setError(errorMessage);
+      setError(err.message || "Error removing user");
       throw err;
     } finally {
       setRemoveUserLoading(false);
     }
   }, []);
 
-  // Generic update method that can handle all settings updates
-  const updateUserList = useCallback(
-    async (updateData) => {
-      try {
-        setUpdateUserLoading(true);
-        setError(null);
-
-        let response;
-
-        // If only updating requestTo emails
-        if (updateData.requestTo && Object.keys(updateData).length === 1) {
-          response = await updateRequestUsers(updateData.requestTo);
-          if (response && response.success !== false) {
-            setSettings((prev) => ({
-              ...prev,
-              requestTo: updateData.requestTo,
-            }));
-          }
-        } else {
-          // For comprehensive updates, we need a more comprehensive API call
-          // For now, we'll update each field separately if needed
-          if (updateData.requestTo) {
-            response = await updateRequestUsers(updateData.requestTo);
-            if (response && response.success !== false) {
-              setSettings((prev) => ({
-                ...prev,
-                requestTo: updateData.requestTo,
-              }));
-            }
-          }
-
-          // Update other fields in local state (you may need additional API calls for these)
-          if (
-            updateData.redemptionLimit !== undefined ||
-            updateData.ratio !== undefined
-          ) {
-            // Use the separate function for ratio and redemption limit updates
-            const ratioResponse = await updateRatioRedemptionLimit(
-              updateData.ratio !== undefined
-                ? updateData.ratio
-                : settings.ratio,
-              updateData.redemptionLimit !== undefined
-                ? updateData.redemptionLimit
-                : settings.redemptionLimit
-            );
-
-            if (ratioResponse && ratioResponse.success !== false) {
-              setSettings((prev) => ({
-                ...prev,
-                ratio:
-                  updateData.ratio !== undefined
-                    ? updateData.ratio
-                    : prev.ratio,
-                redemptionLimit:
-                  updateData.redemptionLimit !== undefined
-                    ? updateData.redemptionLimit
-                    : prev.redemptionLimit,
-              }));
-            }
-
-            response = ratioResponse;
-          }
-
-          // Return a successful response if we get here
-          response = response || { success: true };
-        }
-
-        if (response && response.success !== false) {
-          return response;
-        } else {
-          const errorMessage =
-            response?.message || response?.error || "Failed to update settings";
-          setError(errorMessage);
-          return response || { success: false, error: errorMessage };
-        }
-      } catch (err) {
-        console.error("Error updating settings:", err);
-        const errorMessage = err.message || "Error updating settings";
-        setError(errorMessage);
-        throw err;
-      } finally {
-        setUpdateUserLoading(false);
-      }
-    },
-    [settings.ratio, settings.redemptionLimit]
-  );
-
-  // Reload settings
+  // ✅ Reload settings
   const reloadSettings = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await loadSettings();
 
+      const response = await loadSettings();
       if (response && response.success !== false) {
         setSettings({
           ratio: response.ratio || 0,
           redemptionLimit: response.redemptionLimit || 0,
           requestTo: response.requestTo || [],
+          referralPoints: response.referralPoints || 0,
         });
         return response;
       } else {
-        const errorMessage =
+        const message =
           response?.message || response?.error || "Failed to reload settings";
-        setError(errorMessage);
-        return response || { success: false, error: errorMessage };
+        setError(message);
+        return { success: false, error: message };
       }
     } catch (err) {
       console.error("Error reloading settings:", err);
-      const errorMessage = err.message || "Error reloading settings";
-      setError(errorMessage);
+      setError(err.message || "Error reloading settings");
       throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
+  // ✅ Provide all context values
   const contextValue = {
     settings,
     loading,
     updateUserLoading,
     updateRatioRedemptionLoading,
+    updateReferralLoading,
     removeUserLoading,
     error,
     updateRatio,
     updateRedemptionLimit,
     updateRequestTo,
-    updateUserList,
-    updateRatioAndRedemptionLimit, // New function for ratio and redemption limit
-    removeUserFromRequestList, // New function for removing individual users
+    updateUserList: updateRequestTo,
+    updateRatioAndRedemptionLimit,
+    updateReferralPoints,
+    removeUserFromRequestList,
     reloadSettings,
   };
 
