@@ -16,7 +16,6 @@ export async function getCustomers(token) {
   }
 }
 
-// Block User
 export async function blockCustomer(token, uid, isUserInActive) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.BLOCKCUSTOMER}`, {
@@ -35,7 +34,6 @@ export async function blockCustomer(token, uid, isUserInActive) {
   }
 }
 
-// KYC Verification
 export async function customerKYCVerification(token, uid, isKYCverifed) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.KYCVERIFICATION}`, {
@@ -54,7 +52,6 @@ export async function customerKYCVerification(token, uid, isKYCverifed) {
   }
 }
 
-// Send Customer Notification
 export async function sendCustomerNotification(uid, message) {
   try {
     const res = await fetch(
@@ -75,14 +72,13 @@ export async function sendCustomerNotification(uid, message) {
   }
 }
 
-// Import Customers Data
 export async function importCustomersData(formData) {
   try {
-    console.log("Uploading formData:", formData.get("file")); // log the file
+    console.log("Uploading formData:", formData.get("file"));
 
     const res = await fetch(`${BASE_URL}${ENDPOINTS.IMPORTCUSTOMERSDATA}`, {
       method: "POST",
-      body: formData, // do NOT set Content-Type, browser handles it
+      body: formData,
     });
 
     console.log("Response status:", res.status);
@@ -92,9 +88,9 @@ export async function importCustomersData(formData) {
 
     if (!res.ok) throw new Error(data?.message || "Failed to import customers");
 
-    return data; // return API response
+    return data;
   } catch (error) {
     console.error("Error importing customers:", error);
     throw error;
   }
-}
+};

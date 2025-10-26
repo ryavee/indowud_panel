@@ -10,6 +10,7 @@ import {
 import { Trash2 } from "lucide-react";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 import ConfirmationModal from "../Components/ConfirmationModal";
+import toast, { Toaster } from "react-hot-toast";
 
 const Settings = () => {
   const contextValues = useContext(SettingsContext);
@@ -20,11 +21,13 @@ const Settings = () => {
     updateUserLoading = false,
     updateRatioRedemptionLoading = false,
     removeUserLoading = false,
+    updateReferralLoading = false,
     error = null,
-    updateUserList,
+    updateRequestTo,
     updateRatioAndRedemptionLimit,
     removeUserFromRequestList,
     reloadSettings,
+    updateReferralPoints,
   } = contextValues || {};
 
   const [newEmail, setNewEmail] = useState("");
@@ -32,20 +35,9 @@ const Settings = () => {
   const [redemptionLimit, setRedemptionLimit] = useState("");
   const [coinValue, setCoinValue] = useState("");
   const [referralPoints, setReferralPoints] = useState("");
-  const [emailError, setEmailError] = useState("");
   const [confirmDeleteEmail, setConfirmDeleteEmail] = useState(null);
-  const [successMessage, setSuccessMessage] = useState("");
 
-  // NEW: local UI loaders so each button shows its own loader
   const [savingLimits, setSavingLimits] = useState(false);
-  const [savingReferral, setSavingReferral] = useState(false);
-
-  useEffect(() => {
-    if (successMessage) {
-      const timer = setTimeout(() => setSuccessMessage(""), 3000);
-      return () => clearTimeout(timer);
-    }
-  }, [successMessage]);
 
   useEffect(() => {
     if (settings) {
@@ -72,54 +64,46 @@ const Settings = () => {
     );
   };
 
-  const clearMessages = () => {
-    setEmailError("");
-    setSuccessMessage("");
-  };
-
-  // Add email — immediately saves via updateUserList
   const handleAddEmail = async () => {
-    if (!newEmail.trim() || !updateUserList) return;
-
-    clearMessages();
+    if (!newEmail.trim() || !updateRequestTo) return;
 
     if (emails.length >= 5) {
-      setEmailError("You can only add up to 5 emails.");
+      toast.error("You can only add up to 5 emails.");
       return;
     }
 
     if (!isValidEmail(newEmail.trim())) {
-      setEmailError("Please enter a valid email address.");
+      toast.error("Please enter a valid email address.");
       return;
     }
 
     if (isDemoEmail(newEmail.trim())) {
-      setEmailError("Demo/test emails are not allowed.");
+      toast.error("Demo/test emails are not allowed.");
       return;
     }
 
     if (emails.includes(newEmail.trim())) {
-      setEmailError("This email already exists.");
+      toast.error("This email already exists.");
       return;
     }
 
     const updatedEmails = [...emails, newEmail.trim()];
 
     try {
-      const response = await updateUserList({ requestTo: updatedEmails });
+      // Pass the array directly to updateRequestTo
+      const response = await updateRequestTo(updatedEmails);
 
       if (response && response.success !== false) {
-        setEmails(updatedEmails);
         setNewEmail("");
-        setSuccessMessage("Email added successfully!");
+        toast.success("Email added successfully!");
       } else {
         const errorMessage =
           response?.message || response?.error || "Failed to add email";
-        setEmailError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error adding email:", err);
-      setEmailError(err?.message || "Failed to add email. Please try again.");
+      toast.error(err?.message || "Failed to add email. Please try again.");
     }
   };
 
@@ -131,7 +115,6 @@ const Settings = () => {
 
   const confirmRemoveEmail = (email) => {
     setConfirmDeleteEmail(email);
-    clearMessages();
   };
 
   const handleDeleteConfirmed = async () => {
@@ -141,34 +124,30 @@ const Settings = () => {
       const response = await removeUserFromRequestList(confirmDeleteEmail);
 
       if (response && response.success !== false) {
-        setEmails((prev) => prev.filter((email) => email !== confirmDeleteEmail));
         setConfirmDeleteEmail(null);
-        setSuccessMessage("Email removed successfully!");
+        toast.success("Email removed successfully!");
       } else {
         const errorMessage =
           response?.message || response?.error || "Failed to remove email";
-        setEmailError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error removing email:", err);
-      setEmailError(err?.message || "Failed to remove email. Please try again.");
+      toast.error(err?.message || "Failed to remove email. Please try again.");
     } finally {
       setConfirmDeleteEmail(null);
     }
   };
 
-  // Save limits (coinValue + redemptionLimit). We preserve referralPoints by passing current referral value.
   const handleSaveLimits = async () => {
     if (!updateRatioAndRedemptionLimit) return;
 
-    clearMessages();
-
     if (redemptionLimit && isNaN(Number(redemptionLimit))) {
-      setEmailError("Redemption limit must be a valid number.");
+      toast.error("Redemption limit must be a valid number.");
       return;
     }
     if (coinValue && isNaN(Number(coinValue))) {
-      setEmailError("Coin value must be a valid number.");
+      toast.error("Coin value must be a valid number.");
       return;
     }
 
@@ -176,70 +155,51 @@ const Settings = () => {
     try {
       const ratioValue = coinValue ? Number(coinValue) : 0;
       const limitValue = redemptionLimit ? Number(redemptionLimit) : 0;
-      const referralValue = referralPoints ? Number(referralPoints) : 0;
 
       const response = await updateRatioAndRedemptionLimit(
         ratioValue,
-        limitValue,
-        referralValue
+        limitValue
       );
 
       if (response && response.success !== false) {
-        setSuccessMessage("Limits & coin value saved.");
+        toast.success("Limits & coin value saved successfully!");
       } else {
         const errorMessage =
           response?.message || response?.error || "Failed to save limits";
-        setEmailError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error saving limits:", err);
-      setEmailError(err?.message || "Failed to save limits. Please try again.");
+      toast.error(err?.message || "Failed to save limits. Please try again.");
     } finally {
       setSavingLimits(false);
     }
   };
 
-  // Save only referral points: preserve ratio & limit by passing current values.
   const handleSaveReferral = async () => {
-    if (!updateRatioAndRedemptionLimit) return;
-
-    clearMessages();
+    if (!updateReferralPoints) return;
 
     if (referralPoints && isNaN(Number(referralPoints))) {
-      setEmailError("Referral points must be a valid number.");
+      toast.error("Referral points must be a valid number.");
       return;
     }
 
-    setSavingReferral(true);
     try {
-      const ratioValue =
-        coinValue !== "" ? Number(coinValue) : Number(settings.ratio || 0);
-      const limitValue =
-        redemptionLimit !== ""
-          ? Number(redemptionLimit)
-          : Number(settings.redemptionLimit || 0);
       const referralValue = referralPoints ? Number(referralPoints) : 0;
-
-      const response = await updateRatioAndRedemptionLimit(
-        ratioValue,
-        limitValue,
-        referralValue
-      );
+      const response = await updateReferralPoints(referralValue);
 
       if (response && response.success !== false) {
-        setSuccessMessage("Referral points saved.");
+        toast.success("Referral points saved successfully!");
       } else {
         const errorMessage =
           response?.message || response?.error || "Failed to save referral points";
-        setEmailError(errorMessage);
+        toast.error(errorMessage);
       }
     } catch (err) {
       console.error("Error saving referral points:", err);
-      setEmailError(
+      toast.error(
         err?.message || "Failed to save referral points. Please try again."
       );
-    } finally {
-      setSavingReferral(false);
     }
   };
 
@@ -273,12 +233,6 @@ const Settings = () => {
     </div>
   );
 
-  const SuccessMessage = ({ message }) => (
-    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-md max-w-3xl mx-auto">
-      <p className="text-green-600 text-sm font-medium">{message}</p>
-    </div>
-  );
-
   if (!contextValues) {
     return (
       <div className="p-6">
@@ -291,9 +245,10 @@ const Settings = () => {
   }
 
   if (
-    !updateUserList ||
+    !updateRequestTo ||
     !updateRatioAndRedemptionLimit ||
-    !removeUserFromRequestList
+    !removeUserFromRequestList ||
+    !updateReferralPoints
   ) {
     return (
       <div className="p-6">
@@ -309,7 +264,6 @@ const Settings = () => {
     return <LoadingSpinner centered message="Loading settings..." />;
   }
 
-
   if (error) {
     return (
       <div className="p-6">
@@ -319,7 +273,32 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-8">
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#363636',
+            color: '#fff',
+          },
+          success: {
+            duration: 3000,
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            duration: 4000,
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
+
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
@@ -330,15 +309,6 @@ const Settings = () => {
           </p>
         </div>
       </div>
-
-      {successMessage && <SuccessMessage message={successMessage} />}
-      {emailError && (
-        <div className="max-w-3xl mx-auto">
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-600 text-sm font-medium">{emailError}</p>
-          </div>
-        </div>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
         {/* Emails */}
@@ -357,16 +327,14 @@ const Settings = () => {
               type="email"
               placeholder="user@gmail.com"
               value={newEmail}
-              onChange={(e) => {
-                setNewEmail(e.target.value);
-                if (emailError) setEmailError("");
-              }}
+              onChange={(e) => setNewEmail(e.target.value)}
               onKeyDown={handleEmailKeyDown}
               disabled={updateUserLoading || emails.length >= 5}
               className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
                              focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
                              focus:outline-none shadow-sm transition-all placeholder:text-gray-400
-                             disabled:bg-gray-100 disabled:text-gray-500"/>
+                             disabled:bg-gray-100 disabled:text-gray-500"
+            />
             <button
               onClick={handleAddEmail}
               disabled={
@@ -375,7 +343,9 @@ const Settings = () => {
               className="px-4 py-2 bg-[#169698] hover:bg-[#128083] text-white rounded-lg text-sm font-medium shadow-sm hover:shadow-md transition-all disabled:opacity-50 cursor-pointer"
             >
               {updateUserLoading ? (
-                <span className="inline-flex items-center gap-2"><FaSpinner className="animate-spin" /> Adding</span>
+                <span className="inline-flex items-center gap-2">
+                  <FaSpinner className="animate-spin" /> Adding
+                </span>
               ) : (
                 "+ Add"
               )}
@@ -416,7 +386,6 @@ const Settings = () => {
                       <Trash2 size={18} />
                     )}
                   </button>
-
                 </div>
               ))
             )}
@@ -427,7 +396,9 @@ const Settings = () => {
         <div className="space-y-6">
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-green-50 text-green-600"><FaCoins /></div>
+              <div className="p-2 rounded-lg bg-green-50 text-green-600">
+                <FaCoins />
+              </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Redemption Limits & Coin Value</h2>
                 <p className="text-sm text-gray-500">Control redemption limit and coin-to-rupee ratio.</p>
@@ -440,16 +411,14 @@ const Settings = () => {
                 <input
                   type="number"
                   value={redemptionLimit}
-                  onChange={(e) => {
-                    setRedemptionLimit(e.target.value);
-                    if (emailError) setEmailError("");
-                  }}
+                  onChange={(e) => setRedemptionLimit(e.target.value)}
                   placeholder="e.g., 1000"
                   disabled={updateRatioRedemptionLoading || savingLimits}
                   className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
                              focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
                              focus:outline-none shadow-sm transition-all placeholder:text-gray-400
-                             disabled:bg-gray-100 disabled:text-gray-500"/>
+                             disabled:bg-gray-100 disabled:text-gray-500 w-full"
+                />
                 <p className="text-xs text-gray-400 mt-1">Limit for redemptions (admin-controlled).</p>
               </div>
 
@@ -459,16 +428,14 @@ const Settings = () => {
                   type="number"
                   step="0.01"
                   value={coinValue}
-                  onChange={(e) => {
-                    setCoinValue(e.target.value);
-                    if (emailError) setEmailError("");
-                  }}
+                  onChange={(e) => setCoinValue(e.target.value)}
                   placeholder="e.g., 0.5"
                   disabled={updateRatioRedemptionLoading || savingLimits}
                   className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
                              focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
                              focus:outline-none shadow-sm transition-all placeholder:text-gray-400
-                             disabled:bg-gray-100 disabled:text-gray-500"/>
+                             disabled:bg-gray-100 disabled:text-gray-500 w-full"
+                />
                 <p className="text-xs text-gray-400 mt-1">How much 1 point equals in rupees (or other unit).</p>
               </div>
             </div>
@@ -477,20 +444,25 @@ const Settings = () => {
               <button
                 onClick={handleSaveLimits}
                 disabled={updateRatioRedemptionLoading || savingLimits}
-                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer"
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
               >
-                {(savingLimits || updateRatioRedemptionLoading) ? (
-                  <span className="inline-flex items-center gap-2"><FaSpinner className="animate-spin" /> Saving</span>
+                {savingLimits || updateRatioRedemptionLoading ? (
+                  <span className="inline-flex items-center gap-2">
+                    <FaSpinner className="animate-spin" /> Saving
+                  </span>
                 ) : (
                   "Save Limits"
                 )}
               </button>
             </div>
           </div>
-          {/* referral points */}
+
+          {/* Referral Points */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 rounded-lg bg-purple-50 text-purple-600"><FaGift /></div>
+              <div className="p-2 rounded-lg bg-purple-50 text-purple-600">
+                <FaGift />
+              </div>
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Referral Points</h2>
                 <p className="text-sm text-gray-500">Points awarded to a referrer when a customer uses a referral code.</p>
@@ -503,32 +475,31 @@ const Settings = () => {
                 <input
                   type="number"
                   value={referralPoints}
-                  onChange={(e) => {
-                    setReferralPoints(e.target.value);
-                    if (emailError) setEmailError("");
-                  }}
+                  onChange={(e) => setReferralPoints(e.target.value)}
                   placeholder="e.g., 50"
-                  disabled={updateRatioRedemptionLoading || savingReferral}
+                  disabled={updateReferralLoading}
                   className="flex-1 px-4 py-2 border border-[#00A9A3]/40 rounded-lg text-sm text-gray-800
                              focus:border-[#00A9A3] focus:ring-2 focus:ring-[#00A9A3]/50
                              focus:outline-none shadow-sm transition-all placeholder:text-gray-400
-                             disabled:bg-gray-100 disabled:text-gray-500"/>
+                             disabled:bg-gray-100 disabled:text-gray-500 w-full"
+                />
                 <p className="text-xs text-gray-400 mt-1">How many points to give per successful referral.</p>
               </div>
               <div className="flex items-center justify-end gap-3 mt-2">
                 <button
                   onClick={() => setReferralPoints("")}
-                  className="px-4 py-2 h-10 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition flex items-center justify-center cursor-pointer"
+                  disabled={updateReferralLoading}
+                  className="px-4 py-2 h-10 bg-gray-100 text-gray-700 rounded-lg text-sm hover:bg-gray-200 transition flex items-center justify-center cursor-pointer disabled:opacity-50"
                 >
                   Reset
                 </button>
 
                 <button
                   onClick={handleSaveReferral}
-                  disabled={updateRatioRedemptionLoading || savingReferral}
-                  className="flex items-center justify-center gap-2 px-5 py-2 h-10 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-60"
+                  disabled={updateReferralLoading}
+                  className="flex items-center justify-center gap-2 px-5 py-2 h-10 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
                 >
-                  {savingReferral ? (
+                  {updateReferralLoading ? (
                     <span className="inline-flex items-center gap-2">
                       <FaSpinner className="animate-spin" /> Saving
                     </span>
@@ -537,13 +508,12 @@ const Settings = () => {
                   )}
                 </button>
               </div>
-
             </div>
           </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal component */}
+      {/* Delete Confirmation Modal */}
       <ConfirmationModal
         isOpen={!!confirmDeleteEmail}
         title="Confirm Removal"
@@ -567,7 +537,6 @@ const Settings = () => {
         confirmText="Delete"
         cancelText="Cancel"
       />
-
     </div>
   );
 };

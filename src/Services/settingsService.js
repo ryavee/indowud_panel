@@ -106,3 +106,38 @@ export async function removeRequestUsers(emailValue) {
     throw error;
   }
 }
+
+export async function updateRefferalPoint(points) {
+  try {
+    console.log("Updating referral points, payload:", points);
+
+    const payload = { points: points };
+    const response = await fetch(
+      `${BASE_URL}${ENDPOINTS.UPDATEREFERRALPOINTS}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      }
+    );
+
+    console.log("Raw fetch response:", response);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Fetch failed with status:", response.status, "message:", errorText);
+      throw new Error(
+        `HTTP error! status: ${response.status}, message: ${errorText}`
+      );
+    }
+
+    const data = await response.json();
+    console.log("Response JSON:", data);
+    return data;
+  } catch (error) {
+    console.error("Error updating referral point:", error);
+    throw error;
+  }
+}
