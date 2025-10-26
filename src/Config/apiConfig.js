@@ -12,10 +12,13 @@ export const ENDPOINTS = {
   CREATEUSER: "/api/v4/users/create-new-user",
   UPDATEUSER: "/api/v4/users/update-user",
   DELETEUSER: "/api/v4/users/delete-user",
-  IMPORTUSERSDATA:"/api/v4/users/upload-user",
+  IMPORTUSERSDATA: "/api/v4/users/upload-user",
+  // CUSTOMERS
   GETCUSTOMERS: "/api/v5/customers/get-all-customers",
   BLOCKCUSTOMER: "/api/v5/customers/block-unblock-customer",
   KYCVERIFICATION: "/api/v5/customers/kyc-verification",
+  SENDCUSTOMERNOTIFICATION: "/api/v5/customers/send-customer-notification",
+  IMPORTCUSTOMERSDATA: "/api/v5/customers/import-customers",
   // Announcement
   GETANNOUNCEMENTS: "/api/v6/announcements/get-all-announcements",
   CREATEANNOUNCEMENT: "/api/v6/announcements/create-new-announcement",

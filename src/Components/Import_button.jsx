@@ -3,7 +3,11 @@ import Papa from "papaparse";
 import { toast } from "react-hot-toast";
 import { Upload } from "lucide-react";
 
-const ImportCSVButton = ({ requiredHeaders = [], onUpload, label = "Import CSV" }) => {
+const ImportCSVButton = ({
+  requiredHeaders = [],
+  onUpload,
+  label = "Import CSV",
+}) => {
   const fileInputRef = useRef(null);
 
   const handleFileChange = (e) => {
@@ -19,15 +23,15 @@ const ImportCSVButton = ({ requiredHeaders = [], onUpload, label = "Import CSV" 
     // Parse CSV to read headers
     Papa.parse(file, {
       header: true,
+      skipEmptyLines: true,
       preview: 1, // read only header
       complete: (results) => {
-        const csvHeaders = Object.keys(results.data[0] || {});
-        const requiredKeys = requiredHeaders.map((h) =>
-          typeof h === "string" ? h : h.header
+        const csvHeaders = Object.keys(results.data[0] || {}).map((h) =>
+          h.trim().toLowerCase()
         );
-
+        const requiredKeys = requiredHeaders.map((h) => h.trim().toLowerCase());
         const missingKeys = requiredKeys.filter(
-          (key) => !csvHeaders.includes(key)
+          (header) => !csvHeaders.includes(header)
         );
 
         if (missingKeys.length > 0) {
