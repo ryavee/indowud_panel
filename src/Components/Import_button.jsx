@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import Papa from "papaparse";
 import { toast } from "react-hot-toast";
-import { Upload } from "lucide-react";
+import { Download } from "lucide-react";
 
 const ImportCSVButton = ({
   requiredHeaders = [],
@@ -90,7 +90,7 @@ const ImportCSVButton = ({
         onClick={handleButtonClick}
         disabled={disabled}
         className={`
-          flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all
+          flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold shadow-sm transition-all cursor-pointer
           ${
             disabled
               ? "bg-gray-400 cursor-not-allowed text-white"
@@ -98,7 +98,7 @@ const ImportCSVButton = ({
           }
         `}
       >
-        <Upload className="h-4 w-4" />
+        <Download className="h-4 w-4" />
         {label}
       </button>
     </div>
