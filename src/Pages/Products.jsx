@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, AlertCircle, Loader, Package } from "lucide-react";
+import { Plus, AlertCircle, Loader, Box,Hash, Layers, CircleStar, MoreVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import { useProductContext } from "../Context/ProductsContext";
 import ActionButtons from "../Components/Reusable/ActionButtons";
@@ -7,6 +7,7 @@ import ConfirmationModal from "../Components/ConfirmationModal";
 import Pagination from "../Components/Reusable/Pagination";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 
 const Products = () => {
   const {
@@ -39,7 +40,11 @@ const Products = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
+  
 
+     if (loading) {
+    return <LoadingSpinner centered message="Loading Products..." />;
+  }
   // ========== ADD PRODUCT ==========
   const handleAddProduct = async () => {
     setFormError("");
@@ -83,8 +88,7 @@ const Products = () => {
     try {
       await removeProduct(deleteTarget.id);
       toast.success(
-        `"${
-          deleteTarget.productName || deleteTarget.name
+        `"${deleteTarget.productName || deleteTarget.name
         }" deleted successfully!`
       );
       setDeleteTarget(null);
@@ -160,16 +164,14 @@ const Products = () => {
 
       if (successCount > 0) {
         toast.success(
-          `Successfully imported ${successCount} product${
-            successCount !== 1 ? "s" : ""
+          `Successfully imported ${successCount} product${successCount !== 1 ? "s" : ""
           }!`
         );
       }
 
       if (skipped.length > 0) {
         toast.warning(
-          `${skipped.length} product${
-            skipped.length !== 1 ? "s were" : " was"
+          `${skipped.length} product${skipped.length !== 1 ? "s were" : " was"
           } skipped (already exist${skipped.length !== 1 ? "" : "s"})`,
           { duration: 4000 }
         );
@@ -177,8 +179,7 @@ const Products = () => {
 
       if (failed.length > 0) {
         toast.error(
-          `${failed.length} product${
-            failed.length !== 1 ? "s" : ""
+          `${failed.length} product${failed.length !== 1 ? "s" : ""
           } failed to import`,
           { duration: 4000 }
         );
@@ -199,7 +200,9 @@ const Products = () => {
         {/* Header */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-2xl font-extrabold text-gray-900">Products</h1>
+            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+              Products
+            </h1>
             <p className="text-sm text-gray-600 mt-1">
               Manage your product list and inventory.
             </p>
@@ -231,12 +234,11 @@ const Products = () => {
               onClick={() => setShowAddModal(true)}
               disabled={creating || importing}
               className={`
-                flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-sm transition-all 
+                flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-sm transition-all cursor-pointer
                 active:scale-[0.97] 
-                ${
-                  creating || importing
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#169698] hover:bg-[#128083]"
+                ${creating || importing
+                  ? "bg-gray-400 cursor-not-allowed"
+                  : "bg-[#169698] hover:bg-[#128083]"
                 }
               `}
             >
@@ -256,7 +258,7 @@ const Products = () => {
         </div>
 
         {/* Product Table */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 flex items-center justify-between">
             <div>
               <h2 className="text-base font-semibold text-gray-900 tracking-tight">
@@ -284,28 +286,38 @@ const Products = () => {
             </div>
           ) : products.length === 0 ? (
             <div className="p-10 text-center text-gray-500">
-              <Package className="mx-auto mb-3 text-[#169698]" size={28} />
+              <Box className="mx-auto mb-3 text-[#169698]" size={28} />
               No products found
             </div>
           ) : (
-            <div className="bg-white border border-gray-200 overflow-hidden">
+            <div className="bg-white  overflow-hidden">
               <table className="min-w-full text-sm divide-y divide-gray-200">
-                <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
                   <tr>
-                    <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider w-10">
-                      Product ID
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        <Hash className="h-4 w-4" /> Product ID
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider">
-                      Product Name
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        <Box className="h-4 w-4" /> Product Name
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider">
-                      Unit
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        <Layers className="h-4 w-4" /> Unit
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-gray-500 font-medium uppercase tracking-wider">
-                      Points
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        <CircleStar className="h-4 w-4" /> Points
+                      </div>
                     </th>
-                    <th className="px-6 py-3 text-right text-gray-500 font-medium uppercase tracking-wider">
-                      Actions
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      <div className="flex items-center gap-1">
+                        <MoreVertical className="h-4 w-4" /> Action
+                      </div>
                     </th>
                   </tr>
                 </thead>
@@ -415,9 +427,8 @@ const Products = () => {
       <ConfirmationModal
         isOpen={!!deleteTarget}
         title="Confirm Deletion"
-        message={`Are you sure you want to delete "${
-          deleteTarget?.productName || deleteTarget?.name
-        }"?`}
+        message={`Are you sure you want to delete "${deleteTarget?.productName || deleteTarget?.name
+          }"?`}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleting === deleteTarget?.id}

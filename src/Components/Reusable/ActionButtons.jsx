@@ -1,5 +1,5 @@
 import React from "react";
-import { Pencil, Trash2, Loader2 } from "lucide-react";
+import { SquarePen , Trash2, Loader2 } from "lucide-react";
 
 const ActionButtons = ({
   onEdit,
@@ -7,7 +7,7 @@ const ActionButtons = ({
   loadingEdit,
   loadingDelete,
   disableAll,
-}) => {
+}) => { 
   const baseClass =
     "flex items-center justify-center p-2 rounded-md transition-all duration-200 cursor-pointer";
 
@@ -37,7 +37,7 @@ const ActionButtons = ({
         {loadingEdit ? (
           <Loader2 className="w-4 h-4 animate-spin text-[#169698]" />
         ) : (
-          <Pencil className="w-4 h-4" />
+          <SquarePen  className="w-4 h-4" />
         )}
       </button>
 
