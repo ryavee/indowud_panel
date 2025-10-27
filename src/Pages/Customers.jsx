@@ -247,7 +247,7 @@ const Customers = () => {
       <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
             Customers
           </h1>
           <p className="text-sm text-gray-600 mt-1">

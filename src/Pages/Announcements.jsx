@@ -1,54 +1,75 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useMemo } from "react";
+import { Plus,Trash2, Notebook, Calendar, Flag, AlignLeft, MoreVertical } from 'lucide-react';
 import Modal from "../Components/Reusable/form";
-import DataTable from "../Components/Reusable/table";
 import AnnouncementForm from "../Components/announcement_form";
 import { AnnouncementContext } from "../Context/AnnouncementContext";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+import Pagination from "../Components/Reusable/Pagination";
+import ConfirmationModal from "../Components/ConfirmationModal";
 
 const Announcements = () => {
   const {
-    announcements,
+    announcements = [],
     createNewAnnouncement,
     deleteAnnouncement,
     loading,
     createLoading,
     deleteLoading,
   } = useContext(AnnouncementContext);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [selectedAnnouncement, setSelectedAnnouncement] = useState(null);
 
-  const columns = [
-    { header: "Title", accessor: "title" },
-    { header: "Date", accessor: "date" },
-    { header: "Priority", accessor: "priority" },
-    { header: "Description", accessor: "message" },
-  ];
+  // Pagination (client-side)
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const pageSizeOptions = [10, 25, 50];
+  const totalPages = Math.max(1, Math.ceil((announcements?.length || 0) / pageSize));
+
+  const paginatedAnnouncements = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return (announcements || []).slice(start, start + pageSize);
+  }, [announcements, currentPage, pageSize]);
+
+  // open add modal
+  const handleHeaderAdd = () => {
+    setSelectedAnnouncement(null);
+    setIsModalOpen(true);
+  };
 
   const handleFormSubmit = async (formData) => {
     try {
       await createNewAnnouncement(formData);
       setIsModalOpen(false);
+      setCurrentPage(1);
     } catch (error) {
       console.error("Failed to create announcement:", error);
-      // You might want to show an error message to the user here
     }
   };
 
-  const handleDelete = (row) => {
-    setSelectedAnnouncement(row);
+  const handleOpenEdit = (announcement) => {
+    setSelectedAnnouncement(announcement);
+    setIsModalOpen(true);
+  };
+
+  const handleInitiateDelete = (announcement) => {
+    setSelectedAnnouncement(announcement);
     setIsDeleteModalOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (selectedAnnouncement) {
-      try {
-        await deleteAnnouncement(selectedAnnouncement.id);
-        setIsDeleteModalOpen(false);
-        setSelectedAnnouncement(null);
-      } catch (error) {
-        console.error("Failed to delete announcement:", error);
-        // You might want to show an error message to the user here
+    if (!selectedAnnouncement) return;
+    try {
+      await deleteAnnouncement(selectedAnnouncement.id);
+      setIsDeleteModalOpen(false);
+      setSelectedAnnouncement(null);
+      // adjust page if we removed the last item on page
+      if ((paginatedAnnouncements.length === 1) && currentPage > 1) {
+        setCurrentPage((p) => p - 1);
       }
+    } catch (error) {
+      console.error("Failed to delete announcement:", error);
     }
   };
 
@@ -57,113 +78,192 @@ const Announcements = () => {
     setSelectedAnnouncement(null);
   };
 
-  const handleHeaderAdd = () => {
-    setIsModalOpen(true);
-  };
-
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    setSelectedAnnouncement(null);
   };
 
+  if (loading) {
+    return <LoadingSpinner centered message="Loading Announcements..." />;
+  }
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <DataTable
-        columns={columns}
-        data={announcements}
-        onDelete={handleDelete}
-        onHeaderAdd={handleHeaderAdd}
-        title="Announcements"
-        emptyMessage="No announcements found"
-        showEdit={false}
-        loading={loading}
-        deleteDisabled={deleteLoading}
-      />
-
-      <Modal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        title="Add New Announcement"
-      >
-        <AnnouncementForm
-          onSubmit={handleFormSubmit}
-          onCancel={handleCloseModal}
-          loading={createLoading}
-        />
-      </Modal>
-
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteModalOpen}
-        onClose={handleCancelDelete}
-        title="Confirm Delete"
-      >
-        <div className="p-6">
-          <div className="mb-4">
-            <p className="text-gray-700 mb-2">
-              Are you sure you want to delete this announcement?
-            </p>
-            {selectedAnnouncement && (
-              <div className="bg-gray-100 p-3 rounded-lg">
-                <h4 className="font-semibold text-gray-800">
-                  {selectedAnnouncement.title}
-                </h4>
-                <p className="text-sm text-gray-600 mt-1">
-                  {selectedAnnouncement.message}
-                </p>
-                <div className="flex justify-between mt-2 text-xs text-gray-500">
-                  <span>Date: {selectedAnnouncement.date}</span>
-                  <span>Priority: {selectedAnnouncement.priority}</span>
-                </div>
-              </div>
-            )}
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-6xl mx-auto">
+        {/* Header: title + Add button */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+              <span>Announcements</span>
+              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-[#00A9A3]/10 text-[#00A9A3] border border-[#00A9A3]/20">
+                {announcements?.length || 0}
+              </span>
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">Manage announcements shown to users</p>
           </div>
 
-          <div className="flex justify-end space-x-3">
+          <div>
             <button
-              type="button"
-              onClick={handleCancelDelete}
-              className="px-4 py-2 text-gray-600 bg-gray-200 rounded-md hover:bg-gray-300 transition-colors"
-              disabled={deleteLoading}
+              onClick={handleHeaderAdd}
+              className="inline-flex items-center gap-2 px-4 py-2 h-10 text-sm font-medium text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all"
             >
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleConfirmDelete}
-              disabled={deleteLoading}
-              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-            >
-              {deleteLoading ? (
-                <span className="flex items-center">
-                  <svg
-                    className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                    xmlns="http://www.w3.org/2000/svg"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    ></circle>
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                    ></path>
-                  </svg>
-                  Deleting...
-                </span>
-              ) : (
-                "Delete"
-              )}
+              <Plus className="w-3.5 h-3.5" />
+              Add Announcement
             </button>
           </div>
         </div>
-      </Modal>
+
+        {/* Table container */}
+        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+          {announcements.length === 0 ? (
+            <div className="p-12 text-center text-gray-500">
+              No announcements found.
+            </div>
+          ) : (
+            <>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="flex items-center gap-1">
+                          <Notebook className="h-4 w-4" /> Title
+                        </div>
+                      </th>
+
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-4 w-4" /> Date
+                        </div>
+                      </th>
+
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="flex items-center gap-1">
+                          <Flag className="h-4 w-4" /> Priority
+                        </div>
+                      </th>
+
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="flex items-center gap-1">
+                          <AlignLeft className="h-4 w-4" /> Description
+                        </div>
+                      </th>
+
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <div className="flex items-center gap-1">
+                          <MoreVertical className="h-4 w-4" /> Action
+                        </div>
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {paginatedAnnouncements.map((a) => (
+                      <tr key={a.id || a._id || a.title} className="hover:bg-[#FFFAF3] transition-all">
+                        {/* Title */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-900">{a.title}</div>
+                          <div className="text-xs text-gray-500 mt-1">{a.target || "All users"}</div>
+                        </td>
+
+                        {/* Date */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm text-gray-700">{a.date || "-"}</div>
+                        </td>
+
+                        {/* Priority */}
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="text-sm font-medium text-gray-700">{a.priority || "Normal"}</div>
+                        </td>
+
+                        {/* Description */}
+                        <td className="px-6 py-4 whitespace-nowrap max-w-[36rem]">
+                          <p className="text-sm text-gray-600 line-clamp-2">{a.message}</p>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                          <div className="flex items-center gap-2">
+                            <button
+                              type="button"
+                              title="Delete"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleInitiateDelete(a);
+                              }}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-md transition-all flex items-center justify-center disabled:opacity-50 cursor-pointer"
+                            >
+                              <Trash2 size={18} />                      
+                              </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+
+                </table>
+              </div>
+
+              {/* Pagination Component */}
+             <div className="bg-gray-50 border-t border-gray-100">
+                <Pagination
+                  currentPage={currentPage}
+                  totalPages={totalPages}
+                  onPageChange={setCurrentPage}
+                  pageSize={pageSize}
+                  onPageSizeChange={(size) => {
+                    setPageSize(size);
+                    setCurrentPage(1);
+                  }}
+                />
+              </div>
+            </>
+          )}
+        </div>
+
+        {/* Add/Edit Modal */}
+        <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={selectedAnnouncement ? "Edit Announcement" : "Add New Announcement"}>
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
+            <AnnouncementForm
+              onSubmit={handleFormSubmit}
+              onCancel={handleCloseModal}
+              loading={createLoading}
+              initialData={selectedAnnouncement || undefined}
+            />
+          </div>
+        </Modal>
+
+        {/* Confirmation delete */}
+        <ConfirmationModal
+          isOpen={isDeleteModalOpen}
+          title="Confirm Delete"
+          message={
+            selectedAnnouncement ? (
+              <div>
+                <p>Are you sure you want to delete the following announcement?</p>
+                <div className="mt-3 bg-white p-3 rounded-md border border-gray-100 shadow-sm">
+                  <h4 className="font-semibold text-gray-900">{selectedAnnouncement.title}</h4>
+                  <p className="text-sm text-gray-600 mt-1">{selectedAnnouncement.message}</p>
+                  <div className="flex justify-between mt-2 text-xs text-gray-500">
+                    <span>Date: {selectedAnnouncement.date}</span>
+                    <span>Priority: {selectedAnnouncement.priority}</span>
+                  </div>
+                </div>
+                <p className="mt-3 text-sm text-gray-500">This action cannot be undone.</p>
+              </div>
+            ) : (
+              "Are you sure you want to delete this announcement?"
+            )
+          }
+          confirmLabel="Delete"
+          cancelLabel="Cancel"
+          confirming={deleteLoading}
+          onConfirm={handleConfirmDelete}
+          onCancel={handleCancelDelete}
+          confirmClassName="px-4 py-2 bg-[#E6004C] hover:bg-[#C00041] text-white rounded-md shadow-sm transition-colors disabled:opacity-50"
+          cancelClassName="px-4 py-2 rounded-md text-gray-700 bg-white border border-gray-200 hover:bg-gray-50 transition-colors"
+        />
+      </div>
     </div>
   );
 };

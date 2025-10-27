@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Download, ChevronDown } from "lucide-react";
+import { Upload , ChevronDown } from "lucide-react";
 
 const ExportButton = ({ 
   data = [], 
@@ -78,9 +78,9 @@ const ExportButton = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
+        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer"
       >
-        <Download className="w-4 h-4" />
+        <Upload className="w-4 h-4" />
         Export
         <ChevronDown className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </button>
@@ -89,17 +89,17 @@ const ExportButton = ({
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
           <button
             onClick={handleExportDemo}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2"
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
           >
-            <Download className="w-4 h-4" />
+            <Upload className="w-4 h-4" />
             Demo
           </button>
           <button
             onClick={handleExportCSV}
             disabled={data.length === 0}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
-            <Download className="w-4 h-4" />
+            <Upload className="w-4 h-4" />
             Export to CSV
           </button>
         </div>
