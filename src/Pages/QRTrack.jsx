@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { MapPin, X, Loader2, RefreshCw } from "lucide-react";
+import { MapPin, X, Loader2, EyeIcon } from "lucide-react";
 import { useTrackQRData } from "../Context/TrackQRDataContext";
 
 const QRTrack = () => {
@@ -220,16 +220,30 @@ const QRTrack = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {formatDate(qr.createdAt)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm">
-                          {qr.location ? (
+                        <td className="px-6 py-4 whitespace-nowrap text-sm flex items-center gap-2">
+                          {qr.city ? (
+                            <>
+                              <span className="text-gray-700 text-sm">
+                                {qr.city}
+                              </span>
+                              <button
+                                onClick={() =>
+                                  handleLocationClick(qr.location, qr.qrId)
+                                }
+                                className="inline-flex items-center p-1 text-blue-500 hover:text-blue-600 transition-colors"
+                              >
+                                <EyeIcon className="w-4 h-4" />
+                              </button>
+                            </>
+                          ) : qr.location ? (
                             <button
                               onClick={() =>
                                 handleLocationClick(qr.location, qr.qrId)
                               }
-                              className="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-500 text-white text-xs font-medium rounded-md hover:bg-blue-600 transition-colors"
+                              className="inline-flex items-center p-1 text-gray-500 hover:text-gray-700 transition-colors"
                             >
-                              <MapPin className="w-3.5 h-3.5" />
-                              View Map
+                              <MapPin className="w-4 h-4" />{" "}
+        
                             </button>
                           ) : (
                             <span className="text-gray-400 text-xs">

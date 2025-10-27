@@ -1,6 +1,6 @@
-export const BASE_URL =
-  // "http://localhost:2000";
-  "https://indowud-main-engine.onrender.com";
+export const BASE_URL = 
+// "http://localhost:2000";
+"https://indowud-main-engine.onrender.com";
 export const ENDPOINTS = {
   LOGIN: "/api/v1/auth/login",
   GETUSERDATA: "/api/v1/auth/users/:uid",
@@ -42,6 +42,7 @@ export const ENDPOINTS = {
   CREATENEWPROMOTIONS: "/api/v9/promotional/create-new-promotional",
   UPDATEPROMOTIONS: "/api/v9/promotional/update-promotional",
   DELETEPROMOTIONS: "/api/v9/promotional/delete-promotional",
+  IMPORTPROMOTIONALDATA: "/api/v9/promotional/import-promotionals",
   // Products
   GETALLPRODUCTS: "/api/v10/products/all-products",
   CREATEPRODUCTS: "/api/v10/products/create-new-product",

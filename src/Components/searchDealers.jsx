@@ -9,15 +9,17 @@ const DealerSelectComponent = ({ formData, handleInputChange, disabled }) => {
 
   const { dealers } = useDealersContext();
 
+  // Filter dealers based on search term
   const filteredDealers = dealers.filter((dealer) => {
-    const name = (dealer.firstName || "").toLowerCase();
-    const id = (dealer.dealersId || "").toLowerCase();
-    const state = (dealer.state || "").toLowerCase();
+    const name = (dealer.companyName || "").toLowerCase();
+    const id = (dealer.dealerId || "").toLowerCase();
+    const city = (dealer.city || "").toLowerCase();
     const term = searchTerm.toLowerCase();
 
-    return name.includes(term) || id.includes(term) || state.includes(term);
+    return name.includes(term) || id.includes(term) || city.includes(term);
   });
 
+  // Close dropdown if clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -29,23 +31,26 @@ const DealerSelectComponent = ({ formData, handleInputChange, disabled }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  // Handle selecting a dealer
   const handleSelectDealer = (dealer) => {
     if (disabled) return;
-    const dealerName = `${dealer.firstName} ${dealer.lastName}`.trim();
+
     handleInputChange({
-      target: { name: "dealerName", value: dealerName },
+      target: { name: "companyName", value: dealer.companyName },
     });
     handleInputChange({
-      target: { name: "dealerId", value: dealer.dealersId },
+      target: { name: "dealerId", value: dealer.dealerId },
     });
     setIsOpen(false);
     setSearchTerm("");
   };
 
+  // Clear selected dealer
   const handleClearDealer = (e) => {
     e.stopPropagation();
     if (disabled) return;
-    handleInputChange({ target: { name: "dealerName", value: "" } });
+
+    handleInputChange({ target: { name: "companyName", value: "" } });
     handleInputChange({ target: { name: "dealerId", value: "" } });
     setSearchTerm("");
   };
@@ -55,6 +60,7 @@ const DealerSelectComponent = ({ formData, handleInputChange, disabled }) => {
       <label className="block text-sm font-medium text-gray-700 mb-1">
         Dealer Name *
       </label>
+
       <div
         onClick={() => !disabled && setIsOpen(!isOpen)}
         className={`w-full px-3 py-2 border rounded-md flex items-center justify-between ${
@@ -64,12 +70,12 @@ const DealerSelectComponent = ({ formData, handleInputChange, disabled }) => {
         }`}
       >
         <span
-          className={formData.dealerName ? "text-gray-900" : "text-gray-400"}
+          className={formData.companyName ? "text-gray-900" : "text-gray-400"}
         >
-          {formData.dealerName || "Select a dealer"}
+          {formData.companyName || "Select a dealer"}
         </span>
         <div className="flex items-center gap-2">
-          {formData.dealerName && !disabled && (
+          {formData.companyName && !disabled && (
             <X
               size={16}
               className="text-gray-400 hover:text-gray-600"
@@ -108,24 +114,20 @@ const DealerSelectComponent = ({ formData, handleInputChange, disabled }) => {
           {/* Dealer List */}
           <div className="max-h-48 overflow-y-auto">
             {filteredDealers.length > 0 ? (
-              filteredDealers.map((dealer) => {
-                const dealerName =
-                  `${dealer.firstName} ${dealer.lastName}`.trim();
-                return (
-                  <div
-                    key={dealer.id}
-                    onClick={() => handleSelectDealer(dealer)}
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
-                  >
-                    <div className="font-medium text-gray-900">
-                      {dealerName}
-                    </div>
-                    <div className="text-xs text-gray-500">
-                      {dealer.dealersId} • {dealer.state}
-                    </div>
+              filteredDealers.map((dealer) => (
+                <div
+                  key={dealer.id}
+                  onClick={() => handleSelectDealer(dealer)}
+                  className="px-3 py-2 hover:bg-gray-100 cursor-pointer border-b border-gray-100 last:border-b-0"
+                >
+                  <div className="font-medium text-gray-900">
+                    {dealer.companyName}
                   </div>
-                );
-              })
+                  <div className="text-xs text-gray-500">
+                    {dealer.dealerId} • {dealer.city}
+                  </div>
+                </div>
+              ))
             ) : (
               <div className="px-3 py-4 text-center text-gray-500">
                 No dealers found

@@ -17,56 +17,70 @@ export const CodesProvider = ({ children }) => {
 
   const { token } = useAuthContext();
 
-  const generateQRCodes = async (formData) => {
-    setLoading(true);
-    setError(null);
+ const generateQRCodes = async (formData) => {
+  setLoading(true);
+  setError(null);
 
-    try {
-      const payload = {
-        noOfCodes: parseInt(formData.numberOfCodes),
-        dealerId: formData.dealerId.toString(),
-        productId: formData.productId.toString(),
-        batchId: formData.batchId.toString(),
-        expiryDate:
-          formData.expiryType === "custom" && formData.customDate
-            ? formData.customDate
-            : "None",
-        remark: formData.remarks || "",
+  try {
+    // ✅ Compute expiry date properly
+    let computedExpiry = "None";
+
+    if (formData.expiryType !== "None") {
+      if (formData.expiryType === "custom" && formData.customDate) {
+        computedExpiry = formData.customDate;
+      } else {
+        const months = parseInt(formData.expiryType.replace("months", ""));
+        const today = new Date();
+        today.setMonth(today.getMonth() + months);
+        computedExpiry = today.toISOString().split("T")[0];
+      }
+    }
+
+    // ✅ Clean payload (no mismatched keys)
+    const payload = {
+      noOfCodes: parseInt(formData.numberOfCodes),
+      dealerId: formData.dealerId?.toString(),
+      productId: formData.productId?.toString(),
+      batchId: formData.batchId?.toString(),
+      expiryDate: computedExpiry, // ✅ final computed value
+      remark: formData.remarks || "",
+    };
+
+    console.log("✅ Payload sent to server:", payload);
+
+    const response = await generateQR(token, payload);
+
+    console.log("✅ Server response:", response);
+
+    if (response.success && response.qrCode) {
+      const newQRData = {
+        id: response.qrCode.batchId,
+        batchId: response.qrCode.batchId,
+        productName: formData.productName,
+        productId: formData.productId,
+        companyName: formData.companyName,
+        dealerId: formData.dealerId,
+        totalGenerated: response.qrCode.totalGenerated,
+        points: response.qrCode.points,
+        qrCodes: response.qrCode.qrCodes,
+        createdAt: new Date().toLocaleString(),
+        expiryDate: computedExpiry, 
+        customDate: formData.customDate,
+        remarks: formData.remarks,
       };
 
-      const response = await generateQR(token, payload);
-
-      console.log(response);
-
-      if (response.success && response.qrCode) {
-        const newQRData = {
-          id: response.qrCode.batchId,
-          batchId: response.qrCode.batchId,
-          productName: formData.productName,
-          productId: formData.productId,
-          dealerName: formData.dealerName,
-          dealerId: formData.dealerId,
-          totalGenerated: response.qrCode.totalGenerated,
-          points: response.qrCode.points,
-          qrCodes: response.qrCode.qrCodes,
-          createdAt: new Date().toLocaleString(),
-          expiryType: formData.expiryType,
-          customDate: formData.customDate,
-          remarks: formData.remarks,
-        };
-
-        setQrCodes((prev) => [newQRData, ...prev]);
-        return { success: true, data: newQRData };
-      }
-
-      throw new Error(response.message || "Failed to generate QR codes");
-    } catch (err) {
-      setError(err.message || "An error occurred while generating QR codes");
-      return { success: false, error: err.message };
-    } finally {
-      setLoading(false);
+      setQrCodes((prev) => [newQRData, ...prev]);
+      return { success: true, data: newQRData };
     }
-  };
+
+    throw new Error(response.message || "Failed to generate QR codes");
+  } catch (err) {
+    setError(err.message || "An error occurred while generating QR codes");
+    return { success: false, error: err.message };
+  } finally {
+    setLoading(false);
+  }
+};
 
   const fetchAllBatches = async () => {
     setLoading(true);

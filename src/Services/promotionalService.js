@@ -80,3 +80,26 @@ export async function deletePromotion(id) {
     throw error;
   }
 }
+
+
+
+export async function importpromotional(file) {
+  try {
+    const formData = new FormData();
+    formData.append("file", file);
+    const res = await fetch(`${BASE_URL}${ENDPOINTS.IMPORTPROMOTIONALDATA}`, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(
+        data.message || data.error || `HTTP error! status: ${res.status}`
+      );
+    }
+    return data;
+  } catch (error) {
+    console.error("❌ Upload failed:", error);
+    throw error;
+  }
+}
