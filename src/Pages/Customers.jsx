@@ -347,6 +347,12 @@ const Customers = () => {
             />
             Reset
           </button>
+          
+          <ImportButton
+            requiredHeaders={requiredHeaders}
+            onUpload={handleCSVUpload}
+            label="Import CSV"
+          />
           <ExportButton
             data={filteredCustomers}
             columns={exportColumns}
@@ -354,11 +360,6 @@ const Customers = () => {
             disabled={filteredCustomers.length === 0}
           />
 
-          <ImportButton
-            requiredHeaders={requiredHeaders}
-            onUpload={handleCSVUpload}
-            label="Import CSV"
-          />
         </div>
 
         {/* Table */}

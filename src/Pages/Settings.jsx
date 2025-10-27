@@ -261,7 +261,7 @@ const Settings = () => {
   }
 
   if (loading) {
-    return <LoadingSpinner centered message="Loading settings..." />;
+    return <LoadingSpinner centered message="Loading Settings..." />;
   }
 
   if (error) {

@@ -17,6 +17,8 @@ import { formatDateToDDMMYYYY } from "../utils/dateUtils";
 import ActionButtons from "../Components/Reusable/ActionButtons";
 import ExportButton from "../Components/export_button";
 import ImportCSVButton from "../Components/Import_button";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+
 
 const StatusBadge = ({ status }) => {
   const getStatusColor = (status) => {
@@ -176,15 +178,11 @@ const AdminUsers = () => {
     },
   ];
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <Loader2 className="h-10 w-10 animate-spin text-blue-600 mx-auto mb-3" />
-          <p className="text-gray-600">Loading users...</p>
-        </div>
-      </div>
-    );
+
+  
+
+ if (loading) {
+    return <LoadingSpinner centered message="Loading Users..." />;
   }
 
   return (
@@ -240,7 +238,7 @@ const AdminUsers = () => {
             <button
               onClick={handleAddUser}
               disabled={createOrUpdateUserLoading}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
+              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer shadow-sm hover:shadow-md active:scale-[0.98]"
             >
               {createOrUpdateUserLoading ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
