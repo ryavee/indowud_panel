@@ -170,8 +170,9 @@ const Products = () => {
       }
 
       if (skipped.length > 0) {
-        toast.warning(
-          `${skipped.length} product${skipped.length !== 1 ? "s were" : " was"
+        toast.error(
+          `${skipped.length} product${
+            skipped.length !== 1 ? "s were" : " was"
           } skipped (already exist${skipped.length !== 1 ? "" : "s"})`,
           { duration: 4000 }
         );
@@ -212,9 +213,10 @@ const Products = () => {
             <ExportButton
               data={products}
               columns={[
+                {key: "productId", header: "Product ID"},
                 { key: "productName", header: "Product Name" },
                 { key: "productUnit", header: "Product Unit" },
-                { key: "productPoint", header: "Product Point" },
+                { key: "productPoint", header: "Point" },
               ]}
               filename="products"
               disabled={loading || creating || importing}
@@ -223,7 +225,7 @@ const Products = () => {
               requiredHeaders={[
                 { key: "productName", header: "Product Name" },
                 { key: "productUnit", header: "Product Unit" },
-                { key: "productPoint", header: "Product Point" },
+                { key: "productPoint", header: "Point" },
               ]}
               onUpload={handleImportProducts}
               disabled={loading || creating || importing}

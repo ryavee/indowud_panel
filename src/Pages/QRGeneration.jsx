@@ -4,9 +4,9 @@ import {
   ChevronRight,
   Plus,
   Calendar,
-  Upload,
   Download,
 } from "lucide-react";
+import toast, { Toaster } from "react-hot-toast";
 import { useCodesContext } from "../Context/CodesContext";
 import DealerSelectComponent from "../Components/searchDealers";
 import ProductSelectComponent from "../Components/select_product";
@@ -38,7 +38,7 @@ const QRGeneration = () => {
     productName: "",
     productId: "",
     productUnit: "",
-    dealerName: "",
+    companyName: "",
     dealerId: "",
     batchId: "",
     remarks: "",
@@ -57,18 +57,20 @@ const QRGeneration = () => {
   const currentData = batches.slice(startIndex, endIndex);
 
   const generateBatchId = (dealerId, productId, productUnit) => {
-    if (!dealerId || !productId || !productUnit) {
-      return "";
-    }
+    if (!dealerId || !productId || !productUnit) return "";
+
     const dealerPart = dealerId.toString().slice(0, 4);
-    const productPart = productId.toString().slice(0, 3);
+    const productSegments = productId.split("-");
+    const productPart = productSegments.slice(0, 2).join("-");
     const unitMatch = productUnit.match(/\d+/);
     const unitPart = unitMatch ? unitMatch[0].padStart(3, "0") : "000";
+
     const today = new Date();
     const day = String(today.getDate()).padStart(2, "0");
     const month = String(today.getMonth() + 1).padStart(2, "0");
     const year = String(today.getFullYear()).slice(-2);
     const dateStr = `${day}${month}${year}`;
+
     const autoIncrement = String(Math.floor(Math.random() * 9999) + 1).padStart(
       4,
       "0"
@@ -78,7 +80,9 @@ const QRGeneration = () => {
   };
 
   useEffect(() => {
-    if (formData.productName && formData.dealerName) {
+    console.log(formData);
+
+    if (formData.productName && formData.companyName) {
       const batchId = generateBatchId(
         formData.dealerId,
         formData.productId,
@@ -90,7 +94,7 @@ const QRGeneration = () => {
     }
   }, [
     formData.productName,
-    formData.dealerName,
+    formData.companyName,
     formData.dealerId,
     formData.productId,
     formData.productUnit,
@@ -199,7 +203,7 @@ const QRGeneration = () => {
     const headers = [
       "Batch ID",
       "Product Name",
-      "Dealer Name",
+      "Dealer",
       "Points",
       "Expiry Date",
       "Created At",
@@ -208,7 +212,7 @@ const QRGeneration = () => {
     const rows = batchesData.map((batch) => [
       batch.batchId,
       batch.productName,
-      batch.dealerName,
+      batch.companyName,
       batch.points,
       batch.expiryDate || "None",
       formatDate(batch.createdAt),
@@ -235,7 +239,7 @@ const QRGeneration = () => {
     URL.revokeObjectURL(url);
   };
 
-   const handleSelect = (batchId) => {
+  const handleSelect = (batchId) => {
     setSelectedBatches((prev) =>
       prev.includes(batchId)
         ? prev.filter((id) => id !== batchId)
@@ -253,10 +257,11 @@ const QRGeneration = () => {
 
   const handleExportSelected = async (format) => {
     if (selectedBatches.length === 0) {
-      alert("Please select at least one batch to export");
+      toast.error("Please select at least one batch to export");
       return;
     }
 
+    const loadingToast = toast.loading("Exporting...");
     setExporting(true);
     setShowExportMenu(false);
 
@@ -268,30 +273,30 @@ const QRGeneration = () => {
       if (format === "csv") {
         const csvContent = generateCSV(selectedBatchesData);
         downloadFile(csvContent, `QR_Batches_${Date.now()}.csv`, "text/csv");
-        alert("CSV exported successfully!");
+        toast.success("CSV exported successfully!", { id: loadingToast });
       } else if (format === "pdf") {
         if (selectedBatches.length === 1) {
-          // Single PDF download
           const batch = selectedBatchesData[0];
           const result = await fetchBatchById(batch.batchId);
 
-          if (result.success && result.data.qrCodes) {
+          if (result?.success && result.data?.qrCodes) {
             const pdf = await generateQRCodePDF(
               result.data.qrCodes,
               batch.productName,
               batch.batchId
             );
             pdf.save(`QR_Indowud_${batch.batchId}_${Date.now()}.pdf`);
-            alert("PDF downloaded successfully!");
+            toast.success("PDF downloaded successfully!", { id: loadingToast });
+          } else {
+            toast.error("Failed to fetch QR codes", { id: loadingToast });
           }
         } else {
-          // Multiple PDFs - create ZIP
           const zip = new JSZip();
 
           for (const batch of selectedBatchesData) {
             const result = await fetchBatchById(batch.batchId);
 
-            if (result.success && result.data.qrCodes) {
+            if (result?.success && result.data?.qrCodes) {
               const pdf = await generateQRCodePDF(
                 result.data.qrCodes,
                 batch.productName,
@@ -308,20 +313,26 @@ const QRGeneration = () => {
             `QR_Batches_${Date.now()}.zip`,
             "application/zip"
           );
-          alert(`${selectedBatches.length} PDFs exported as ZIP successfully!`);
+          toast.success(
+            `${selectedBatches.length} PDFs exported as ZIP successfully!`,
+            { id: loadingToast }
+          );
         }
       }
 
       setSelectedBatches([]);
     } catch (error) {
       console.error("Error exporting:", error);
-      alert("Error exporting files. Please try again.");
+      toast.error("Error exporting files. Please try again.", {
+        id: loadingToast,
+      });
     } finally {
       setExporting(false);
     }
   };
 
   const handleExport = async (type, format) => {
+    const loadingToast = toast.loading("Exporting...");
     setExporting(true);
     setShowExportMenu(false);
 
@@ -343,20 +354,23 @@ const QRGeneration = () => {
           `QR_Batches_${type}_${Date.now()}.csv`,
           "text/csv"
         );
-        alert("CSV exported successfully!");
+        toast.success("CSV exported successfully!", { id: loadingToast });
       } else if (format === "excel") {
-        // For Excel, we'll use CSV format (you can add a proper Excel library if needed)
         const csvContent = generateCSV(exportData);
         downloadFile(
           csvContent,
           `QR_Batches_${type}_${Date.now()}.csv`,
           "text/csv"
         );
-        alert("Excel file exported successfully!");
+        toast.success("Excel file exported successfully!", {
+          id: loadingToast,
+        });
       }
     } catch (error) {
       console.error("Error exporting:", error);
-      alert("Error exporting file. Please try again.");
+      toast.error("Error exporting file. Please try again.", {
+        id: loadingToast,
+      });
     } finally {
       setExporting(false);
     }
@@ -368,11 +382,11 @@ const QRGeneration = () => {
       productName: "",
       productId: "",
       productUnit: "",
-      dealerName: "",
+      companyName: "",
       dealerId: "",
       batchId: "",
       remarks: "",
-      expiryType: "None",
+      expiryDate: "None",
       customDate: "",
     });
   };
@@ -396,47 +410,103 @@ const QRGeneration = () => {
   };
 
   const handleGenerate = async () => {
+    // Validation
     if (
       !formData.numberOfCodes ||
       !formData.productName ||
-      !formData.dealerName
+      !formData.companyName
     ) {
-      alert(
-        "Please fill in all required fields (Number of Codes, Product Name, and Dealer Name)"
+      toast.error(
+        "Please fill in all required fields (Number of Codes, Product Name, and Dealer)"
       );
       return;
     }
-
-    const result = await generateQRCodes(formData);
-
-    if (result.success) {
-      await fetchAllBatches();
-
-      const batchResult = await fetchBatchById(formData.batchId);
-
-      if (batchResult.success && batchResult.data.qrCodes) {
-        setGeneratingPDF(true);
-        const pdf = await generateQRCodePDF(
-          batchResult.data.qrCodes,
-          formData.productName,
-          formData.batchId
-        );
-        pdf.save(`QR_Indowud_${formData.batchId}_${Date.now()}.pdf`);
-        setGeneratingPDF(false);
-
-        alert(
-          `Successfully generated ${formData.numberOfCodes} QR codes and downloaded PDF!`
-        );
+    let expiryDate = null;
+    if (formData.expiryType !== "None") {
+      const today = new Date();
+      if (formData.expiryType === "custom") {
+        expiryDate = formData.customDate;
       } else {
-        alert(
-          "QR codes generated but PDF download failed. Please try downloading from the list."
-        );
+        const months = parseInt(formData.expiryType.replace("months", ""));
+        const futureDate = new Date();
+        futureDate.setMonth(futureDate.getMonth() + months);
+        expiryDate = futureDate.toISOString().split("T")[0];
+      }
+    }
+
+    const loadingToast = toast.loading("Generating QR codes...");
+
+    try {
+      const dataToSend = {
+        ...formData,
+        expiryDate,
+      };
+      console.log(dataToSend);
+
+      const result = await generateQRCodes(dataToSend);
+
+      // Check if result is null or undefined
+      if (!result) {
+        toast.error("Failed to generate QR codes. Please try again.", {
+          id: loadingToast,
+        });
+        return;
       }
 
-      setShowForm(false);
-      resetForm();
-    } else {
-      alert(`Error: ${result.error}`);
+      // Check if the generation was successful
+      if (result.success) {
+        toast.success("QR codes generated successfully!", { id: loadingToast });
+
+        // Fetch updated batches
+        await fetchAllBatches();
+
+        // Try to generate and download PDF
+        const pdfToast = toast.loading("Generating PDF...");
+
+        try {
+          const batchResult = await fetchBatchById(formData.batchId);
+
+          if (batchResult?.success && batchResult.data?.qrCodes) {
+            setGeneratingPDF(true);
+            const pdf = await generateQRCodePDF(
+              batchResult.data.qrCodes,
+              formData.productName,
+              formData.batchId
+            );
+            pdf.save(`QR_Indowud_${formData.batchId}_${Date.now()}.pdf`);
+            setGeneratingPDF(false);
+
+            toast.success(
+              `Successfully generated ${formData.numberOfCodes} QR codes and downloaded PDF!`,
+              { id: pdfToast }
+            );
+          } else {
+            toast.error(
+              "QR codes generated but PDF download failed. Please try downloading from the list.",
+              { id: pdfToast }
+            );
+          }
+        } catch (pdfError) {
+          console.error("PDF generation error:", pdfError);
+          toast.error(
+            "Error generating PDF. Please try downloading from the list."
+          );
+        }
+
+        // Reset form and close
+        setShowForm(false);
+        resetForm();
+      } else {
+        // Handle error response
+        const errorMessage = result.error || "Failed to generate QR codes";
+        toast.error(errorMessage, { id: loadingToast });
+      }
+    } catch (error) {
+      console.error("Error in handleGenerate:", error);
+      toast.error(
+        error.message || "An unexpected error occurred. Please try again.",
+        { id: loadingToast }
+      );
     }
   };
 
@@ -446,24 +516,34 @@ const QRGeneration = () => {
   };
 
   const handleDownloadPDF = async (batch) => {
+    const loadingToast = toast.loading("Generating PDF...");
+
     try {
       setGeneratingPDF(batch.batchId);
 
       const result = await fetchBatchById(batch.batchId);
 
-      if (result.success && result.data.qrCodes) {
+      if (result?.success && result.data?.qrCodes) {
         const pdf = await generateQRCodePDF(
           result.data.qrCodes,
           batch.productName,
           batch.batchId
         );
         pdf.save(`QR_Indowud_${batch.batchId}_${Date.now()}.pdf`);
+        toast.success("PDF downloaded successfully!", { id: loadingToast });
       } else {
-        alert("Failed to fetch QR codes for this batch. Please try again.");
+        toast.error(
+          "Failed to fetch QR codes for this batch. Please try again.",
+          {
+            id: loadingToast,
+          }
+        );
       }
     } catch (error) {
       console.error("Error downloading PDF:", error);
-      alert("Error downloading PDF. Please try again.");
+      toast.error("Error downloading PDF. Please try again.", {
+        id: loadingToast,
+      });
     } finally {
       setGeneratingPDF(null);
     }
@@ -513,6 +593,7 @@ const QRGeneration = () => {
   if (showForm) {
     return (
       <div className="p-6">
+        <Toaster position="top-right" />
         <div className="rounded-lg space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-bold text-gray-900">
@@ -561,6 +642,7 @@ const QRGeneration = () => {
               formData={formData}
               handleInputChange={handleInputChange}
               disabled={!!formData.batchId || loading || generatingPDF}
+              fromQr={true}
             />
 
             <div>
@@ -656,6 +738,7 @@ const QRGeneration = () => {
 
   return (
     <div className="p-6">
+      <Toaster position="top-right" />
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-4">QR Code Generation</h1>
         <button
@@ -748,7 +831,6 @@ const QRGeneration = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    {/* ✅ Select All checkbox */}
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <input
                         type="checkbox"
@@ -766,7 +848,7 @@ const QRGeneration = () => {
                       Product Name
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dealer Name
+                      Dealer
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Points
@@ -802,7 +884,7 @@ const QRGeneration = () => {
                         {batch.productName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {batch.dealerName}
+                        {batch.companyName}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                         {batch.points}
