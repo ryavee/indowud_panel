@@ -78,7 +78,7 @@ const ExportButton = ({
       <button
         onClick={() => setIsOpen(!isOpen)}
         disabled={disabled}
-        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer"
+        className="flex items-center gap-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white px-4 py-2 rounded-lg text-sm font-semibold transition shadow-sm hover:shadow-md active:scale-[0.98] cursor-pointer"
       >
         <Upload className="w-4 h-4" />
         Export

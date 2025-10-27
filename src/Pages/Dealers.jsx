@@ -212,6 +212,17 @@ const Dealers = () => {
             />
           </div>
           <div className="flex gap-3">
+
+            <ImportCSVButton
+              requiredHeaders={[
+                { key: "dealerId", header: "Dealer ID" },
+                { key: "companyName", header: "Company Name" },
+                { key: "city", header: "City" },
+              ]}
+              onUpload={handleImport}
+              label="Import Dealers"
+            />
+
             <ExportButton
               data={filteredDealers}
               columns={[
@@ -222,19 +233,11 @@ const Dealers = () => {
               filename="dealers_export"
               disabled={operationLoading || filteredDealers.length === 0}
             />
-            <ImportCSVButton
-              requiredHeaders={[
-                { key: "dealerId", header: "Dealer ID" },
-                { key: "companyName", header: "Company Name" },
-                { key: "city", header: "City" },
-              ]}
-              onUpload={handleImport}
-              label="Import Dealers"
-            />
+
             <button
               onClick={handleAddDealerClick}
               disabled={operationLoading}
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition disabled:opacity-60 shadow-sm hover:shadow-md active:scale-[0.98]"
+              className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer shadow-sm hover:shadow-md active:scale-[0.98]"
             >
               <Plus className="w-4 h-4" /> Add Dealer
             </button>
