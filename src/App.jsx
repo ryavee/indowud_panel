@@ -13,38 +13,44 @@ import { CodesProvider } from "./Context/CodesContext";
 import { TrackQRDataProvider } from "./Context/TrackQRDataContext";
 import { RedemptionsContextProvider } from "./Context/RedemptionContext";
 import { CatalogProvider } from "./Context/CatalogContext";
+import { DashboardProvider } from "./Context/DashboardContext";
+import { SettingsProvider } from "./Context/SettingsContext";
 
 function App() {
   return (
-    <AuthProvider>
-      <CatalogProvider>
-        <RedemptionsContextProvider>
-          <TrackQRDataProvider>
-            <CodesProvider>
-              <DealersContextProvider>
-                <ProductProvider>
-                  <PromotionalProvider>
-                    <FeedProvider>
-                      <TicketProvider>
-                        <AnnouncementProvider>
-                          <CustomerProvider>
-                            <UserProvider>
-                              <BrowserRouter>
-                                <AppRoutes />
-                              </BrowserRouter>
-                            </UserProvider>
-                          </CustomerProvider>
-                        </AnnouncementProvider>
-                      </TicketProvider>
-                    </FeedProvider>
-                  </PromotionalProvider>
-                </ProductProvider>
-              </DealersContextProvider>
-            </CodesProvider>
-          </TrackQRDataProvider>
-        </RedemptionsContextProvider>
-      </CatalogProvider>
-    </AuthProvider>
+    <BrowserRouter>
+      <AuthProvider>
+        <SettingsProvider>
+          <CatalogProvider>
+            <RedemptionsContextProvider>
+              <TrackQRDataProvider>
+                <CodesProvider>
+                  <DealersContextProvider>
+                    <ProductProvider>
+                      <PromotionalProvider>
+                        <FeedProvider>
+                          <TicketProvider>
+                            <AnnouncementProvider>
+                              <CustomerProvider>
+                                <UserProvider>
+                                  <DashboardProvider>
+                                    <AppRoutes />
+                                  </DashboardProvider>
+                                </UserProvider>
+                              </CustomerProvider>
+                            </AnnouncementProvider>
+                          </TicketProvider>
+                        </FeedProvider>
+                      </PromotionalProvider>
+                    </ProductProvider>
+                  </DealersContextProvider>
+                </CodesProvider>
+              </TrackQRDataProvider>
+            </RedemptionsContextProvider>
+          </CatalogProvider>
+        </SettingsProvider>
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 

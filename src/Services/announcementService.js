@@ -6,7 +6,6 @@ export async function getAnnouncements(token) {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
     if (!res.ok) throw new Error("User data not found");
@@ -17,13 +16,12 @@ export async function getAnnouncements(token) {
   }
 }
 
-export async function createAnnouncement(token, newAnnouncement) {
+export async function createAnnouncement(newAnnouncement) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.CREATEANNOUNCEMENT}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(newAnnouncement),
     });
@@ -35,16 +33,15 @@ export async function createAnnouncement(token, newAnnouncement) {
   }
 }
 
-export async function deleteAnnouncementFromAdmin(token, announcementId) {
+export async function deleteAnnouncementFromAdmin(announcementId) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.DELETEANNOUNCEMENT}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ announcementId }),
-    });    
+    });
     if (!res.ok) throw new Error("User data not found");
     return res.json();
   } catch (error) {
