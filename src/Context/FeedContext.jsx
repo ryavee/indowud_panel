@@ -1,5 +1,4 @@
 import { createContext, useState, useEffect, useContext } from "react";
-import { useAuthContext } from "./AuthContext";
 import {
   getFeed,
   createFeed,
@@ -11,13 +10,10 @@ export const FeedContext = createContext();
 
 export const FeedProvider = ({ children }) => {
   const [feeds, setFeeds] = useState([]);
-  const { token } = useAuthContext();
-
   // Fetch all feeds
   const fetchFeeds = async () => {
-    if (!token) return;
     try {
-      const data = await getFeed(token);
+      const data = await getFeed();
       const feeds = data?.feeds || [];
       setFeeds(feeds);
     } catch (error) {
@@ -28,13 +24,8 @@ export const FeedProvider = ({ children }) => {
 
   // Create a new feed
   const addFeed = async (feedData) => {
-    if (!token) {
-      console.error("Token is required to create a feed");
-      return null;
-    }
-
     try {
-      const newFeed = await createFeed(feedData, token);
+      const newFeed = await createFeed(feedData);
 
       // Instead of immediately adding to state, refresh the feeds to get complete data
       await fetchFeeds();
@@ -48,11 +39,6 @@ export const FeedProvider = ({ children }) => {
 
   // Update an existing feed
   const editFeed = async (feedId, updatedData) => {
-    if (!token) {
-      console.error("Token is required to update a feed");
-      return null;
-    }
-
     try {
       // Get the original feed data for comparison
       const originalFeed = getFeedById(feedId);
@@ -61,7 +47,7 @@ export const FeedProvider = ({ children }) => {
         return null;
       }
 
-      const updatedFeed = await updateFeed(feedId, updatedData, originalFeed, token);
+      const updatedFeed = await updateFeed(feedId, updatedData, originalFeed);
 
       // Refresh feeds to ensure we have the latest data
       await fetchFeeds();
@@ -75,13 +61,8 @@ export const FeedProvider = ({ children }) => {
 
   // Delete a feed
   const removeFeed = async (feedId) => {
-    if (!token) {
-      console.error("Token is required to delete a feed");
-      return false;
-    }
-
     try {
-      await deleteFeed(feedId, token);
+      await deleteFeed(feedId);
       setFeeds((prevFeeds) => prevFeeds.filter((feed) => feed.id !== feedId));
       return true;
     } catch (error) {
@@ -100,14 +81,9 @@ export const FeedProvider = ({ children }) => {
     setFeeds([]);
   };
 
-  // Auto-fetch feeds when token changes
   useEffect(() => {
-    if (token) {
-      fetchFeeds();
-    } else {
-      clearFeeds();
-    }
-  }, [token]);
+    fetchFeeds();
+  }, []);
 
   const contextValue = {
     // State

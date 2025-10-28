@@ -1,12 +1,11 @@
 import { BASE_URL, ENDPOINTS } from "../Config/apiConfig.js";
 
-export async function getFeed(token) {
+export async function getFeed() {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.GETALLFEEDS}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
     if (!res.ok) throw new Error("User data not found");
@@ -17,7 +16,7 @@ export async function getFeed(token) {
   }
 }
 
-export async function createFeed(feedData, token) {
+export async function createFeed(feedData) {
   try {
     const formData = new FormData();
     formData.append("title", feedData.title);
@@ -30,9 +29,6 @@ export async function createFeed(feedData, token) {
 
     const res = await fetch(`${BASE_URL}${ENDPOINTS.CREATEFEED}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       body: formData,
     });
 
@@ -44,17 +40,12 @@ export async function createFeed(feedData, token) {
   }
 }
 
-export async function updateFeed(feedId, feedData, originalFeedData, token) {
+export async function updateFeed(feedId, feedData, originalFeedData) {
   try {
     const formData = new FormData();
     formData.append("feedId", feedId);
 
     let hasChanges = false;
-
-    // Log what we're comparing
-    console.log("Original feed data:", originalFeedData);
-    console.log("New feed data:", feedData);
-
     // Check title change
     const titleChanged =
       feedData.title !== undefined &&
@@ -92,32 +83,14 @@ export async function updateFeed(feedId, feedData, originalFeedData, token) {
       console.log("New image file provided:", feedData.imageFile.name);
     }
 
-    // Log what's being sent
-    console.log("Changes detected:", {
-      titleChanged,
-      descriptionChanged,
-      imageFile: !!feedData.imageFile,
-    });
-
-    // Log FormData entries for debugging
-    console.log("FormData entries:");
-    for (let [key, value] of formData.entries()) {
-      console.log(key + ":", value);
-    }
-
     // If no changes detected, return early
     if (!hasChanges) {
       console.log("No changes detected, skipping update");
       return { success: true, message: "No changes to update" };
     }
 
-    console.log(`Making API call to update feed ${feedId}`);
-
     const res = await fetch(`${BASE_URL}${ENDPOINTS.UPDATEFEED}`, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
       body: formData,
     });
 
@@ -135,13 +108,12 @@ export async function updateFeed(feedId, feedData, originalFeedData, token) {
     throw error; // Re-throw to let the context handle it
   }
 }
-export async function deleteFeed(feedId, token) {
+export async function deleteFeed(feedId) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.DELETEFEED}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify({ feedId: feedId }),
     });

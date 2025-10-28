@@ -2,6 +2,8 @@ export const BASE_URL =
 // "http://localhost:2000";
 "https://indowud-main-engine.onrender.com";
 export const ENDPOINTS = {
+  // Dashboard
+  FETCHDASHBOARDDATA: "/api/dashboard/get-dashboard-data",
   LOGIN: "/api/v1/auth/login",
   GETUSERDATA: "/api/v1/auth/users/:uid",
   // REDEEM

@@ -1,5 +1,4 @@
 import { createContext, useState, useEffect } from "react";
-import { useAuthContext } from "./AuthContext";
 import {
   getAnnouncements,
   createAnnouncement,
@@ -13,12 +12,10 @@ export const AnnouncementProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const [createLoading, setCreateLoading] = useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
-  const { token } = useAuthContext();
 
   const fetchAnnouncements = async () => {
-    if (!token) return;
     try {
-      const data = await getAnnouncements(token);
+      const data = await getAnnouncements();
       const announcements = data?.announcements || [];
       setAnnouncements(announcements);
     } catch (error) {
@@ -29,13 +26,12 @@ export const AnnouncementProvider = ({ children }) => {
 
   useEffect(() => {
     fetchAnnouncements();
-  }, [token]);
+  }, []);
 
   const createNewAnnouncement = async (newAnnouncement) => {
-    if (!token) return;
     setCreateLoading(true);
     try {
-      const data = await createAnnouncement(token, newAnnouncement);
+      const data = await createAnnouncement(newAnnouncement);
 
       // Option 1: If API returns the created announcement object
       if (data?.announcement) {
@@ -67,10 +63,9 @@ export const AnnouncementProvider = ({ children }) => {
   };
 
   const deleteAnnouncement = async (announcementId) => {
-    if (!token) return;
     setDeleteLoading(true);
     try {
-      await deleteAnnouncementFromAdmin(token, announcementId);
+      await deleteAnnouncementFromAdmin(announcementId);
       setAnnouncements((prev) => prev.filter((a) => a.id !== announcementId));
       setDeleteLoading(false);
     } catch (error) {

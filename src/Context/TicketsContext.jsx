@@ -1,6 +1,5 @@
 import { createContext, useState, useContext, useEffect } from "react";
 import { getTickets, changeTicketStatus } from "../Services/ticketsService";
-import { useAuthContext } from "./AuthContext";
 export const TicketContext = createContext();
 
 export const useTicketContext = () => {
@@ -12,7 +11,6 @@ export const useTicketContext = () => {
 };
 
 export const TicketProvider = ({ children }) => {
-  const { token } = useAuthContext();
   const [tickets, setTickets] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -22,7 +20,7 @@ export const TicketProvider = ({ children }) => {
     try {
       setLoading(true);
       setError(null);
-      const data = await getTickets(token);
+      const data = await getTickets();
       const tickets = data?.tickets || [];
       setTickets(tickets);
     } catch (error) {
@@ -39,7 +37,7 @@ export const TicketProvider = ({ children }) => {
       setUpdating(ticketId);
       setError(null);
 
-      await changeTicketStatus(token, ticketId, status);
+      await changeTicketStatus( ticketId, status);
 
       setTickets((prevTickets) =>
         prevTickets.map((ticket) =>
