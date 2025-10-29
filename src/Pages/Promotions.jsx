@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Loader2,
+  Plus,
+  Loader,
   AlertCircle,
   Box,           // product
   FileText,      // description
@@ -218,13 +219,13 @@ const Promotions = () => {
 
 
   const headerConfig = [
-  { key: "productName", label: "Product Name", Icon: Box },
-  { key: "description", label: "Description", Icon: FileText },
-  { key: "category", label: "Category", Icon: Tag },
-  { key: "status", label: "Status", Icon: CheckIcon },
-  { key: "points", label: "Points", Icon: CircleStar },
-  { key: "actions", label: "Action", Icon: MoreVertical },
-];
+    { key: "productName", label: "Product Name", Icon: Box },
+    { key: "description", label: "Description", Icon: FileText },
+    { key: "category", label: "Category", Icon: Tag },
+    { key: "status", label: "Status", Icon: CheckIcon },
+    { key: "points", label: "Points", Icon: CircleStar },
+    { key: "actions", label: "Action", Icon: MoreVertical },
+  ];
 
 
   return (
@@ -232,7 +233,7 @@ const Promotions = () => {
       <ErrorAlert error={error} onClose={clearError} />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between mb-4">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
             <span>Promotions</span>
@@ -240,7 +241,7 @@ const Promotions = () => {
               {promotions.length}
             </span>
             {loading && promotions.length > 0 && (
-              <Loader2 className="inline ml-2 h-4 w-4 animate-spin text-blue-600" />
+              <Loader className="inline ml-2 h-4 w-4 animate-spin text-blue-600" />
             )}
           </h1>
           <p className="text-sm text-gray-600 mt-1">
@@ -248,19 +249,8 @@ const Promotions = () => {
           </p>
         </div>
 
-        <div className="flex gap-3">
-          <ExportButton
-            data={promotions}
-            columns={[
-              { key: "productName", header: "Product Name" },
-              { key: "productId", header: "Product ID" },
-              { key: "Discription", header: "Description" },
-              { key: "isActive", header: "Active" },
-              { key: "category", header: "Category" },
-              { key: "point", header: "Point" },
-            ]}
-            filename="promotions"
-          />
+        <div className="flex  item-center gap-2">
+
 
           <ImportButton
             label="Import Promotions"
@@ -279,18 +269,35 @@ const Promotions = () => {
               }
             }}
           />
+          <ExportButton
+            data={promotions}
+            columns={[
+              { key: "productName", header: "Product Name" },
+              { key: "productId", header: "Product ID" },
+              { key: "Discription", header: "Description" },
+              { key: "isActive", header: "Active" },
+              { key: "category", header: "Category" },
+              { key: "point", header: "Point" },
+            ]}
+            filename="promotions"
+          />
 
           <button
             onClick={() => setIsModalOpen(true)}
             disabled={createOrUpdateLoading}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+            text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+            shadow-sm hover:shadow-md transition-all cursor-pointer"
           >
             {createOrUpdateLoading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader className="w-4 h-4 animate-spin" />
             ) : (
-              <span className="text-lg">+</span>
+              <>
+              <Plus className="W-4 h-4"/>
+                <span>Add Promotion</span>
+              </>
             )}
-            Add Promotion
+            
           </button>
         </div>
       </div>
@@ -449,7 +456,7 @@ const Promotions = () => {
                 disabled={createOrUpdateLoading || productsLoading}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:bg-green-400"
               >
-                {createOrUpdateLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {createOrUpdateLoading && <Loader className="w-4 h-4 animate-spin" />}
                 {editingPromotion ? "Update Promotion" : "Add Promotion"}
               </button>
             </div>
