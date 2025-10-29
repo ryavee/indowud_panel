@@ -13,6 +13,7 @@ const AdminLayout = () => {
 
     setTimeout(() => {
       localStorage.removeItem("authToken");
+      localStorage.removeItem("user");
       navigate("/login");
     }, 300);
   };
