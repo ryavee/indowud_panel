@@ -12,10 +12,7 @@ import {
   Loader2,
   ExternalLink,
   Send,
-  Bell,
-  X,
   IdCard,
-  Clock,
 } from "lucide-react";
 
 const CustomerDetails = ({
@@ -68,7 +65,7 @@ const CustomerDetails = ({
           <div className="flex items-center gap-4">
             <button
               onClick={onBack}
-              className="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-all"
+              className="bg-white/20 hover:bg-white/30 p-2 rounded-full transition-all cursor-pointer"
               title="Back to Customers"
             >
               <ArrowLeft className="w-5 h-5" />
@@ -115,7 +112,7 @@ const CustomerDetails = ({
             <button
               onClick={() => onBlockCustomer(customer.uid)}
               disabled={actionLoading.block === customer.uid}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all ${
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all  cursor-pointer ${
                 customer.isBlocked
                   ? "bg-green-600 hover:bg-green-700 text-white"
                   : "bg-red-600 hover:bg-red-700 text-white"
@@ -132,7 +129,7 @@ const CustomerDetails = ({
             <button
               onClick={() => onKYCAction(customer.uid)}
               disabled={actionLoading.kyc === customer.uid}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all ${
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all cursor-pointer ${
                 customer.isKYCVerified
                   ? "bg-teal-600 hover:bg-teal-700 text-white"
                   : "bg-orange-500 hover:bg-orange-600 text-white"
@@ -185,8 +182,8 @@ const CustomerDetails = ({
               </h3>
 
               <p className="text-sm text-gray-700 mb-3">
-                <b>Aadhaar Number:</b>{" "}
-                {customer.aadhaarNumber || "Not Provided"}
+                <b>Aadhaar Card</b>
+                
               </p>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
@@ -216,7 +213,7 @@ const CustomerDetails = ({
                       {img && (
                         <button
                           onClick={() => handleDocumentView(img)}
-                          className="text-orange-600 text-xs flex items-center gap-1 mb-3 hover:text-orange-700"
+                          className="text-orange-600 text-xs flex items-center gap-1 mb-3 hover:text-orange-700 cursor-pointer"
                         >
                           <ExternalLink className="w-3 h-3" /> View
                         </button>
@@ -227,7 +224,7 @@ const CustomerDetails = ({
               </div>
 
               <p className="text-sm text-gray-700 mb-3">
-                <b>PAN Number:</b> {customer.panNumber || "Not Provided"}
+                <b>PAN Card</b> 
               </p>
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 flex flex-col items-center justify-between">
@@ -245,7 +242,7 @@ const CustomerDetails = ({
                 {customer.panCardImage && (
                   <button
                     onClick={() => handleDocumentView(customer.panCardImage)}
-                    className="text-orange-600 text-xs flex items-center gap-1 mb-3 hover:text-orange-700"
+                    className="text-orange-600 text-xs flex items-center gap-1 mb-3 hover:text-orange-700 cursor-pointer"
                   >
                     <ExternalLink className="w-3 h-3" /> View
                   </button>
@@ -308,7 +305,7 @@ const CustomerDetails = ({
                     <button
                       key={i}
                       onClick={() => setCustomMessage(reason)}
-                      className="px-3 py-1 text-xs bg-gray-100 hover:bg-orange-100 rounded-full border border-gray-200"
+                      className="px-3 py-1 text-xs bg-gray-100 hover:bg-orange-100 rounded-full border border-gray-200 cursor-pointer"
                     >
                       {reason}
                     </button>
@@ -328,7 +325,7 @@ const CustomerDetails = ({
                 <button
                   onClick={handleSendNotification}
                   disabled={sending || notificationLoading === customer.uid}
-                  className="flex items-center gap-2 px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md shadow-sm disabled:opacity-60"
+                  className="flex items-center gap-2 px-5 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-md shadow-sm disabled:opacity-60 cursor-pointer"
                 >
                   {sending || notificationLoading === customer.uid ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
