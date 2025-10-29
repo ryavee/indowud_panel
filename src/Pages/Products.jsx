@@ -209,6 +209,16 @@ const Products = () => {
           </div>
 
           <div className="flex items-center gap-2">
+
+            <ImportButton
+              requiredHeaders={[
+                { key: "productName", header: "Product Name" },
+                { key: "productUnit", header: "Product Unit" },
+                { key: "productPoint", header: "Product Point" },
+              ]}
+              onUpload={handleImportProducts}
+              disabled={loading || creating || importing}
+            />
             <ExportButton
               data={products}
               columns={[
@@ -219,15 +229,7 @@ const Products = () => {
               filename="products"
               disabled={loading || creating || importing}
             />
-            <ImportButton
-              requiredHeaders={[
-                { key: "productName", header: "Product Name" },
-                { key: "productUnit", header: "Product Unit" },
-                { key: "productPoint", header: "Product Point" },
-              ]}
-              onUpload={handleImportProducts}
-              disabled={loading || creating || importing}
-            />
+            
 
             <button
               type="button"

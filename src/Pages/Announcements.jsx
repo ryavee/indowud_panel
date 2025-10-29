@@ -105,7 +105,7 @@ const Announcements = () => {
           <div>
             <button
               onClick={handleHeaderAdd}
-              className="inline-flex items-center gap-2 px-4 py-2 h-10 text-sm font-medium text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all"
+              className="inline-flex items-center gap-2 px-4 py-2 h-10 text-sm font-medium text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-3.5 h-3.5" />
               Add Announcement
