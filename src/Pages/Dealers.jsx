@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import {
   Trash2,
   AlertCircle,
-  Loader2,
+  Loader,
   Plus,
   Search,
   Hash,
@@ -14,6 +14,7 @@ import { toast } from "react-hot-toast";
 import { useDealersContext } from "../Context/DealersContext";
 import ExportButton from "../Components/export_button";
 import ImportCSVButton from "../Components/Import_button";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 
 const Dealers = () => {
   const {
@@ -157,14 +158,7 @@ const Dealers = () => {
   );
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-96">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-4" />
-          <p className="text-gray-600">Loading dealers...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner centered message="Loading Dealers..." />;
   }
 
   if (error && !loading) {
@@ -179,7 +173,7 @@ const Dealers = () => {
             <p className="text-red-700 mb-4">{error}</p>
             <button
               onClick={handleRetry}
-              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.97]"
+              className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg shadow-sm transition-transform hover:scale-[1.03] active:scale-[0.97] cursor-pointer"
             >
               Retry
             </button>
@@ -193,10 +187,10 @@ const Dealers = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="w-full max-w-7xl mx-auto">
         <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
             Dealers
           </h1>
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mt-1">
             Manage your dealer network and onboarding process.
           </p>
         </div>
@@ -237,7 +231,9 @@ const Dealers = () => {
             <button
               onClick={handleAddDealerClick}
               disabled={operationLoading}
-              className="flex items-center justify-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer shadow-sm hover:shadow-md active:scale-[0.98]"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+                          shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Add Dealer
             </button>
@@ -290,7 +286,7 @@ const Dealers = () => {
                             type="button"
                             onClick={() => handleDeleteClick(dealer)}
                             disabled={operationLoading}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 px-3 py-1.5 rounded-md transition-all disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center gap-1.5 cursor-pointer"
                             aria-label={`Delete ${dealer.companyName}`}
                           >
                             <Trash2 size={18} />
@@ -349,11 +345,11 @@ const Dealers = () => {
                       type="button"
                       onClick={handleGenerateDealer}
                       disabled={operationLoading || isGenerating}
-                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center gap-2 whitespace-nowrap"
+                      className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium disabled:opacity-60 disabled:cursor-not-allowed transition-all flex items-center gap-2 whitespace-nowrap cursor-pointer"
                     >
                       {isGenerating ? (
                         <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <Loader className="w-4 h-4 animate-spin" />
                           Generating...
                         </>
                       ) : (
@@ -396,18 +392,18 @@ const Dealers = () => {
                 <button
                   onClick={cancelAddDealer}
                   disabled={operationLoading}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={handleCreateDealer}
                   disabled={operationLoading || isGenerating}
-                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-orange-600 hover:bg-orange-700 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                 >
                   {operationLoading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader className="w-4 h-4 animate-spin" />
                       Saving...
                     </>
                   ) : (
@@ -445,18 +441,18 @@ const Dealers = () => {
                 <button
                   onClick={cancelDelete}
                   disabled={operationLoading}
-                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="px-4 py-2 bg-gray-200 hover:bg-gray-300 text-gray-700 rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDelete}
                   disabled={operationLoading}
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-all disabled:opacity-60 disabled:cursor-not-allowed flex items-center gap-2 cursor-pointer"
                 >
                   {operationLoading ? (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <Loader className="w-4 h-4 animate-spin" />
                       Deleting...
                     </>
                   ) : (

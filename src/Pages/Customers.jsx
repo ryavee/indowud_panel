@@ -12,7 +12,6 @@ import {
   Lock,
   Unlock,
   Users as UsersIcon,
-  Loader2,
   ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -22,6 +21,8 @@ import CustomerDetails from "../Components/CustomerDetails";
 import Pagination from "../Components/Reusable/Pagination";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -168,14 +169,7 @@ const Customers = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-orange-600 mx-auto mb-4" />
-          <p className="text-gray-500">Loading customers...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner centered message="Loading Customers..." />;
   }
 
   if (selectedCustomer) {
@@ -338,7 +332,7 @@ const Customers = () => {
             onClick={handleResetFilters}
             className="flex items-center justify-center gap-1.5 px-4 py-2 
             text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white 
-            rounded-lg shadow-sm hover:shadow-md focus:ring-2 focus:ring-orange-400 transition-transform hover:scale-[1.05]"
+            rounded-lg shadow-sm hover:shadow-md  transition-transform cursor-pointer"
           >
             <RotateCcw
               className={`w-4 h-4 ${
