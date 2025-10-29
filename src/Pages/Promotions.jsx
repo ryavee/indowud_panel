@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Loader2,
+  Plus,
+  Loader,
   AlertCircle,
   Box,           // product
   FileText,      // description
@@ -240,7 +241,7 @@ const Promotions = () => {
               {promotions.length}
             </span>
             {loading && promotions.length > 0 && (
-              <Loader2 className="inline ml-2 h-4 w-4 animate-spin text-blue-600" />
+              <Loader className="inline ml-2 h-4 w-4 animate-spin text-blue-600" />
             )}
           </h1>
           <p className="text-sm text-gray-600 mt-1">
@@ -284,14 +285,19 @@ const Promotions = () => {
           <button
             onClick={() => setIsModalOpen(true)}
             disabled={createOrUpdateLoading}
-            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+            text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+            shadow-sm hover:shadow-md transition-all cursor-pointer"
           >
             {createOrUpdateLoading ? (
-              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              <Loader className="w-4 h-4 animate-spin" />
             ) : (
-              <span className="text-lg">+</span>
+              <>
+              <Plus className="W-4 h-4"/>
+                <span>Add Promotion</span>
+              </>
             )}
-            Add Promotion
+            
           </button>
         </div>
       </div>
@@ -450,7 +456,7 @@ const Promotions = () => {
                 disabled={createOrUpdateLoading || productsLoading}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:bg-green-400"
               >
-                {createOrUpdateLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {createOrUpdateLoading && <Loader className="w-4 h-4 animate-spin" />}
                 {editingPromotion ? "Update Promotion" : "Add Promotion"}
               </button>
             </div>

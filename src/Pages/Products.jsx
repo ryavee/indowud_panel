@@ -237,11 +237,12 @@ const Products = () => {
               onClick={() => setShowAddModal(true)}
               disabled={creating || importing}
               className={`
-                flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-sm transition-all cursor-pointer
+                flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                text-white rounded-lg shadow-sm transition-all cursor-pointer
                 active:scale-[0.97] 
                 ${creating || importing
                   ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#169698] hover:bg-[#128083]"
+                  : "bg-[#00A9A3] hover:bg-[#128083]"
                 }
               `}
             >
