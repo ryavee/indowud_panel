@@ -23,16 +23,8 @@ import {
 const Sidebar = ({ onLogout, onClose }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  // 🧠 Get logged-in user from localStorage
   const user = JSON.parse(localStorage.getItem("user"));
-  console.log("🧑‍💼 Current user:", user);
-
-  // 🎭 Determine user role
   const role = user?.role || user?.user?.role || "Guest";
-  console.log("🎭 Detected role:", role);
-
-  // 🧩 Sidebar menu items
   const allMenuItems = [
     {
       section: "MAIN",
@@ -47,13 +39,13 @@ const Sidebar = ({ onLogout, onClose }) => {
       ],
     },
     {
-      section: "SALES",
+      section: "PRODUCT ENDPOINTS",
       items: [
         { name: "Products", icon: Package, path: "/sales/products" },
         { name: "QR Generation", icon: QrCode, path: "/sales/qr" },
         { name: "QR Track", icon: MapPin, path: "/sales/Track" },
         { name: "Catalogue", icon: BookOpen, path: "/sales/catalogue" },
-        { name: "Promotions", icon: BadgePercent, path: "/sales/promotions" },
+        { name: "Bonus Promotion", icon: BadgePercent, path: "/sales/promotions" },
         { name: "Manage Redeemption", icon: Coins, path: "/sales/redeemption" },
       ],
     },
