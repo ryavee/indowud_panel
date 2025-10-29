@@ -1,5 +1,15 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { Loader2, AlertCircle } from "lucide-react";
+import {
+  Loader2,
+  AlertCircle,
+  Box,           // product
+  FileText,      // description
+  Tag,           // category
+  CheckCircle as CheckIcon, // status (alias to avoid name clash)
+  CircleStar,          // points
+  MoreVertical,  // actions
+} from "lucide-react";
+
 import { toast } from "react-hot-toast";
 import { usePromotionalContext } from "../Context/PromotionalContext";
 import { useProductContext } from "../Context/ProductsContext";
@@ -206,18 +216,29 @@ const Promotions = () => {
     return <LoadingSpinner centered message="Loading promotions..." />;
   }
 
+
+  const headerConfig = [
+  { key: "productName", label: "Product Name", Icon: Box },
+  { key: "description", label: "Description", Icon: FileText },
+  { key: "category", label: "Category", Icon: Tag },
+  { key: "status", label: "Status", Icon: CheckIcon },
+  { key: "points", label: "Points", Icon: CircleStar },
+  { key: "actions", label: "Action", Icon: MoreVertical },
+];
+
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-8">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <ErrorAlert error={error} onClose={clearError} />
 
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
-            <span>Promotions</span> 
-              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-[#00A9A3]/10 text-[#00A9A3] border border-[#00A9A3]/20">
+            <span>Promotions</span>
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-[#00A9A3]/10 text-[#00A9A3] border border-[#00A9A3]/20">
               {promotions.length}
-              </span>
+            </span>
             {loading && promotions.length > 0 && (
               <Loader2 className="inline ml-2 h-4 w-4 animate-spin text-blue-600" />
             )}
@@ -286,23 +307,20 @@ const Promotions = () => {
               <table className="min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
                   <tr>
-                    {[
-                      "Product Name",
-                      "Description",
-                      "Category",
-                      "Status",
-                      "Points",
-                      "Actions",
-                    ].map((header) => (
+                    {headerConfig.map(({ key, label, Icon }) => (
                       <th
-                        key={header}
-                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      
-                        {header}
+                        key={key}
+                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
+                        <div className="flex items-center gap-2">
+                          <Icon className="h-4 w-4 text-gray-500" />
+                          <span>{label}</span>
+                        </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
+
 
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedPromotions.map((promotion) => (
