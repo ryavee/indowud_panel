@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Loader2, AlertCircle } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { usePromotionalContext } from "../Context/PromotionalContext";
@@ -6,17 +6,22 @@ import { useProductContext } from "../Context/ProductsContext";
 import ProductSelectComponent from "../Components/select_product";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+import ActionButtons from "../Components/Reusable/ActionButtons";
+import Pagination from "../Components/Reusable/Pagination";
+import ConfirmationModal from "../Components/ConfirmationModal";
 
+// Status badge
 const StatusBadge = ({ status }) => (
   <span
-    className={`px-2 py-1 rounded-full text-xs font-medium ${
-      status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-    }`}
+    className={`px-2 py-1 rounded-full text-xs font-medium ${status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+      }`}
   >
     {status ? "Active" : "Inactive"}
   </span>
 );
 
+// Category badge
 const CategoryBadge = ({ category }) => {
   const colors = {
     Bonus: "bg-blue-100 text-blue-800",
@@ -24,15 +29,15 @@ const CategoryBadge = ({ category }) => {
   };
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium ${
-        colors[category] || "bg-gray-100 text-gray-800"
-      }`}
+      className={`px-2 py-1 rounded-full text-xs font-medium ${colors[category] || "bg-gray-100 text-gray-800"
+        }`}
     >
       {category}
     </span>
   );
 };
 
+// Error alert
 const ErrorAlert = ({ error, onClose }) => {
   if (!error) return null;
   return (
@@ -40,12 +45,14 @@ const ErrorAlert = ({ error, onClose }) => {
       <AlertCircle className="h-5 w-5 text-red-400 mt-0.5" />
       <div className="ml-3 flex-1">
         <p className="text-sm text-red-800">{error}</p>
-        <button
-          onClick={onClose}
-          className="mt-1 text-sm text-red-600 hover:text-red-800 underline"
-        >
-          Dismiss
-        </button>
+        {onClose && (
+          <button
+            onClick={onClose}
+            className="mt-1 text-sm text-red-600 hover:text-red-800 underline"
+          >
+            Dismiss
+          </button>
+        )}
       </div>
     </div>
   );
@@ -53,7 +60,7 @@ const ErrorAlert = ({ error, onClose }) => {
 
 const Promotions = () => {
   const {
-    promotions,
+    promotions = [],
     loading,
     error,
     createPromotion,
@@ -65,9 +72,14 @@ const Promotions = () => {
 
   const { products, loading: productsLoading } = useProductContext();
 
+  // UI + form state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
+
+  // Delete flow state (uses ConfirmationModal)
   const [promotionToDelete, setPromotionToDelete] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+
   const [formData, setFormData] = useState({
     productName: "",
     productId: "",
@@ -76,8 +88,37 @@ const Promotions = () => {
     category: "Bonus",
     point: "",
   });
-  const [actionLoading, setActionLoading] = useState(false);
 
+  // Operation loaders
+  const [createOrUpdateLoading, setCreateOrUpdateLoading] = useState(false);
+  const [actionLoading, setActionLoading] = useState({ edit: null, delete: null });
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const totalPages = Math.max(1, Math.ceil(promotions.length / pageSize));
+
+  const paginatedPromotions = useMemo(() => {
+    const start = (currentPage - 1) * pageSize;
+    return promotions.slice(start, start + pageSize);
+  }, [promotions, currentPage, pageSize]);
+
+  // reset form when modal closes
+  useEffect(() => {
+    if (!isModalOpen) {
+      setFormData({
+        productName: "",
+        productId: "",
+        Discription: "",
+        isActive: true,
+        category: "Bonus",
+        point: "",
+      });
+      setEditingPromotion(null);
+    }
+  }, [isModalOpen]);
+
+  // Input change handler
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     if (name === "productName") {
@@ -95,15 +136,16 @@ const Promotions = () => {
     }
   };
 
+  // Create / Update submit
   const handleFormSubmit = async () => {
     if (!formData.productName || !formData.Discription || !formData.point) {
       toast.error("Please fill in all required fields");
       return;
     }
 
-    setActionLoading(true);
+    setCreateOrUpdateLoading(true);
     try {
-      const payload = { ...formData, point: parseInt(formData.point) };
+      const payload = { ...formData, point: parseInt(formData.point, 10) };
       if (editingPromotion) {
         await editPromotion(editingPromotion.id, payload);
         toast.success("Promotion updated successfully");
@@ -111,28 +153,17 @@ const Promotions = () => {
         await createPromotion(payload);
         toast.success("Promotion created successfully");
       }
-      resetForm();
+      setIsModalOpen(false);
     } catch (err) {
-      toast.error(err.message || "Failed to save promotion");
+      toast.error(err?.message || "Failed to save promotion");
     } finally {
-      setActionLoading(false);
+      setCreateOrUpdateLoading(false);
     }
   };
 
-  const resetForm = () => {
-    setFormData({
-      productName: "",
-      productId: "",
-      Discription: "",
-      isActive: true,
-      category: "Bonus",
-      point: "",
-    });
-    setEditingPromotion(null);
-    setIsModalOpen(false);
-  };
-
+  // Prepare edit
   const handleEditPromotion = (promotion) => {
+    setActionLoading((prev) => ({ ...prev, edit: promotion.id }));
     setEditingPromotion(promotion);
     setFormData({
       productName: promotion.productName || "",
@@ -143,149 +174,180 @@ const Promotions = () => {
       point: promotion.point?.toString() || "",
     });
     setIsModalOpen(true);
+    setActionLoading((prev) => ({ ...prev, edit: null }));
   };
 
-  const handleDeletePromotion = async (promotion) => {
-    if (!window.confirm(`Delete "${promotion.productName}"?`)) return;
-    setActionLoading(true);
+  // Open confirmation modal for delete
+  const handleDeletePromotion = (promotion) => {
+    setPromotionToDelete(promotion);
+  };
+
+  const handleCancelDelete = () => {
+    setPromotionToDelete(null);
+  };
+
+  // Confirm delete -> uses removePromotion from context
+  const handleConfirmDelete = async () => {
+    if (!promotionToDelete) return;
+    setDeleteLoading(true);
     try {
-      await removePromotion(promotion.id);
+      await removePromotion(promotionToDelete.id);
       toast.success("Promotion deleted successfully");
     } catch (err) {
-      toast.error(err.message || "Failed to delete promotion");
+      toast.error(err?.message || "Failed to delete promotion");
     } finally {
-      setActionLoading(false);
+      setDeleteLoading(false);
+      setPromotionToDelete(null);
     }
   };
 
-  const safePromotions = promotions.map((promotion, i) => ({
-    ...promotion,
-    uniqueKey: promotion.id || `promotion-${i}`,
-  }));
+  // global initial loading
+  if (loading && promotions.length === 0) {
+    return <LoadingSpinner centered message="Loading promotions..." />;
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-8">
       <ErrorAlert error={error} onClose={clearError} />
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        {/* Header */}
-        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-          <h3 className="text-lg font-medium text-gray-900">
-            Promotions ({promotions.length})
-            {loading && (
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+            <span>Promotions</span> 
+              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-[#00A9A3]/10 text-[#00A9A3] border border-[#00A9A3]/20">
+              {promotions.length}
+              </span>
+            {loading && promotions.length > 0 && (
               <Loader2 className="inline ml-2 h-4 w-4 animate-spin text-blue-600" />
             )}
-          </h3>
-
-          <div className="flex items-center gap-3">
-            <ExportButton
-              data={promotions}
-              columns={[
-                { key: "productName", header: "Product Name" },
-                { key: "productId", header: "Product ID" },
-                { key: "Discription", header: "Description" },
-                { key: "isActive", header: "Active" },
-                { key: "category", header: "Category" },
-                { key: "point", header: "Point" },
-              ]}
-              filename="promotions"
-            />
-
-            {/* ✅ Import connected to Context */}
-            <ImportButton
-              label="Import Promotions"
-              requiredHeaders={[
-                { key: "productName", header: "Product Name" },
-                { key: "productId", header: "Product ID" },
-                { key: "point", header: "Point" },
-              ]}
-              disabled={loading}
-              onUpload={async (file) => {
-                try {
-                  await importPromotions(file);
-                  toast.success("Promotions imported successfully");
-                } catch (err) {
-                  toast.error(err.message || "Import failed");
-                }
-              }}
-            />
-
-            <button
-              onClick={() => setIsModalOpen(true)}
-              disabled={actionLoading}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center gap-2 disabled:bg-green-400"
-            >
-              {actionLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <span className="text-lg">+</span>
-              )}
-              Add Promotion
-            </button>
-          </div>
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage bonus points, offers, and promotional rewards.
+          </p>
         </div>
 
-        {/* Table */}
+        <div className="flex gap-3">
+          <ExportButton
+            data={promotions}
+            columns={[
+              { key: "productName", header: "Product Name" },
+              { key: "productId", header: "Product ID" },
+              { key: "Discription", header: "Description" },
+              { key: "isActive", header: "Active" },
+              { key: "category", header: "Category" },
+              { key: "point", header: "Point" },
+            ]}
+            filename="promotions"
+          />
+
+          <ImportButton
+            label="Import Promotions"
+            requiredHeaders={[
+              { key: "productName", header: "Product Name" },
+              { key: "productId", header: "Product ID" },
+              { key: "point", header: "Point" },
+            ]}
+            disabled={loading}
+            onUpload={async (file) => {
+              try {
+                await importPromotions(file);
+                toast.success("Promotions imported successfully");
+              } catch (err) {
+                toast.error(err?.message || "Import failed");
+              }
+            }}
+          />
+
+          <button
+            onClick={() => setIsModalOpen(true)}
+            disabled={createOrUpdateLoading}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer"
+          >
+            {createOrUpdateLoading ? (
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+            ) : (
+              <span className="text-lg">+</span>
+            )}
+            Add Promotion
+          </button>
+        </div>
+      </div>
+
+      {/* Table card */}
+      <div className="bg-white rounded-lg shadow overflow-hidden">
         <div className="overflow-x-auto">
           {promotions.length === 0 && !loading ? (
             <div className="px-6 py-12 text-center text-gray-500">
               No promotions found.
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  {[
-                    "Product Name",
-                    "Description",
-                    "Category",
-                    "Status",
-                    "Points",
-                    "Actions",
-                  ].map((header) => (
-                    <th
-                      key={header}
-                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {safePromotions.map((promotion) => (
-                  <tr key={promotion.uniqueKey} className="hover:bg-gray-50">
-                    <td className="px-6 py-4">{promotion.productName}</td>
-                    <td className="px-6 py-4">{promotion.Discription}</td>
-                    <td className="px-6 py-4">
-                      <CategoryBadge category={promotion.category} />
-                    </td>
-                    <td className="px-6 py-4">
-                      <StatusBadge status={promotion.isActive} />
-                    </td>
-                    <td className="px-6 py-4 text-blue-600 font-medium">
-                      {promotion.point || 0} pts
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleEditPromotion(promotion)}
-                          className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => handleDeletePromotion(promotion)}
-                          className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    </td>
+            <>
+              <table className="min-w-full text-sm divide-y divide-gray-200">
+                <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
+                  <tr>
+                    {[
+                      "Product Name",
+                      "Description",
+                      "Category",
+                      "Status",
+                      "Points",
+                      "Actions",
+                    ].map((header) => (
+                      <th
+                        key={header}
+                     className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      
+                        {header}
+                      </th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedPromotions.map((promotion) => (
+                    <tr key={promotion.id || promotion.productName} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">{promotion.productName}</td>
+                      <td className="px-6 py-4">{promotion.Discription}</td>
+                      <td className="px-6 py-4">
+                        <CategoryBadge category={promotion.category} />
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={promotion.isActive} />
+                      </td>
+                      <td className="px-6 py-4 text-blue-600 font-medium">
+                        {promotion.point || 0} pts
+                      </td>
+                      <td className="px-6 py-4">
+                        <ActionButtons
+                          onEdit={() => handleEditPromotion(promotion)}
+                          onDelete={() => handleDeletePromotion(promotion)}
+                          loadingEdit={
+                            actionLoading.edit === promotion.id ||
+                            createOrUpdateLoading
+                          }
+                          loadingDelete={
+                            actionLoading.delete === promotion.id || deleteLoading
+                          }
+                          disableAll={createOrUpdateLoading}
+                        />
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(p) => setCurrentPage(p)}
+                pageSize={pageSize}
+                onPageSizeChange={(size) => {
+                  setPageSize(size);
+                  setCurrentPage(1);
+                }}
+              />
+            </>
           )}
         </div>
       </div>
@@ -359,23 +421,40 @@ const Promotions = () => {
 
             <div className="flex justify-end gap-3 border-t pt-4">
               <button
-                onClick={resetForm}
+                onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleFormSubmit}
-                disabled={actionLoading || productsLoading}
+                disabled={createOrUpdateLoading || productsLoading}
                 className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:bg-green-400"
               >
-                {actionLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                {createOrUpdateLoading && <Loader2 className="w-4 h-4 animate-spin" />}
                 {editingPromotion ? "Update Promotion" : "Add Promotion"}
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* ConfirmationModal (reusable) for delete */}
+      <ConfirmationModal
+        isOpen={!!promotionToDelete}
+        title="Delete Promotion"
+        message={
+          promotionToDelete
+            ? `Are you sure you want to delete "${promotionToDelete.productName}"? This action cannot be undone.`
+            : ""
+        }
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+        isLoading={deleteLoading}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };
