@@ -266,7 +266,7 @@ const AdminUsers = () => {
               <p className="text-gray-500 mb-4">No users found</p>
               <button
                 onClick={handleAddUser}
-                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm"
+                className="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium shadow-sm cursor-pointer"
               >
                 Add First User
               </button>
@@ -347,7 +347,7 @@ const AdminUsers = () => {
         </div>
       </div>
 
-      {/* Modals */}
+      {/* Modals */} 
       <Modal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
