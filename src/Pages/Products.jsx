@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Plus, AlertCircle, Loader, Box,Hash, Layers, CircleStar, MoreVertical } from "lucide-react";
+import { Plus, AlertCircle, Loader, Box, Hash, Layers, CircleStar, MoreVertical } from "lucide-react";
 import toast from "react-hot-toast";
 import { useProductContext } from "../Context/ProductsContext";
 import ActionButtons from "../Components/Reusable/ActionButtons";
@@ -40,9 +40,9 @@ const Products = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-  
 
-     if (loading) {
+
+  if (loading) {
     return <LoadingSpinner centered message="Loading Products..." />;
   }
   // ========== ADD PRODUCT ==========
@@ -171,8 +171,7 @@ const Products = () => {
 
       if (skipped.length > 0) {
         toast.error(
-          `${skipped.length} product${
-            skipped.length !== 1 ? "s were" : " was"
+          `${skipped.length} product${skipped.length !== 1 ? "s were" : " was"
           } skipped (already exist${skipped.length !== 1 ? "" : "s"})`,
           { duration: 4000 }
         );
@@ -210,17 +209,7 @@ const Products = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <ExportButton
-              data={products}
-              columns={[
-                {key: "productId", header: "Product ID"},
-                { key: "productName", header: "Product Name" },
-                { key: "productUnit", header: "Product Unit" },
-                { key: "productPoint", header: "Point" },
-              ]}
-              filename="products"
-              disabled={loading || creating || importing}
-            />
+
             <ImportButton
               requiredHeaders={[
                 { key: "productName", header: "Product Name" },
@@ -228,6 +217,18 @@ const Products = () => {
                 { key: "productPoint", header: "Point" },
               ]}
               onUpload={handleImportProducts}
+              disabled={loading || creating || importing}
+            />
+
+            <ExportButton
+              data={products}
+              columns={[
+                { key: "productId", header: "Product ID" },
+                { key: "productName", header: "Product Name" },
+                { key: "productUnit", header: "Product Unit" },
+                { key: "productPoint", header: "Point" },
+              ]}
+              filename="products"
               disabled={loading || creating || importing}
             />
 
