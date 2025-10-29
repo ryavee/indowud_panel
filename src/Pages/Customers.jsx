@@ -332,7 +332,7 @@ const Customers = () => {
             onClick={handleResetFilters}
             className="flex items-center justify-center gap-1.5 px-4 py-2 
             text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white 
-            rounded-lg shadow-sm hover:shadow-md focus:ring-2 focus:ring-orange-400 transition-transform hover:scale-[1.05]"
+            rounded-lg shadow-sm hover:shadow-md  transition-transform cursor-pointer"
           >
             <RotateCcw
               className={`w-4 h-4 ${
