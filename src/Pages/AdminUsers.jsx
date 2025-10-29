@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useContext, useRef } from "react";
 import {
-  Loader2,
+  Loader,
+  Plus,
   Search,
   User,
   Phone,
@@ -179,9 +180,9 @@ const AdminUsers = () => {
   ];
 
 
-  
 
- if (loading) {
+
+  if (loading) {
     return <LoadingSpinner centered message="Loading Users..." />;
   }
 
@@ -222,7 +223,7 @@ const AdminUsers = () => {
             <option value="QR Generate">QR Generate</option>
           </select>
 
-          <div className="flex gap-2">
+          <div className="flex item-center gap-2">
             <ImportCSVButton
               requiredHeaders={exportColumns}
               onUpload={uploadUserFile}
@@ -238,15 +239,23 @@ const AdminUsers = () => {
             <button
               onClick={handleAddUser}
               disabled={createOrUpdateUserLoading}
-              className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-white px-5 py-2.5 rounded-lg text-sm font-semibold transition cursor-pointer shadow-sm hover:shadow-md active:scale-[0.98]"
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+                          shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               {createOrUpdateUserLoading ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <>
+                  <Loader className="w-4 h-4 animate-spin" />
+                  <span>Adding...</span>
+                </>
               ) : (
-                <span className="text-lg leading-none">+</span>
+                <>
+                  <Plus className="w-4 h-4" />
+                  <span>Add User</span>
+                </>
               )}
-              {createOrUpdateUserLoading ? "Adding..." : "Add User"}
             </button>
+
           </div>
         </div>
 

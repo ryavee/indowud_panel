@@ -56,7 +56,7 @@ const ConfirmationModal = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-sm animate-fadeIn"
+      className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-xs animate-fadeIn"
       onClick={handleBackdropClick}
     >
       <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-full sm:max-w-sm p-6 border border-gray-100 transform animate-modalPop relative">
