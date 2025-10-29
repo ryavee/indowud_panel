@@ -253,7 +253,7 @@ const Promotions = () => {
 
 
           <ImportButton
-            label="Import Promotions"
+            label="Import"
             requiredHeaders={[
               { key: "productName", header: "Product Name" },
               { key: "productId", header: "Product ID" },
@@ -381,7 +381,7 @@ const Promotions = () => {
       {isModalOpen && (
         <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
           <div className="bg-white rounded-lg max-w-2xl w-full p-6 space-y-4">
-            <h3 className="text-lg font-medium text-gray-900 border-b pb-2">
+            <h3 className="text-lg font-medium text-gray-900">
               {editingPromotion ? "Edit Promotion" : "Add New Promotion"}
             </h3>
 
@@ -444,7 +444,7 @@ const Promotions = () => {
               </label>
             </div>
 
-            <div className="flex justify-end gap-3 border-t pt-4">
+            <div className="flex justify-end gap-3 ">
               <button
                 onClick={() => setIsModalOpen(false)}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200"
