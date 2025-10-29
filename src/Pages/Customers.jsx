@@ -12,7 +12,6 @@ import {
   Lock,
   Unlock,
   Users as UsersIcon,
-  Loader2,
   ExternalLink,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -22,6 +21,8 @@ import CustomerDetails from "../Components/CustomerDetails";
 import Pagination from "../Components/Reusable/Pagination";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -168,14 +169,7 @@ const Customers = () => {
   };
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-        <div className="text-center">
-          <Loader2 className="h-8 w-8 animate-spin text-orange-600 mx-auto mb-4" />
-          <p className="text-gray-500">Loading customers...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner centered message="Loading Customers..." />;
   }
 
   if (selectedCustomer) {
