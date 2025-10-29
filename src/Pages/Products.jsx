@@ -195,10 +195,10 @@ const Products = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-8">
-      <div className="w-full max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+     <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between flex-wrap gap-4">
+        <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
               Products
