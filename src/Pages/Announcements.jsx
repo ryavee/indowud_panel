@@ -1,5 +1,5 @@
 import React, { useState, useContext, useMemo } from "react";
-import { Plus,Trash2, Notebook, Calendar, Flag, AlignLeft, MoreVertical } from 'lucide-react';
+import { Plus, Trash2, Notebook, Calendar, Flag, AlignLeft, MoreVertical } from 'lucide-react';
 import Modal from "../Components/Reusable/form";
 import AnnouncementForm from "../Components/announcement_form";
 import { AnnouncementContext } from "../Context/AnnouncementContext";
@@ -105,9 +105,10 @@ const Announcements = () => {
           <div>
             <button
               onClick={handleHeaderAdd}
-              className="inline-flex items-center gap-2 px-4 py-2 h-10 text-sm font-medium text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all"
-            >
-              <Plus className="w-3.5 h-3.5" />
+              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+                          shadow-sm hover:shadow-md transition-all cursor-pointer"            >
+              <Plus className="w-4 h-4" />
               Add Announcement
             </button>
           </div>
@@ -193,8 +194,8 @@ const Announcements = () => {
                               }}
                               className="text-red-600 hover:text-red-700 hover:bg-red-50 border border-red-200 px-3 py-1.5 rounded-md transition-all flex items-center justify-center disabled:opacity-50 cursor-pointer"
                             >
-                              <Trash2 size={18} />                      
-                              </button>
+                              <Trash2 size={18} />
+                            </button>
                           </div>
                         </td>
                       </tr>
@@ -205,7 +206,7 @@ const Announcements = () => {
               </div>
 
               {/* Pagination Component */}
-             <div className="bg-gray-50 border-t border-gray-100">
+              <div className="bg-gray-50 border-t border-gray-100">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

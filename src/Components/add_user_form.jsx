@@ -74,7 +74,7 @@ const UserForm = ({
     }
 
     // Role validation - Updated to match the roles used in badges
-    const validRoles = [ "Admin", "QR Generate"];
+    const validRoles = ["Admin", "QR Generate"];
     if (!validRoles.includes(formData.role)) {
       newErrors.role = "Please select a valid role";
     }
@@ -180,9 +180,12 @@ const UserForm = ({
           onChange={handleChange}
           required
           disabled={isLoading}
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-            errors.firstName ? "border-red-500" : "border-gray-300"
-          }`}
+
+          className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
+            focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
+              placeholder:text-gray-400 disabled:bg-gray-100 
+            disabled:cursor-not-allowed ${errors.firstName ? "border-red-500" : "border-gray-300"
+            }`}
           placeholder="Enter first name"
         />
         {errors.firstName && (
@@ -202,9 +205,11 @@ const UserForm = ({
           onChange={handleChange}
           required
           disabled={isLoading}
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-            errors.lastName ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
+            focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
+              placeholder:text-gray-400 disabled:bg-gray-100 
+            disabled:cursor-not-allowed ${errors.lastName ? "border-red-500" : "border-gray-300"
+            }`}
           placeholder="Enter last name"
         />
         {errors.lastName && (
@@ -229,13 +234,15 @@ const UserForm = ({
           onChange={handleChange}
           required
           disabled={isLoading || isEditing} // Disable when editing
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:cursor-not-allowed ${
-            isLoading || isEditing
-              ? "bg-gray-50 text-gray-500 border-gray-200" // Light shade for disabled state
+          className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
+            focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
+              placeholder:text-gray-400 disabled:bg-gray-100 
+            disabled:cursor-not-allowed ${isLoading || isEditing
+              ? "bg-gray-50 text-gray-500 border-gray-200"
               : errors.email
-              ? "border-red-500"
-              : "border-gray-300"
-          }`}
+                ? "border-red-500"
+                : "border-gray-300"
+            }`}
           placeholder="Enter email address"
         />
         {errors.email && (
@@ -261,9 +268,12 @@ const UserForm = ({
             onChange={handleChange}
             required
             disabled={isLoading}
-            className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-              errors.password ? "border-red-500" : "border-gray-300"
-            }`}
+            className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
+            focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
+              placeholder:text-gray-400 disabled:bg-gray-100 
+            disabled:cursor-not-allowed
+               ${errors.password ? "border-red-500" : "border-gray-300"
+              }`}
             placeholder="Enter password"
           />
           {errors.password && (
@@ -286,9 +296,12 @@ const UserForm = ({
           value={formData.phone}
           onChange={handleChange}
           disabled={isLoading}
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-            errors.phone ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
+            focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
+              placeholder:text-gray-400 disabled:bg-gray-100 
+            disabled:cursor-not-allowed
+             ${errors.phone ? "border-red-500" : "border-gray-300"
+            }`}
           placeholder="Enter phone number"
         />
         {errors.phone && (
@@ -306,9 +319,12 @@ const UserForm = ({
           value={formData.role}
           onChange={handleChange}
           disabled={isLoading}
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-            errors.role ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
+            focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
+              placeholder:text-gray-400 disabled:bg-gray-100 
+            disabled:cursor-not-allowed
+            ${errors.role ? "border-red-500" : "border-gray-300"
+            }`}
         >
           <option value="Admin">Admin</option>
           <option value="QR Generate">QR Generate</option>
@@ -328,9 +344,12 @@ const UserForm = ({
           value={formData.isUserInActive ? "Inactive" : "Active"}
           onChange={handleChange}
           disabled={isLoading}
-          className={`w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed ${
-            errors.status ? "border-red-500" : "border-gray-300"
-          }`}
+          className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
+            focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
+              placeholder:text-gray-400 disabled:bg-gray-100 
+            disabled:cursor-not-allowed
+            ${errors.status ? "border-red-500" : "border-gray-300"
+            }`}
         >
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
@@ -346,7 +365,7 @@ const UserForm = ({
           type="button"
           onClick={handleSubmit}
           disabled={isLoading}
-          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-2 px-4 rounded-md font-medium transition-colors flex items-center justify-center"
+          className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed text-white py-2 px-4 rounded-md font-medium transition-colors flex items-center justify-center cursor-pointer"
         >
           {isLoading ? (
             <>
@@ -380,7 +399,8 @@ const UserForm = ({
           type="button"
           onClick={onCancel}
           disabled={isLoading}
-          className="flex-1 bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed text-gray-700 py-2 px-4 rounded-md font-medium transition-colors"
+          className="flex-1 bg-gray-300 hover:bg-gray-400 disabled:bg-gray-200 disabled:cursor-not-allowed 
+          text-gray-700 py-2 px-4 rounded-md font-medium transition-colors cursor-pointer"
         >
           Cancel
         </button>
