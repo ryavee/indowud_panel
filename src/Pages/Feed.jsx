@@ -1,92 +1,87 @@
 import React, { useState, useEffect } from "react";
 import {
   Plus,
-  Edit2,
-  Trash2,
-  Save,
   X,
   Upload,
   RefreshCw,
   AlertCircle,
+  Loader,
   Image as ImageIcon,
 } from "lucide-react";
 import { useFeedContext } from "../Context/FeedContext";
 import { useAuthContext } from "../Context/AuthContext";
+import ActionButtons from "../Components/Reusable/ActionButtons";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+import ConfirmationModal from "../Components/ConfirmationModal";
+import Pagination from "../Components/Reusable/Pagination";
 
 const Feed = () => {
-  const { feeds, fetchFeeds, addFeed, editFeed, removeFeed, getFeedById } =
-    useFeedContext();
-
+  const { feeds, fetchFeeds, addFeed, editFeed, removeFeed } = useFeedContext();
   const { userData } = useAuthContext();
 
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState({
-    show: false,
-    feedId: null,
-    feedTitle: "",
-  });
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    imageFile: null, // Store the actual File object
-    imagePreview: "", // For preview only
+    imageFile: null,
+    imagePreview: "",
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [imageErrors, setImageErrors] = useState(new Set()); // Track failed images
+  const [imageErrors, setImageErrors] = useState(new Set());
 
-  // Fetch feeds on component mount
+  // delete confirmation
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+
+  //refresh 
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(6);
+
+  // Fetch feeds initially
   useEffect(() => {
     fetchFeeds();
-  }, []);
+  }, [fetchFeeds]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-    // Clear error when userData starts typing
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (error) setError("");
   };
 
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
-    if (file) {
-      // Check file size (limit to 5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setError("Image size should be less than 5MB");
-        return;
-      }
+    if (!file) return;
 
-      // Check file type
-      if (!file.type.startsWith("image/")) {
-        setError("Please select a valid image file");
-        return;
-      }
-
-      // Store the file object and create preview
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        setFormData((prev) => ({
-          ...prev,
-          imageFile: file, // Store the actual file
-          imagePreview: e.target.result, // Store preview URL
-        }));
-      };
-      reader.readAsDataURL(file);
+    if (file.size > 5 * 1024 * 1024) {
+      setError("Image size should be less than 5MB");
+      return;
     }
+
+    if (!file.type.startsWith("image/")) {
+      setError("Please select a valid image file");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (ev) =>
+      setFormData((prev) => ({
+        ...prev,
+        imageFile: file,
+        imagePreview: ev.target.result,
+      }));
+    reader.readAsDataURL(file);
   };
 
   const openAddModal = () => {
-    setFormData({
-      title: "",
-      description: "",
-      imageFile: null,
-      imagePreview: "",
-    });
     setEditingId(null);
+    setFormData({ title: "", description: "", imageFile: null, imagePreview: "" });
     setError("");
     setShowModal(true);
   };
@@ -96,243 +91,230 @@ const Feed = () => {
     setFormData({
       title: feed.title,
       description: feed.description,
-      imageFile: null, // Can't restore file object, only preview
+      imageFile: null,
       imagePreview: feed.image || "",
     });
-    setError("");
     setShowModal(true);
   };
 
   const handleSave = async () => {
-    if (!formData.title.trim()) {
-      setError("Title is required");
-      return;
-    }
-
-    if (!formData.description.trim()) {
-      setError("Description is required");
-      return;
-    }
-
-    if (!userData.user.uid) {
-      setError("userData authentication required");
-      return;
-    }
+    if (!formData.title.trim()) return setError("Title is required");
+    if (!formData.description.trim()) return setError("Description is required");
+    if (!userData?.user?.uid) return setError("User authentication required");
 
     setLoading(true);
-    setError("");
-
     try {
-      const feedData = {
+      const payload = {
         title: formData.title.trim(),
         description: formData.description.trim(),
         uid: userData.user.uid,
       };
+      if (formData.imageFile) payload.imageFile = formData.imageFile;
 
-      // Add imageFile if present
-      if (formData.imageFile) {
-        feedData.imageFile = formData.imageFile;
+      // add createdAt timestamp for new feeds
+      if (!editingId) {
+        payload.createdAt = new Date().toISOString();
       }
+      console.log("Creating feed payload:", payload)
 
-      if (editingId) {
-        // Update existing feed
-        const result = await editFeed(editingId, feedData);
-        if (result) {
-          closeModal();
-        } else {
-          setError("Failed to update feed. Please try again.");
-        }
-      } else {
-        // Add new feed
-        const result = await addFeed(feedData);
-        if (result) {
-          closeModal();
-        } else {
-          setError("Failed to create feed. Please try again.");
-        }
-      }
+      const success = editingId
+        ? await editFeed(editingId, payload)
+        : await addFeed(payload);
+
+      if (success) setShowModal(false);
+      else setError("Failed to save feed. Please try again.");
     } catch (err) {
       console.error("Save error:", err);
-      setError("An error occurred. Please try again.");
+      setError("An error occurred while saving.");
     } finally {
       setLoading(false);
     }
   };
 
-  const closeModal = () => {
-    setShowModal(false);
-    setEditingId(null);
-    setFormData({
-      title: "",
-      description: "",
-      imageFile: null,
-      imagePreview: "",
-    });
-    setError("");
-    setLoading(false);
-  };
-
-  const openDeleteConfirm = (feed) => {
-    setDeleteConfirm({
-      show: true,
-      feedId: feed.id,
-      feedTitle: feed.title,
-    });
-  };
 
   const handleDelete = async () => {
+    if (!deleteTarget?.id) return;
     setLoading(true);
-
     try {
-      const success = await removeFeed(deleteConfirm.feedId);
-      if (success) {
-        closeDeleteConfirm();
-      } else {
-        // Handle delete failure
-        console.error("Failed to delete feed");
-      }
-    } catch (err) {
-      console.error("Error deleting feed:", err);
+      await removeFeed(deleteTarget.id);
     } finally {
       setLoading(false);
+      setConfirmOpen(false);
+      setDeleteTarget(null);
     }
   };
 
-  const closeDeleteConfirm = () => {
-    setDeleteConfirm({ show: false, feedId: null, feedTitle: "" });
-    setLoading(false);
+  // open delete confirmation and set target
+  const openDeleteConfirm = (feed) => {
+    setDeleteTarget(feed);
+    setConfirmOpen(true);
   };
 
-  const handleRefresh = () => {
-    fetchFeeds();
-    setImageErrors(new Set()); // Clear image errors on refresh
-  };
-
-  const getDefaultImage = () => {
-    return "https://images.unsplash.com/photo-1557804506-669a67965ba0?w=400&h=200&fit=crop";
-  };
-
-  // Handle image loading errors
-  const handleImageError = (feedId) => {
-    setImageErrors((prev) => new Set(prev).add(feedId));
-  };
-
-  // Check if feed has a valid image
-  const hasValidImage = (feed) => {
-    return feed.image && feed.image.trim() !== "" && !imageErrors.has(feed.id);
-  };
-
-  // Render image or placeholder
-  const renderFeedImage = (feed) => {
-    if (hasValidImage(feed)) {
-      return (
-        <img
-          src={feed.image}
-          alt={feed.title || "Feed image"}
-          className="w-24 h-16 object-cover rounded-md flex-shrink-0"
-          onError={() => handleImageError(feed.id)}
-          loading="lazy"
-        />
-      );
-    } else {
-      // Show placeholder when no image or image failed to load
-      return (
-        <div className="w-24 h-16 bg-gray-100 rounded-md flex-shrink-0 flex items-center justify-center border border-gray-200">
-          <ImageIcon size={20} className="text-gray-400" />
-        </div>
-      );
+  // handling refresh
+  const handleRefresh = async () => {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try {
+      await fetchFeeds();
+      setImageErrors(new Set());
+    } catch (err) {
+      console.error("Refresh failed:", err);
+    } finally {
+      setIsRefreshing(false);
     }
   };
+
+  const handleImageError = (id) => {
+    setImageErrors((prev) => new Set(prev).add(id));
+  };
+
+  const hasValidImage = (feed) =>
+    feed.image && feed.image.trim() !== "" && !imageErrors.has(feed.id);
+
+  const renderFeedImage = (feed) =>
+    hasValidImage(feed) ? (
+      <img
+        src={feed.image}
+        alt={feed.title || "Feed"}
+        className="w-full h-28 object-cover rounded-t-md"
+        onError={() => handleImageError(feed.id)}
+      />
+    ) : (
+      <div className="w-full h-28 bg-gray-100 rounded-t-md flex items-center justify-center border-b border-gray-200">
+        <ImageIcon size={28} className="text-gray-400" />
+      </div>
+    );
+
+  // Pagination calculations
+  const totalPages = Math.ceil(feeds.length / pageSize) || 1;
+  const startIndex = (currentPage - 1) * pageSize;
+  const paginatedFeeds = feeds.slice(startIndex, startIndex + pageSize);
+
+  if (!feeds || (feeds.length === 0 && loading)) {
+    return <LoadingSpinner centered message="Loading feeds..." />;
+  }
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Feeds</h1>
-        <div className="flex gap-2">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-extrabold text-gray-900">Feeds</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage your company updates, offers, and posts.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-3">
           <button
             onClick={handleRefresh}
-            className="bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-            title="Refresh feeds"
+            disabled={isRefreshing}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border 
+               border-gray-200 rounded-lg shadow-sm hover:shadow-md transition cursor-pointer disabled:opacity-60 "
           >
-            <RefreshCw size={20} />
-            Refresh
+            <RefreshCw
+              className={`w-4 h-4 text-gray-600 transition-transform ${isRefreshing ? "animate-spin" : ""
+                }`}
+            />
+            <span className="text-sm text-gray-700">Refresh</span>
           </button>
+
+
+
           <button
             onClick={openAddModal}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+                          shadow-sm hover:shadow-md transition-all cursor-pointer"
           >
-            <Plus size={20} />
-            Add New Feed
+             <Plus className="w-4 h-4" /> Add Feed
           </button>
         </div>
       </div>
 
-      {/* Feeds List */}
-      <div className="space-y-4">
-        {feeds.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
+      {/* Feeds Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {(!feeds || feeds.length === 0) ? (
+          <div className="col-span-full text-center py-12 text-gray-500 bg-white border border-gray-100 rounded-lg shadow-sm">
             <div className="mb-4">
-              <Plus size={48} className="mx-auto text-gray-300" />
+              <Plus size={40} className="mx-auto text-gray-300" />
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
-              No feeds yet
-            </h3>
-            <p className="text-gray-500 mb-4">
-              Create your first feed to get started!
-            </p>
+            <h3 className="text-base font-medium text-gray-900 mb-1">No feeds yet</h3>
+            <p className="text-gray-500 mb-4 text-sm">Create your first feed to get started!</p>
             <button
               onClick={openAddModal}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg inline-flex items-center gap-2 transition-colors"
+              className="inline-flex items-center gap-2 px-3 py-2 bg-gradient-to-r from-[#00A9A3] to-[#128083] text-white rounded-md shadow-sm text-sm"
             >
-              <Plus size={20} />
-              Create Feed
+              <Plus size={14} /> Create Feed
             </button>
           </div>
         ) : (
-          // Enhanced feeds mapping with better null checks and image handling
-          feeds
-            .filter((feed) => feed !== null && feed !== undefined)
+          paginatedFeeds
+            .filter((feed) => feed)
             .map((feed) => (
               <div
                 key={feed.id}
-                className="bg-white border border-gray-200 rounded-lg p-6 shadow-sm hover:shadow-md transition-shadow"
+                className="group bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:scale-[1.01]"
               >
-                <div className="flex gap-4">
-                  {/* Enhanced image rendering with placeholder */}
-                  {renderFeedImage(feed)}
+                {/* Image (smaller, with subtle hover zoom) */}
+                <div className="relative w-full h-28 overflow-hidden">
+                  {hasValidImage(feed) ? (
+                    <img
+                      src={feed.image}
+                      alt={feed.title || "Feed image"}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      onError={() => handleImageError(feed.id)}
+                      loading="lazy"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gray-100 flex items-center justify-center border-b border-gray-200">
+                      <ImageIcon size={22} className="text-gray-400" />
+                    </div>
+                  )}
 
-                  <div className="flex-1 min-w-0">
-                    {" "}
-                    {/* min-w-0 prevents flex item overflow */}
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">
+                  {/* Overlay Label */}
+                  <div className="absolute top-2 left-2 bg-white/80 backdrop-blur-md text-[10px] font-medium text-gray-700 px-2 py-[2px] rounded-full shadow-sm">
+                    FEED
+                  </div>
+                </div>
+
+                {/* Content */}
+                <div className="p-3 flex flex-col justify-between min-h-[100px]">
+                  <div>
+                    <h3 className="text-sm font-semibold text-gray-900 mb-1 truncate">
                       {feed.title || "Untitled Feed"}
                     </h3>
-                    <p className="text-gray-600 mb-3 line-clamp-2 break-words">
+                    <p className="text-xs text-gray-600 line-clamp-2">
                       {feed.description || "No description available"}
                     </p>
-                    {/* Show image status if needed */}
                     {!hasValidImage(feed) && feed.image && (
-                      <p className="text-xs text-amber-600 mb-2 flex items-center gap-1">
-                        <AlertCircle size={12} />
+                      <p className="text-[10px] text-amber-600 mt-1 flex items-center gap-1">
+                        <AlertCircle size={10} />
                         Image not available
                       </p>
                     )}
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => openEditModal(feed)}
-                        className="text-blue-600 hover:text-blue-800 px-3 py-1 rounded-md hover:bg-blue-50 flex items-center gap-1 text-sm transition-colors"
-                      >
-                        <Edit2 size={14} />
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => openDeleteConfirm(feed)}
-                        className="text-red-600 hover:text-red-800 px-3 py-1 rounded-md hover:bg-red-50 flex items-center gap-1 text-sm transition-colors"
-                      >
-                        <Trash2 size={14} />
-                        Delete
-                      </button>
-                    </div>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex items-center justify-between mt-2">
+                    <span className="text-[10px] text-gray-400 truncate">
+                      {feed.createdAt
+                        ? `Created: ${new Date(feed.createdAt).toLocaleString("en-IN", {
+                          dateStyle: "medium",
+                          timeStyle: "short",
+                        })}`
+                        : ""}
+                    </span>
+
+
+                    <ActionButtons
+                      onEdit={() => openEditModal(feed)}
+                      onDelete={() => openDeleteConfirm(feed)}
+                      loadingEdit={loading && editingId === feed.id}
+                      loadingDelete={loading && deleteTarget?.id === feed.id}
+                      disableAll={loading}
+                    />
+
                   </div>
                 </div>
               </div>
@@ -340,214 +322,158 @@ const Feed = () => {
         )}
       </div>
 
+
+      {/* Pagination */}
+      {feeds.length > pageSize && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={Math.ceil(feeds.length / pageSize)}
+          totalItems={feeds.length}
+          pageSize={pageSize}
+          onPageChange={(page) => setCurrentPage(page)}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setCurrentPage(1);
+          }}
+        />
+      )}
+
+
       {/* Add/Edit Modal */}
       {showModal && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-        >
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold">
-                  {editingId ? "Edit Feed" : "Add New Feed"}
-                </h3>
-                <button
-                  onClick={closeModal}
+        <div className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 animate-fadeIn p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 border border-gray-100 relative">
+            <button
+              onClick={() => setShowModal(false)}
+              className="absolute top-3 right-3 text-gray-400 hover:text-gray-600 cursor-pointer"
+            >
+              <X size={20} />
+            </button>
+
+            <h3 className="text-lg font-semibold mb-4">
+              {editingId ? "Edit Feed" : "Add New Feed"}
+            </h3>
+
+            {error && (
+              <div className="mb-4 flex items-center gap-2 text-red-600 bg-red-50 border border-red-200 p-3 rounded-md">
+                <AlertCircle size={16} />
+                <span className="text-sm">{error}</span>
+              </div>
+            )}
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Title <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  name="title"
+                  value={formData.title}
+                  onChange={handleInputChange}
                   disabled={loading}
-                  className="text-gray-400 hover:text-gray-600 transition-colors disabled:opacity-50"
-                >
-                  <X size={20} />
-                </button>
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#00A9A3]"
+                />
               </div>
 
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md flex items-center gap-2 text-red-700">
-                  <AlertCircle size={16} />
-                  <span className="text-sm">{error}</span>
-                </div>
-              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Description <span className="text-red-500">*</span>
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  rows="3"
+                  disabled={loading}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 focus:ring-2 focus:ring-[#00A9A3]"
+                ></textarea>
+              </div>
 
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Title <span className="text-red-500">*</span>
-                  </label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Image <span className="text-gray-400 text-xs">(Optional)</span>
+                </label>
+                <div className="space-y-2">
                   <input
-                    type="text"
-                    name="title"
-                    value={formData.title}
-                    onChange={handleInputChange}
-                    placeholder="Enter feed title"
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageUpload}
                     disabled={loading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-                    maxLength={100}
+                    id="feed-image"
+                    className="hidden"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Description <span className="text-red-500">*</span>
-                  </label>
-                  <textarea
-                    name="description"
-                    value={formData.description}
-                    onChange={handleInputChange}
-                    placeholder="Enter feed description"
-                    rows="3"
-                    disabled={loading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed resize-none"
-                    maxLength={500}
-                  />
-                  <div className="text-right text-xs text-gray-500 mt-1">
-                    {formData.description.length}/500
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Image{" "}
-                    <span className="text-gray-400 text-xs">(Optional)</span>
-                  </label>
-                  <div className="space-y-2">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={loading}
-                      className="hidden"
-                      id="image-upload"
-                    />
-                    <label
-                      htmlFor="image-upload"
-                      className={`w-full bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-md cursor-pointer flex items-center justify-center gap-2 transition-colors border-2 border-dashed border-gray-300 ${
-                        loading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                    >
-                      <Upload size={16} />
-                      {formData.imagePreview ? "Change Image" : "Upload Image"}
-                    </label>
-
-                    {formData.imagePreview ? (
-                      <div className="mt-2">
-                        <img
-                          src={formData.imagePreview}
-                          alt="Preview"
-                          className="w-full h-32 object-cover rounded-md border"
-                        />
-                        <button
-                          type="button"
-                          onClick={() =>
-                            setFormData((prev) => ({
-                              ...prev,
-                              imageFile: null,
-                              imagePreview: "",
-                            }))
-                          }
-                          className="mt-2 text-red-600 hover:text-red-800 text-sm flex items-center gap-1"
-                          disabled={loading}
-                        >
-                          <X size={12} />
-                          Remove Image
-                        </button>
-                      </div>
-                    ) : (
-                      <div className="mt-2 p-3 bg-gray-50 rounded-md border border-gray-200">
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <ImageIcon size={16} className="text-gray-400" />
-                          <span>
-                            No image selected - a placeholder will be used
-                          </span>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                <div className="flex gap-2 pt-4">
-                  <button
-                    onClick={handleSave}
-                    disabled={
-                      loading ||
-                      !formData.title.trim() ||
-                      !formData.description.trim()
-                    }
-                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors disabled:cursor-not-allowed"
+                  <label
+                    htmlFor="feed-image"
+                    className="border-2 border-dashed border-gray-200 w-full flex justify-center items-center gap-2 bg-gray-50 hover:bg-gray-100 text-gray-600 rounded-md py-2 cursor-pointer"
                   >
-                    {loading ? (
-                      <RefreshCw size={16} className="animate-spin" />
-                    ) : (
-                      <Save size={16} />
-                    )}
-                    {loading
-                      ? editingId
-                        ? "Updating..."
-                        : "Adding..."
-                      : editingId
-                      ? "Update Feed"
-                      : "Add Feed"}
-                  </button>
-                  <button
-                    onClick={closeModal}
-                    disabled={loading}
-                    className="flex-1 bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md flex items-center justify-center gap-2 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                  >
-                    <X size={16} />
-                    Cancel
-                  </button>
+                    <Upload size={16} />{" "}
+                    {formData.imagePreview ? "Change Image" : "Upload Image"}
+                  </label>
+
+                  {formData.imagePreview && (
+                    <div className="mt-2">
+                      <img
+                        src={formData.imagePreview}
+                        alt="Preview"
+                        className="w-full h-40 object-cover rounded-md border"
+                      />
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFormData({
+                            ...formData,
+                            imageFile: null,
+                            imagePreview: "",
+                          })
+                        }
+                        className="mt-2 text-sm text-red-600 hover:text-red-800 flex items-center gap-1 cursor-pointer"
+                      >
+                        <X size={12} /> Remove
+                      </button>
+                    </div>
+                  )}
                 </div>
               </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-6">
+              <button
+                onClick={() => setShowModal(false)}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSave}
+                disabled={loading}
+                className="px-4 py-2 bg-[#00A9A3] hover:bg-[#128083] text-white rounded-md flex items-center gap-2
+                            cursor-pointer"
+              >
+                {loading && <Loader className="w-4 h-4 animate-spin" />}
+                {editingId ? "Update Feed" : "Save Feed"}
+              </button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Delete Confirmation Modal */}
-      {deleteConfirm.show && (
-        <div
-          className="fixed inset-0 flex items-center justify-center z-50 p-4"
-          style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
-        >
-          <div className="bg-white rounded-lg shadow-xl max-w-sm w-full">
-            <div className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
-                  <Trash2 size={20} className="text-red-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    Delete Feed
-                  </h3>
-                </div>
-              </div>
-
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to delete "
-                <strong>{deleteConfirm.feedTitle}</strong>"? This action cannot
-                be undone.
-              </p>
-
-              <div className="flex gap-2">
-                <button
-                  onClick={handleDelete}
-                  disabled={loading}
-                  className="flex-1 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white px-4 py-2 rounded-md transition-colors disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                >
-                  {loading && <RefreshCw size={16} className="animate-spin" />}
-                  {loading ? "Deleting..." : "Delete"}
-                </button>
-                <button
-                  onClick={closeDeleteConfirm}
-                  disabled={loading}
-                  className="flex-1 bg-gray-500 hover:bg-gray-600 disabled:opacity-50 text-white px-4 py-2 rounded-md transition-colors disabled:cursor-not-allowed"
-                >
-                  Cancel
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Confirmation Modal for Delete */}
+      <ConfirmationModal
+        isOpen={confirmOpen}
+        title="Delete Feed"
+        message={`Are you sure you want to delete "${deleteTarget?.title || "this feed"
+          }"? This action cannot be undone.`}
+        onConfirm={handleDelete}
+        onCancel={() => {
+          setConfirmOpen(false);
+          setDeleteTarget(null);
+        }}
+        isLoading={loading}
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+      />
     </div>
   );
 };
