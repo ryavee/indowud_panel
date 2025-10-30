@@ -293,11 +293,11 @@ const Promotions = () => {
               <Loader className="w-4 h-4 animate-spin" />
             ) : (
               <>
-              <Plus className="W-4 h-4"/>
+                <Plus className="W-4 h-4" />
                 <span>Add Promotion</span>
               </>
             )}
-            
+
           </button>
         </div>
       </div>
@@ -379,9 +379,19 @@ const Promotions = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/50 z-50">
-          <div className="bg-white rounded-lg max-w-2xl w-full p-6 space-y-4">
-            <h3 className="text-lg font-medium text-gray-900">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-xs animate-fadeIn p-4"
+        >
+          <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-full sm:max-w-2xl p-6 border border-gray-100 transform animate-modalPop relative">
+            {/* Close button */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
+              disabled={createOrUpdateLoading}
+            >
+              ✕
+            </button>
+
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">
               {editingPromotion ? "Edit Promotion" : "Add New Promotion"}
             </h3>
 
@@ -392,14 +402,15 @@ const Promotions = () => {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
+                Description <span className="text-red-500">*</span>
               </label>
               <textarea
                 name="Discription"
                 value={formData.Discription}
                 onChange={handleInputChange}
                 rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                placeholder="Enter promotion description"
               />
             </div>
 
@@ -412,7 +423,7 @@ const Promotions = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
                 >
                   <option value="Bonus">Bonus</option>
                   <option value="Product Offer">Product Offer</option>
@@ -421,14 +432,15 @@ const Promotions = () => {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Points *
+                  Points <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   name="point"
                   value={formData.point}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                  placeholder="Enter points"
                 />
               </div>
 
@@ -438,31 +450,33 @@ const Promotions = () => {
                   name="isActive"
                   checked={formData.isActive}
                   onChange={handleInputChange}
-                  className="mr-2 text-blue-600 focus:ring-blue-500"
+                  className="mr-2 text-[#00A9A3] focus:ring-[#00A9A3]"
                 />
                 <span className="text-sm text-gray-700">Active</span>
               </label>
             </div>
 
-            <div className="flex justify-end gap-3 ">
+            <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="px-4 py-2 bg-gray-100 text-gray-700 rounded-md hover:bg-gray-200 cursor-pointer"
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-md cursor-pointer"
+                disabled={createOrUpdateLoading}
               >
                 Cancel
               </button>
               <button
                 onClick={handleFormSubmit}
                 disabled={createOrUpdateLoading || productsLoading}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md flex items-center gap-2 disabled:bg-green-400 cursor-pointer"
+                className="px-4 py-2 bg-[#00A9A3] hover:bg-[#128083] text-white rounded-md flex items-center gap-2 cursor-pointer"
               >
                 {createOrUpdateLoading && <Loader className="w-4 h-4 animate-spin" />}
-                {editingPromotion ? "Update Promotion" : "Add Promotion"}
+                {editingPromotion ? "Update Promotion" : "Create Promotion"}
               </button>
             </div>
           </div>
         </div>
       )}
+
 
       {/* ConfirmationModal (reusable) for delete */}
       <ConfirmationModal
