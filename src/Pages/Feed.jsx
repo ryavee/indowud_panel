@@ -190,7 +190,7 @@ const Feed = () => {
   const startIndex = (currentPage - 1) * pageSize;
   const paginatedFeeds = feeds.slice(startIndex, startIndex + pageSize);
 
-  if (!feeds || (feeds.length === 0 && loading)) {
+  if (loading) {
     return <LoadingSpinner centered message="Loading feeds..." />;
   }
 
