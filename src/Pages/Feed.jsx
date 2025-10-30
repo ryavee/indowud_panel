@@ -176,21 +176,24 @@ const Feed = () => {
       {/* Feeds Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {(!feeds || feeds.length === 0) ? (
-          <div className="col-span-full text-center py-12 text-gray-500 bg-white border border-gray-100 rounded-lg shadow-sm">
+          <div className="col-span-full flex flex-col items-center justify-center text-center py-12 text-gray-500 bg-white border border-gray-100 rounded-lg shadow-sm">
             <div className="mb-4">
               <Plus size={40} className="mx-auto text-gray-300" />
             </div>
+
             <h3 className="text-base font-medium text-gray-900 mb-1">No feeds yet</h3>
             <p className="text-gray-500 mb-4 text-sm">Create your first feed to get started!</p>
+
             <button
               onClick={openAddModal}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
-                          shadow-sm hover:shadow-md transition-all cursor-pointer"
+              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold 
+              text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+              shadow-sm hover:shadow-md transition-all cursor-pointer"
             >
               <Plus className="w-4 h-4" /> Create Feed
             </button>
           </div>
+
         ) : (
           feeds.map((feed) => (
             <div
@@ -241,9 +244,9 @@ const Feed = () => {
                   <span className="text-[10px] text-gray-400 truncate">
                     {feed.createdAt
                       ? `Created: ${new Date(feed.createdAt).toLocaleString("en-IN", {
-                          dateStyle: "medium",
-                          timeStyle: "short",
-                        })}`
+                        dateStyle: "medium",
+                        timeStyle: "short",
+                      })}`
                       : ""}
                   </span>
 
