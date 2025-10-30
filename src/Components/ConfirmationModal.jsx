@@ -97,7 +97,7 @@ const ConfirmationModal = ({
             {isLoading ? (
               <>
                 <Loader className="w-4 h-4 animate-spin" />
-                Processing...
+                Deleting...
               </>
             ) : (
               confirmText

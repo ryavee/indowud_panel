@@ -387,8 +387,11 @@ const Feed = () => {
       <ConfirmationModal
         isOpen={confirmOpen}
         title="Delete Feed"
-        message={`Are you sure you want to delete "${deleteTarget?.title || "this feed"
-          }"? This action cannot be undone.`}
+        message={<>
+      Are you sure you want to delete{" "}
+      <strong className="text-red-600">{deleteTarget?.title || "this feed"}</strong>?
+      This action cannot be undone.
+    </>}
         onConfirm={handleDelete}
         onCancel={() => {
           setConfirmOpen(false);
