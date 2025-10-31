@@ -47,14 +47,13 @@ export async function generateQR(token, qrData) {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(qrData),
     });
     if (!res.ok) throw new Error("User data not found");
     return res.json();
   } catch (error) {
-    console.log(error);
+    console.log("Api error :", error);
     return null;
   }
 }

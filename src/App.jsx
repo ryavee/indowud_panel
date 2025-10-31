@@ -21,7 +21,7 @@ import { useEffect, useState } from "react";
 
 // 🎯 Define which providers each role needs
 const roleProviders = {
-  Admin: [
+  "Admin": [
     "Settings",
     "Catalog",
     "Redemptions",
