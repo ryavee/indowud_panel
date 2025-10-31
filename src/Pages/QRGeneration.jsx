@@ -441,7 +441,7 @@ const QRGeneration = () => {
         ...formData,
         expiryDate,
       };
-      console.log(dataToSend);
+      console.log("✅ Payload sent to server:", dataToSend);
 
       const result = await generateQRCodes(dataToSend);
 
