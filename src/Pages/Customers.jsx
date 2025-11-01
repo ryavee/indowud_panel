@@ -22,6 +22,7 @@ import CustomerDetails from "../Components/CustomerDetails";
 import Pagination from "../Components/Reusable/Pagination";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
+import { getCurrentUser, getCurrentUserRole, ROLES } from "../utils/rbac";
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -72,6 +73,8 @@ const Customers = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const currentUser = getCurrentUser();
+  const currentUserRole = getCurrentUserRole();
 
   const totalPages = Math.ceil(filteredCustomers.length / pageSize);
 
@@ -347,19 +350,21 @@ const Customers = () => {
             />
             Reset
           </button>
-          
           <ImportButton
             requiredHeaders={requiredHeaders}
             onUpload={handleCSVUpload}
             label="Import CSV"
           />
-          <ExportButton
-            data={filteredCustomers}
-            columns={exportColumns}
-            filename="customers"
-            disabled={filteredCustomers.length === 0}
-          />
-
+          {currentUserRole === ROLES.SUPER_ADMIN && (
+            <>
+              <ExportButton
+                data={filteredCustomers}
+                columns={exportColumns}
+                filename="customers"
+                disabled={filteredCustomers.length === 0}
+              />
+            </>
+          )}
         </div>
 
         {/* Table */}
