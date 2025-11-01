@@ -10,6 +10,7 @@ export const FeedContext = createContext();
 
 export const FeedProvider = ({ children }) => {
   const [feeds, setFeeds] = useState([]);
+
   // Fetch all feeds
   const fetchFeeds = async () => {
     try {
@@ -25,9 +26,15 @@ export const FeedProvider = ({ children }) => {
   // Create a new feed
   const addFeed = async (feedData) => {
     try {
-      const newFeed = await createFeed(feedData);
+      // ensure createdAt exists (client-side fallback)
+      const payload = {
+        ...feedData,
+        createdAt: feedData.createdAt || new Date().toISOString(),
+      };
 
-      // Instead of immediately adding to state, refresh the feeds to get complete data
+      const newFeed = await createFeed(payload);
+
+      // Refresh feeds to get any server-generated fields (IDs, timestamps, etc.)
       await fetchFeeds();
 
       return newFeed;
@@ -40,14 +47,19 @@ export const FeedProvider = ({ children }) => {
   // Update an existing feed
   const editFeed = async (feedId, updatedData) => {
     try {
-      // Get the original feed data for comparison
       const originalFeed = getFeedById(feedId);
       if (!originalFeed) {
         console.error("Feed not found for update");
         return null;
       }
 
-      const updatedFeed = await updateFeed(feedId, updatedData, originalFeed);
+      // add updatedAt timestamp
+      const payload = {
+        ...updatedData,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const updatedFeed = await updateFeed(feedId, payload, originalFeed);
 
       // Refresh feeds to ensure we have the latest data
       await fetchFeeds();

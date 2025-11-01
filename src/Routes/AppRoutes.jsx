@@ -28,19 +28,19 @@ const AppRoutes = () => {
       )
       <Route element={<AdminLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/users/factoryUsers" element={<AdminUsers />} />
-        <Route path="users/customers" element={<Customers />} />
-        <Route path="users/dealers" element={<Dealers />} />
-        <Route path="/sales/products" element={<Products />} />
-        <Route path="/sales/qr" element={<QRGeneration />} />
-        <Route path="/sales/track" element={<QRTrack />} />
-        <Route path="/sales/catalogue" element={<Catalogue />} />
-        <Route path="/sales/promotions" element={<Promotions />} />
-        <Route path="/sales/Redeemption" element={<Redeemption />} />
-        <Route path="/system/settings" element={<Settings />} />
-        <Route path="/system/tickets" element={<ManageTickets />} />
-        <Route path="/system/feed" element={<Feed />} />
-        <Route path="/system/announcements" element={<Announcements />} />
+        <Route path="/factoryUsers" element={<AdminUsers />} />
+        <Route path="/customers" element={<Customers />} />
+        <Route path="/dealers" element={<Dealers />} />
+        <Route path="/products" element={<Products />} />
+        <Route path="/qr" element={<QRGeneration />} />
+        <Route path="/track" element={<QRTrack />} />
+        <Route path="/catalogue" element={<Catalogue />} />
+        <Route path="/promotions" element={<Promotions />} />
+        <Route path="/Redeemption" element={<Redeemption />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/tickets" element={<ManageTickets />} />
+        <Route path="/feed" element={<Feed />} />
+        <Route path="/announcements" element={<Announcements />} />
       </Route>
       <Route path="/" element={<Navigate to="/login" />} />
 

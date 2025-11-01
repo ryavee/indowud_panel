@@ -720,8 +720,8 @@ const QRGeneration = () => {
               {loading
                 ? "Generating..."
                 : generatingPDF
-                ? "Creating PDF..."
-                : "Generate"}
+                  ? "Creating PDF..."
+                  : "Generate"}
             </button>
             <button
               onClick={handleCancel}
@@ -737,14 +737,23 @@ const QRGeneration = () => {
   }
 
   return (
-    <div className="p-6">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <Toaster position="top-right" />
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold mb-4">QR Code Generation</h1>
+      <div className="flex items-center justify-between mb-4">
+        <div>
+
+
+          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+            QR Code Generation</h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage & Generate QR Codes.
+          </p>
+        </div>
         <button
           onClick={() => setShowForm(true)}
-          className="w-full flex items-center justify-center gap-2 bg-blue-600 text-white px-4 py-3 rounded-md hover:bg-blue-700 transition-colors font-medium"
-        >
+          className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+            text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+            shadow-sm hover:shadow-md transition-all cursor-pointer" >
           <Plus size={20} />
           Generate QR Codes
         </button>
@@ -806,8 +815,8 @@ const QRGeneration = () => {
                       {exporting
                         ? "Exporting..."
                         : selectedBatches.length > 1
-                        ? "Export ZIP"
-                        : "Export PDF"}
+                          ? "Export ZIP"
+                          : "Export PDF"}
                     </button>
                     <button
                       onClick={() => setSelectedBatches([])}
@@ -940,11 +949,10 @@ const QRGeneration = () => {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-2 text-sm font-medium rounded-md ${
-                            currentPage === page
+                          className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === page
                               ? "bg-blue-600 text-white"
                               : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>

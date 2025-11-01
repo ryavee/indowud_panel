@@ -33,33 +33,33 @@ const Sidebar = ({ onLogout, onClose }) => {
     {
       section: "USERS",
       items: [
-        { name: "Users", icon: Building2, path: "/users/factoryUsers" },
-        { name: "Customers", icon: Users, path: "/users/customers" },
-        { name: "Dealers", icon: Briefcase, path: "/users/dealers" },
+        { name: "Users", icon: Building2, path: "/factoryUsers" },
+        { name: "Customers", icon: Users, path: "/customers" },
+        { name: "Dealers", icon: Briefcase, path: "/dealers" },
       ],
     },
     {
       section: "PRODUCT ENDPOINTS",
       items: [
-        { name: "Products", icon: Package, path: "/sales/products" },
-        { name: "QR Generation", icon: QrCode, path: "/sales/qr" },
-        { name: "QR Track", icon: MapPin, path: "/sales/Track" },
-        { name: "Catalogue", icon: BookOpen, path: "/sales/catalogue" },
-        { name: "Bonus Promotion", icon: BadgePercent, path: "/sales/promotions" },
-        { name: "Manage Redeemption", icon: Coins, path: "/sales/redeemption" },
+        { name: "Products", icon: Package, path: "/products" },
+        { name: "QR Generation", icon: QrCode, path: "/qr" },
+        { name: "QR Track", icon: MapPin, path: "/Track" },
+        { name: "Catalogue", icon: BookOpen, path: "/catalogue" },
+        { name: "Bonus Promotion", icon: BadgePercent, path: "/promotions" },
+        { name: "Manage Redeemption", icon: Coins, path: "/redeemption" },
       ],
     },
     {
       section: "SYSTEM",
       items: [
-        { name: "Feed", icon: Newspaper, path: "/system/feed" },
-        { name: "Manage Tickets", icon: TicketCheck, path: "/system/tickets" },
+        { name: "Feed", icon: Newspaper, path: "/feed" },
+        { name: "Manage Tickets", icon: TicketCheck, path: "/tickets" },
         {
           name: "Announcements",
           icon: Megaphone,
           path: "/system/announcements",
         },
-        { name: "Settings", icon: Settings, path: "/system/settings" },
+        { name: "Settings", icon: Settings, path: "/settings" },
       ],
     },
   ];
