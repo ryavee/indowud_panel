@@ -242,6 +242,7 @@ const Dealers = () => {
                 { key: "city", header: "City" },
               ]}
               filename="dealers_export"
+              page = "dealers"
               disabled={operationLoading || filteredDealers.length === 0}
             />
 
