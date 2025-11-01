@@ -288,7 +288,7 @@ const Dashboard = () => {
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-gray-500 text-left border-b">
+                  <tr className="text-gray-500 text-left border-b ">
                     <th className="pb-2">Dealer ID</th>
                     <th className="pb-2">Dealer Name</th>
                     <th className="pb-2">QR Count</th>
@@ -322,7 +322,7 @@ const Dashboard = () => {
         {/* Redemption by City */}
         <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
           <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-[#D7145D]" /> Redemption by City
+            <MapPin className="w-5 h-5 text-[#D7145D]" /> City of Scan
           </h2>
           {redemptionByCity && redemptionByCity.length > 0 ? (
             <div className="overflow-x-auto">
@@ -330,17 +330,21 @@ const Dashboard = () => {
                 <thead>
                   <tr className="text-gray-500 text-left border-b">
                     <th className="pb-2">City</th>
+                    <th className="pb-2">State</th>
                     <th className="pb-2">Points Redeemed</th>
                   </tr>
                 </thead>
                 <tbody>
                   {redemptionByCity.map((city, idx) => (
                     <tr
-                      key={idx}
-                      className="border-t hover:bg-[#D7145D]/5 transition"
+                      key={idx}     
+                      className="border-t hover:bg-[#169698]/5 transition"
                     >
                       <td className="py-2 font-medium text-gray-800">
                         {city.city}
+                      </td> 
+                      <td className="py-2 font-medium text-gray-800"> {/*pass the data of state here */}
+                        {city.State} 
                       </td>
                       <td className="py-2">
                         <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#D7145D]/10 text-[#D7145D]">
@@ -379,7 +383,7 @@ const Dashboard = () => {
               <tbody>
                 {topScanners.map((scanner, idx) => (
                   <tr
-                    key={idx}
+                    key={idx} 
                     className="border-t hover:bg-[#169698]/5 transition"
                   >
                     <td className="py-2 font-medium text-gray-800">
