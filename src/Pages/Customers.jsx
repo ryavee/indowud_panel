@@ -45,7 +45,7 @@ const Customers = () => {
   } = useContext(CustomerContext);
 
   const totalCustomers = customersList.length;
-  const kycVerified = customersList.filter((c) => c.isKYCVerified).length;
+  const kycVerified = customersList.filter((c) => c.isKYCverifed).length;
   const blockedUsers = customersList.filter((c) => c.isBlocked).length;
   const activeUsers = totalCustomers - blockedUsers;
 
@@ -63,8 +63,8 @@ const Customers = () => {
         statusFilter === "All" ||
         (statusFilter === "Active" && !c.isBlocked) ||
         (statusFilter === "Blocked" && c.isBlocked) ||
-        (statusFilter === "KYC Verified" && c.isKYCVerified) ||
-        (statusFilter === "KYC Pending" && !c.isKYCVerified);
+        (statusFilter === "KYC Verified" && c.isKYCverifed) ||
+        (statusFilter === "KYC Pending" && !c.isKYCverifed);
 
       return matchesSearch && matchesStatus;
     });
@@ -134,16 +134,16 @@ const Customers = () => {
     const customer = customersList.find((c) => c.uid === customerId);
     if (!customer) return;
 
-    const prevStatus = customer.isKYCVerified;
+    const prevStatus = customer.isKYCverifed;
     const newStatus = !prevStatus;
 
     setSelectedCustomer((prev) =>
       prev && prev.uid === customerId
-        ? { ...prev, isKYCVerified: newStatus }
+        ? { ...prev, isKYCverifed: newStatus }
         : prev
     );
     customersList.forEach((c) => {
-      if (c.uid === customerId) c.isKYCVerified = newStatus;
+      if (c.uid === customerId) c.isKYCverifed = newStatus;
     });
 
     setActionLoading((prev) => ({ ...prev, kyc: customerId }));
@@ -152,11 +152,11 @@ const Customers = () => {
     } catch {
       setSelectedCustomer((prev) =>
         prev && prev.uid === customerId
-          ? { ...prev, isKYCVerified: prevStatus }
+          ? { ...prev, isKYCverifed: prevStatus }
           : prev
       );
       customersList.forEach((c) => {
-        if (c.uid === customerId) c.isKYCVerified = prevStatus;
+        if (c.uid === customerId) c.isKYCverifed = prevStatus;
       });
     } finally {
       setActionLoading((prev) => ({ ...prev, kyc: null }));
@@ -202,7 +202,7 @@ const Customers = () => {
     { key: "pincode", header: "Pincode" },
     { key: "loyaltyPoint", header: "Loyalty Points" },
     {
-      key: "isKYCVerified",
+      key: "isKYCverifed",
       header: "KYC Status",
       formatter: (value) => (value ? "Verified" : "Pending"),
     },
@@ -457,12 +457,12 @@ const Customers = () => {
                         <div className="flex flex-col space-y-1">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              customer.isKYCVerified
+                              customer.isKYCverifed
                                 ? "bg-green-100 text-green-800"
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {customer.isKYCVerified
+                            {customer.isKYCverifed
                               ? "KYC Verified"
                               : "KYC Pending"}
                           </span>
