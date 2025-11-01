@@ -404,36 +404,6 @@ const Promotions = () => {
 
             {/* Product Selection */}
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Select Product(s) <span className="text-red-500">*</span>
-              </label>
-              <div className="flex items-center gap-2 mb-2">
-                <input
-                  type="checkbox"
-                  id="selectAll"
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      const allIds = products.map((p) => p.id);
-                      const allNames = products.map((p) => p.productName);
-                      setFormData((prev) => ({
-                        ...prev,
-                        productId: allIds,
-                        productName: allNames.join(", "),
-                      }));
-                    } else {
-                      setFormData((prev) => ({
-                        ...prev,
-                        productId: "",
-                        productName: "",
-                      }));
-                    }
-                  }}
-                />
-                <label htmlFor="selectAll" className="text-sm text-gray-700 cursor-pointer">
-                  Select All Products
-                </label>
-              </div>
-
               <ProductSelectComponent
                 formData={formData}
                 handleInputChange={handleInputChange}
