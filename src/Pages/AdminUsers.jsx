@@ -95,11 +95,6 @@ const AdminUsers = () => {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
-
-  useEffect(() => {
-    fetchUserList();
-  }, []);
-
   const handleFormSubmit = async (formData) => {
     if (editingUser) {
       const result = await updateUserData(formData);

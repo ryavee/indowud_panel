@@ -24,7 +24,7 @@ import {
   Legend,
 } from "recharts";
 import { DashboardContext } from "../Context/DashboardContext";
-import LoadingSpinner from "../Components/Reusable/LoadingSpinner"
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 
 const COLORS = [
   "#169698",
@@ -36,9 +36,14 @@ const COLORS = [
 ];
 
 const Dashboard = () => {
-  const { dashboardData, loading, error } = useContext(DashboardContext);
+  const context = useContext(DashboardContext);
 
-  // Loading state
+  if (!context) {
+    return <div>Unauthorized or no dashboard access</div>;
+  }
+
+  const { dashboardData, loading, error } = context;
+
   if (loading) {
     return <LoadingSpinner centered message="Loading Products..." />;
   }
@@ -270,8 +275,6 @@ const Dashboard = () => {
                 />
               </PieChart>
             </ResponsiveContainer>
-
-
           </div>
         </div>
       </div>

@@ -63,6 +63,7 @@ const roleProviders = {
 
 // 🧩 Provider component mapping
 const providerComponents = {
+  Dashboard: DashboardProvider,
   Settings: SettingsProvider,
   Catalog: CatalogProvider,
   Redemptions: RedemptionsContextProvider,
@@ -76,7 +77,6 @@ const providerComponents = {
   Announcement: AnnouncementProvider,
   Customer: CustomerProvider,
   User: UserProvider,
-  Dashboard: DashboardProvider,
 };
 
 // 🔧 Dynamic Provider Wrapper Component

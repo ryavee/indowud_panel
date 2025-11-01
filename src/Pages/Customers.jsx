@@ -21,9 +21,8 @@ import CustomerDetails from "../Components/CustomerDetails";
 import Pagination from "../Components/Reusable/Pagination";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
-import { getCurrentUser, getCurrentUserRole, ROLES } from "../utils/rbac";
+import { getCurrentUserRole, ROLES } from "../utils/rbac";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
-
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -74,7 +73,6 @@ const Customers = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const currentUser = getCurrentUser();
   const currentUserRole = getCurrentUserRole();
 
   const totalPages = Math.ceil(filteredCustomers.length / pageSize);
@@ -412,11 +410,24 @@ const Customers = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <img
-                            className="h-10 w-10 rounded-full object-cover"
-                            src={customer.profileImage}
-                            alt=""
-                          />
+                          <>
+                            {customer.profileImage ? (
+                              <img
+                                className="h-10 w-10 rounded-full object-cover"
+                                src={customer.profileImage}
+                                alt={`${customer.firstName} ${customer.lastName}`}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-700">
+                                {customer.firstName && customer.lastName
+                                  ? `${customer.firstName[0]}${customer.lastName[0]}`
+                                  : customer.firstName ||
+                                    customer.lastName ||
+                                    "?"}
+                              </div>
+                            )}
+                          </>
+
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
                               {customer.firstName} {customer.lastName}
