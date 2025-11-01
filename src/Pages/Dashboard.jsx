@@ -5,8 +5,6 @@ import {
   TrendingUp,
   CheckCircle,
   ArrowRight,
-  RefreshCw,
-  Download,
   Building2,
   Factory,
   UserCheck,
@@ -23,8 +21,10 @@ import {
   Pie,
   Cell,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 import { DashboardContext } from "../Context/DashboardContext";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner"
 
 const COLORS = [
   "#169698",
@@ -40,14 +40,7 @@ const Dashboard = () => {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
-        <div className="text-center">
-          <RefreshCw className="w-12 h-12 text-[#169698] animate-spin mx-auto mb-4" />
-          <p className="text-gray-600 text-lg">Loading dashboard data...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner centered message="Loading Products..." />;
   }
 
   // Error state
@@ -238,15 +231,47 @@ const Dashboard = () => {
                   cx="50%"
                   cy="50%"
                   outerRadius="70%"
-                  label={(entry) => `${entry.name}: ${entry.value}`}
+                  labelLine={false}
                 >
                   {kycPieData.map((entry, i) => (
-                    <Cell key={i} fill={COLORS[i]} />
+                    <Cell
+                      key={i}
+                      fill={COLORS[i % COLORS.length]}
+                      stroke="#fff"
+                      strokeWidth={2}
+                    />
                   ))}
                 </Pie>
-                <Tooltip />
+
+                {/* Tooltip - clean white theme */}
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "rgba(255, 255, 255, 0.95)",
+                    borderRadius: "8px",
+                    border: "1px solid #e5e7eb",
+                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.08)",
+                  }}
+                  itemStyle={{ color: "#374151", fontWeight: 500 }}
+                  formatter={(value, name) => [`${value}`, name]}
+                  cursor={{ fill: "rgba(0,0,0,0.03)" }}
+                />
+
+                {/* 🏷️ Legend with values */}
+                <Legend
+                  verticalAlign="bottom"
+                  align="center"
+                  iconType="circle"
+                  iconSize={10}
+                  wrapperStyle={{ paddingTop: "10px" }}
+                  formatter={(value) => {
+                    const found = kycPieData.find((d) => d.name === value);
+                    return `${value}: ${found ? found.value : 0}`;
+                  }}
+                />
               </PieChart>
             </ResponsiveContainer>
+
+
           </div>
         </div>
       </div>
