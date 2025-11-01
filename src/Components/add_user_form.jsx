@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { getCurrentUserRole, ROLES } from "../utils/rbac";
 
 // User Form Component
 const UserForm = ({
@@ -21,6 +22,7 @@ const UserForm = ({
 
   const [errors, setErrors] = useState({});
   const [apiError, setApiError] = useState(""); // New state for API errors
+  const currentUserRole = getCurrentUserRole();
 
   const validateForm = () => {
     const newErrors = {};
@@ -74,7 +76,7 @@ const UserForm = ({
     }
 
     // Role validation - Updated to match the roles used in badges
-    const validRoles = ["Super Admin","Admin", "QR Generate"];
+    const validRoles = ["Super Admin", "Admin", "QR Generate"];
     if (!validRoles.includes(formData.role)) {
       newErrors.role = "Please select a valid role";
     }
@@ -180,11 +182,11 @@ const UserForm = ({
           onChange={handleChange}
           required
           disabled={isLoading}
-
           className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
             focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
               placeholder:text-gray-400 disabled:bg-gray-100 
-            disabled:cursor-not-allowed ${errors.firstName ? "border-red-500" : "border-gray-300"
+            disabled:cursor-not-allowed ${
+              errors.firstName ? "border-red-500" : "border-gray-300"
             }`}
           placeholder="Enter first name"
         />
@@ -208,7 +210,8 @@ const UserForm = ({
           className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
             focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
               placeholder:text-gray-400 disabled:bg-gray-100 
-            disabled:cursor-not-allowed ${errors.lastName ? "border-red-500" : "border-gray-300"
+            disabled:cursor-not-allowed ${
+              errors.lastName ? "border-red-500" : "border-gray-300"
             }`}
           placeholder="Enter last name"
         />
@@ -237,9 +240,10 @@ const UserForm = ({
           className={`w-full px-4 py-2 border rounded-lg text-gray-800 text-sm focus:ring-2 
             focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
               placeholder:text-gray-400 disabled:bg-gray-100 
-            disabled:cursor-not-allowed ${isLoading || isEditing
-              ? "bg-gray-50 text-gray-500 border-gray-200"
-              : errors.email
+            disabled:cursor-not-allowed ${
+              isLoading || isEditing
+                ? "bg-gray-50 text-gray-500 border-gray-200"
+                : errors.email
                 ? "border-red-500"
                 : "border-gray-300"
             }`}
@@ -272,8 +276,7 @@ const UserForm = ({
             focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
               placeholder:text-gray-400 disabled:bg-gray-100 
             disabled:cursor-not-allowed
-               ${errors.password ? "border-red-500" : "border-gray-300"
-              }`}
+               ${errors.password ? "border-red-500" : "border-gray-300"}`}
             placeholder="Enter password"
           />
           {errors.password && (
@@ -300,8 +303,7 @@ const UserForm = ({
             focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
               placeholder:text-gray-400 disabled:bg-gray-100 
             disabled:cursor-not-allowed
-             ${errors.phone ? "border-red-500" : "border-gray-300"
-            }`}
+             ${errors.phone ? "border-red-500" : "border-gray-300"}`}
           placeholder="Enter phone number"
         />
         {errors.phone && (
@@ -323,12 +325,17 @@ const UserForm = ({
             focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
               placeholder:text-gray-400 disabled:bg-gray-100 
             disabled:cursor-not-allowed
-            ${errors.role ? "border-red-500" : "border-gray-300"
-            }`}
+            ${errors.role ? "border-red-500" : "border-gray-300"}`}
         >
-          <option value="Super Admin">Super Admin</option>
-          <option value="Admin">Admin</option>
-          <option value="QR Generate">QR Generate</option>
+          {currentUserRole === ROLES.SUPER_ADMIN ? (
+            <>
+              <option value="Super Admin">Super Admin</option>
+              <option value="Admin">Admin</option>
+              <option value="QR Generate">QR Generate</option>
+            </>
+          ) : (
+            <option value="QR Generate">QR Generate</option>
+          )}
         </select>
         {errors.role && (
           <p className="mt-1 text-sm text-red-600">{errors.role}</p>
@@ -349,8 +356,7 @@ const UserForm = ({
             focus:ring-[#00A9A3]/50 focus:border-[#00A9A3] focus:outline-none shadow-sm transition-all
               placeholder:text-gray-400 disabled:bg-gray-100 
             disabled:cursor-not-allowed
-            ${errors.status ? "border-red-500" : "border-gray-300"
-            }`}
+            ${errors.status ? "border-red-500" : "border-gray-300"}`}
         >
           <option value="Active">Active</option>
           <option value="Inactive">Inactive</option>
