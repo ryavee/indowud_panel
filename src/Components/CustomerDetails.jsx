@@ -87,12 +87,12 @@ const CustomerDetails = ({
                 </span>
                 <span
                   className={`px-3 py-1 text-xs rounded-full font-medium ${
-                    customer.isKYCVerified
+                    customer.isKYCverifed
                       ? "bg-green-100 text-green-800"
                       : "bg-yellow-100 text-yellow-800"
                   }`}
                 >
-                  {customer.isKYCVerified ? "KYC Verified" : "KYC Pending"}
+                  {customer.isKYCverifed ? "KYC Verified" : "KYC Pending"}
                 </span>
                 <span
                   className={`px-3 py-1 text-xs rounded-full font-medium ${
@@ -130,7 +130,7 @@ const CustomerDetails = ({
               onClick={() => onKYCAction(customer.uid)}
               disabled={actionLoading.kyc === customer.uid}
               className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all cursor-pointer ${
-                customer.isKYCVerified
+                customer.isKYCverifed
                   ? "bg-teal-600 hover:bg-teal-700 text-white"
                   : "bg-orange-500 hover:bg-orange-600 text-white"
               }`}
@@ -140,7 +140,7 @@ const CustomerDetails = ({
               ) : (
                 <ShieldCheck className="w-4 h-4" />
               )}
-              {customer.isKYCVerified ? "Revoke KYC" : "Verify KYC"}
+              {customer.isKYCverifed ? "Revoke KYC" : "Verify KYC"}
             </button>
           </div>
         </div>
@@ -183,7 +183,6 @@ const CustomerDetails = ({
 
               <p className="text-sm text-gray-700 mb-3">
                 <b>Aadhaar Card</b>
-                
               </p>
 
               <div className="grid grid-cols-2 gap-4 mb-6">
@@ -224,7 +223,7 @@ const CustomerDetails = ({
               </div>
 
               <p className="text-sm text-gray-700 mb-3">
-                <b>PAN Card</b> 
+                <b>PAN Card</b>
               </p>
 
               <div className="rounded-lg border border-gray-200 bg-gray-50 flex flex-col items-center justify-between">
