@@ -84,8 +84,8 @@ const Dashboard = () => {
 
   // Calculate KYC percentage
   const kycPercentage =
-    totalUsers > 0 ? ((totalKycApproved / totalUsers) * 100).toFixed(1) : 0;
-  const kycPending = totalUsers - totalKycApproved;
+    totalUsers > 0 ? ((totalKycApproved / totalCustomers) * 100).toFixed(1) : 0;
+  const kycPending = totalCustomers - totalKycApproved;
 
   // Prepare pie chart data for KYC
   const kycPieData = [
