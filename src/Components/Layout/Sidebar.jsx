@@ -25,6 +25,8 @@ const Sidebar = ({ onLogout, onClose }) => {
   const location = useLocation();
   const user = JSON.parse(localStorage.getItem("user"));
   const role = user?.role || user?.user?.role || "Guest";
+
+  // ==== MENU CONFIG ====
   const allMenuItems = [
     {
       section: "MAIN",
@@ -64,15 +66,16 @@ const Sidebar = ({ onLogout, onClose }) => {
     },
   ];
 
-  // 🔒 Role-based permissions
+  // ==== ROLE PERMISSIONS ====
   const rolePermissions = {
     Admin: ["*"], // Full access
-    "QR Generate": ["Dealers", "Products", "QR Generation"], // Limited access
+    "Super Admin": ["*"], // Full access
+    "QR Generate": ["Dealers", "Products", "QR Generation"], // Restricted
   };
 
   const allowed = rolePermissions[role] || [];
 
-  // 🧹 Filter menu based on permissions
+  // ==== FILTER MENU BASED ON ROLE ====
   let filteredMenu = allMenuItems
     .map((menu) => ({
       ...menu,
@@ -82,16 +85,16 @@ const Sidebar = ({ onLogout, onClose }) => {
     }))
     .filter((menu) => menu.items.length > 0);
 
-  // 🛠️ Fallback to all if none found (for safety)
+  // Fallback: Show all if misconfigured role
   if (filteredMenu.length === 0) {
     console.warn(`⚠️ No menu found for role: "${role}". Showing all menus.`);
     filteredMenu = allMenuItems;
   }
 
-  // 🚀 Auto-redirect QR Generate to QR Generation on login (only once)
+  // ==== AUTO-REDIRECT QR GENERATE USERS ====
   useEffect(() => {
     if (role === "QR Generate" && location.pathname === "/dashboard") {
-      navigate("/sales/qr", { replace: true });
+      navigate("/qr", { replace: true }); // ✅ fixed route
     }
   }, [role, navigate, location.pathname]);
 

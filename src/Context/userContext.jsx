@@ -18,7 +18,7 @@ export const UserProvider = ({ children }) => {
     useState(false);
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [uploadLoading, setUploadLoading] = useState(false);
-  const hasFetched = useRef(false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   const sortUsersByCreatedAt = (users) => {
     return [...users].sort((a, b) => {
@@ -29,16 +29,12 @@ export const UserProvider = ({ children }) => {
   };
 
   const fetchUserList = async () => {
-    if (!token) {
-      console.log("No token available");
-      return;
-    }
     setLoading(true);
     try {
       const data = await getUsersList(token);
       const users = data?.users || [];
       setUsersList(sortUsersByCreatedAt(users));
-      hasFetched.current = true;
+      setHasFetched(true);
     } catch (error) {
       console.log("Error fetching users:", error);
       setUsersList([]);
@@ -48,11 +44,13 @@ export const UserProvider = ({ children }) => {
   };
 
   useEffect(() => {
-    if (isInitialized && token && !hasFetched.current) {
-      fetchUserList();
+    if (isInitialized && token && !hasFetched) {
+      console.log("Fetching on here");
+      
+      fetchUserList().then(() => setHasFetched(true));
     } else if (isInitialized && !token) {
       setUsersList([]);
-      hasFetched.current = false;
+      setHasFetched(false);
     }
   }, [isInitialized, token]);
 

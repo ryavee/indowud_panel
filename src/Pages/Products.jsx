@@ -1,5 +1,14 @@
 import { useState, useEffect } from "react";
-import { Plus, AlertCircle, Loader, Box, Hash, Layers, CircleStar, MoreVertical } from "lucide-react";
+import {
+  Plus,
+  AlertCircle,
+  Loader,
+  Box,
+  Hash,
+  Layers,
+  CircleStar,
+  MoreVertical,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { useProductContext } from "../Context/ProductsContext";
 import ActionButtons from "../Components/Reusable/ActionButtons";
@@ -8,6 +17,7 @@ import Pagination from "../Components/Reusable/Pagination";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+import { getCurrentUserRole, ROLES } from "../utils/rbac";
 
 const Products = () => {
   const {
@@ -40,7 +50,6 @@ const Products = () => {
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
-
 
   if (loading) {
     return <LoadingSpinner centered message="Loading Products..." />;
@@ -88,7 +97,8 @@ const Products = () => {
     try {
       await removeProduct(deleteTarget.id);
       toast.success(
-        `"${deleteTarget.productName || deleteTarget.name
+        `"${
+          deleteTarget.productName || deleteTarget.name
         }" deleted successfully!`
       );
       setDeleteTarget(null);
@@ -164,14 +174,16 @@ const Products = () => {
 
       if (successCount > 0) {
         toast.success(
-          `Successfully imported ${successCount} product${successCount !== 1 ? "s" : ""
+          `Successfully imported ${successCount} product${
+            successCount !== 1 ? "s" : ""
           }!`
         );
       }
 
       if (skipped.length > 0) {
         toast.error(
-          `${skipped.length} product${skipped.length !== 1 ? "s were" : " was"
+          `${skipped.length} product${
+            skipped.length !== 1 ? "s were" : " was"
           } skipped (already exist${skipped.length !== 1 ? "" : "s"})`,
           { duration: 4000 }
         );
@@ -179,7 +191,8 @@ const Products = () => {
 
       if (failed.length > 0) {
         toast.error(
-          `${failed.length} product${failed.length !== 1 ? "s" : ""
+          `${failed.length} product${
+            failed.length !== 1 ? "s" : ""
           } failed to import`,
           { duration: 4000 }
         );
@@ -194,9 +207,11 @@ const Products = () => {
     }
   };
 
+  const currentUserRole = getCurrentUserRole();
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
-     <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -209,55 +224,58 @@ const Products = () => {
           </div>
 
           <div className="flex items-center gap-2">
+            {currentUserRole !== ROLES.QR_GENERATE ? (
+              <>
+                <ImportButton
+                  requiredHeaders={[
+                    { key: "productName", header: "Product Name" },
+                    { key: "productUnit", header: "Product Unit" },
+                    { key: "productPoint", header: "Point" },
+                  ]}
+                  onUpload={handleImportProducts}
+                  disabled={loading || creating || importing}
+                />
 
-            <ImportButton
-              requiredHeaders={[
-                { key: "productName", header: "Product Name" },
-                { key: "productUnit", header: "Product Unit" },
-                { key: "productPoint", header: "Point" },
-              ]}
-              onUpload={handleImportProducts}
-              disabled={loading || creating || importing}
-            />
-
-            <ExportButton
-              data={products}
-              columns={[
-                { key: "productId", header: "Product ID" },
-                { key: "productName", header: "Product Name" },
-                { key: "productUnit", header: "Product Unit" },
-                { key: "productPoint", header: "Point" },
-              ]}
-              filename="products"
-              disabled={loading || creating || importing}
-            />
-
-            <button
-              type="button"
-              onClick={() => setShowAddModal(true)}
-              disabled={creating || importing}
-              className={`
+                <ExportButton
+                  data={products}
+                  columns={[
+                    { key: "productId", header: "Product ID" },
+                    { key: "productName", header: "Product Name" },
+                    { key: "productUnit", header: "Product Unit" },
+                    { key: "productPoint", header: "Point" },
+                  ]}
+                  filename="products"
+                  disabled={loading || creating || importing}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowAddModal(true)}
+                  disabled={creating || importing}
+                  className={`
                 flex items-center gap-2 px-4 py-2 text-sm font-semibold 
                 text-white rounded-lg shadow-sm transition-all cursor-pointer
                 active:scale-[0.97] 
-                ${creating || importing
-                  ? "bg-gray-400 cursor-not-allowed"
-                  : "bg-[#00A9A3] hover:bg-[#128083]"
+                ${
+                  creating || importing
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#00A9A3] hover:bg-[#128083]"
                 }
               `}
-            >
-              {creating ? (
-                <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  <span>Adding...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Add Product</span>
-                </>
-              )}
-            </button>
+                >
+                  {creating ? (
+                    <>
+                      <Loader className="w-4 h-4 animate-spin" />
+                      <span>Adding...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Plus className="w-4 h-4" />
+                      <span>Add Product</span>
+                    </>
+                  )}
+                </button>
+              </>
+            ) : null}
           </div>
         </div>
 
@@ -318,11 +336,15 @@ const Products = () => {
                         <CircleStar className="h-4 w-4" /> Points
                       </div>
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <MoreVertical className="h-4 w-4" /> Action
-                      </div>
-                    </th>
+                    {currentUserRole !== ROLES.QR_GENERATE ? (
+                      <>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <div className="flex items-center gap-1">
+                            <MoreVertical className="h-4 w-4" /> Action
+                          </div>
+                        </th>
+                      </>
+                    ) : null}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -345,14 +367,18 @@ const Products = () => {
                       <td className="px-6 py-4 text-gray-700 whitespace-nowrap">
                         {product.productPoint ?? 0}
                       </td>
-                      <td className="px-6">
-                        <ActionButtons
-                          onEdit={() => handleEdit(product)}
-                          onDelete={() => setDeleteTarget(product)}
-                          loadingDelete={deleting === product.id}
-                          disableAll={creating || loading || importing}
-                        />
-                      </td>
+                      {currentUserRole !== ROLES.QR_GENERATE ? (
+                        <>
+                          <td className="px-6">
+                            <ActionButtons
+                              onEdit={() => handleEdit(product)}
+                              onDelete={() => setDeleteTarget(product)}
+                              loadingDelete={deleting === product.id}
+                              disableAll={creating || loading || importing}
+                            />
+                          </td>
+                        </>
+                      ) : null}
                     </tr>
                   ))}
                 </tbody>
@@ -431,8 +457,9 @@ const Products = () => {
       <ConfirmationModal
         isOpen={!!deleteTarget}
         title="Confirm Deletion"
-        message={`Are you sure you want to delete "${deleteTarget?.productName || deleteTarget?.name
-          }"?`}
+        message={`Are you sure you want to delete "${
+          deleteTarget?.productName || deleteTarget?.name
+        }"?`}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleting === deleteTarget?.id}

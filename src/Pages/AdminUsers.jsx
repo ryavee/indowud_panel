@@ -9,6 +9,7 @@ import {
   CheckCircle,
   Calendar,
   MoreVertical,
+  Lock,
 } from "lucide-react";
 import Modal from "../Components/Reusable/form";
 import UserForm from "../Components/add_user_form";
@@ -19,7 +20,7 @@ import ActionButtons from "../Components/Reusable/ActionButtons";
 import ExportButton from "../Components/export_button";
 import ImportCSVButton from "../Components/Import_button";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
-
+import { getCurrentUser, getCurrentUserRole, ROLES } from "../utils/rbac";
 
 const StatusBadge = ({ status }) => {
   const getStatusColor = (status) => {
@@ -47,6 +48,8 @@ const StatusBadge = ({ status }) => {
 const RoleBadge = ({ role }) => {
   const getRoleColor = (role) => {
     switch (role) {
+      case "Super Admin":
+        return "bg-red-100 text-red-800";
       case "Admin":
         return "bg-blue-100 text-blue-800";
       case "QR Generate":
@@ -79,6 +82,8 @@ const AdminUsers = () => {
     deleteUserFromPortal,
     uploadUserFile,
   } = useContext(UserContext);
+  const currentUser = getCurrentUser();
+  const currentUserRole = getCurrentUserRole();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingUser, setEditingUser] = useState(null);
@@ -90,11 +95,6 @@ const AdminUsers = () => {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
-
-  useEffect(() => {
-    fetchUserList();
-  }, []);
-
   const handleFormSubmit = async (formData) => {
     if (editingUser) {
       const result = await updateUserData(formData);
@@ -179,12 +179,25 @@ const AdminUsers = () => {
     },
   ];
 
-
-
-
   if (loading) {
     return <LoadingSpinner centered message="Loading Users..." />;
   }
+  const canEditOrDelete = (targetUser) => {
+    if (
+      currentUserRole === ROLES.ADMIN &&
+      targetUser.role === ROLES.SUPER_ADMIN
+    )
+      return false;
+    if (currentUserRole === ROLES.ADMIN && currentUser?.uid === targetUser.uid)
+      return false;
+
+    if (currentUserRole === ROLES.ADMIN && targetUser.role === ROLES.ADMIN)
+      return false;
+
+    if (currentUser?.uid === targetUser.uid) return false;
+
+    return true;
+  };
 
   return (
 
@@ -222,22 +235,27 @@ const AdminUsers = () => {
             className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
           >
             <option value="All">All Roles</option>
+            <option value="Super Admin">Super Admin</option>
             <option value="Admin">Admin</option>
             <option value="QR Generate">QR Generate</option>
           </select>
 
           <div className="flex item-center gap-2">
-            <ImportCSVButton
-              requiredHeaders={exportColumns}
-              onUpload={uploadUserFile}
-              label="Import Users"
-            />
-            <ExportButton
-              data={filteredUsers}
-              columns={exportColumns}
-              filename="admin-users"
-              disabled={false}
-            />
+            {currentUserRole === ROLES.SUPER_ADMIN && (
+              <>
+                <ImportCSVButton
+                  requiredHeaders={exportColumns}
+                  onUpload={uploadUserFile}
+                  label="Import Users"
+                />
+                <ExportButton
+                  data={filteredUsers}
+                  columns={exportColumns}
+                  filename="admin-users"
+                  disabled={false}
+                />
+              </>
+            )}
 
             <button
               onClick={handleAddUser}
@@ -258,7 +276,6 @@ const AdminUsers = () => {
                 </>
               )}
             </button>
-
           </div>
         </div>
 
@@ -329,17 +346,29 @@ const AdminUsers = () => {
                           : "-"}
                       </td>
                       <td className="px-6 py-4 text-sm">
-                        <ActionButtons
-                          onEdit={() => handleEditUser(user)}
-                          onDelete={() => handleDeleteUser(user)}
-                          loadingEdit={
-                            actionLoading.edit === user.uid ||
-                            createOrUpdateUserLoading
-                          }
-                          loadingDelete={
-                            actionLoading.delete === user.uid || deleteLoading
-                          }
-                        />
+                        {canEditOrDelete(user) ? (
+                          <ActionButtons
+                            onEdit={() => handleEditUser(user)}
+                            onDelete={() => handleDeleteUser(user)}
+                            loadingEdit={
+                              actionLoading.edit === user.uid ||
+                              createOrUpdateUserLoading
+                            }
+                            loadingDelete={
+                              actionLoading.delete === user.uid || deleteLoading
+                            }
+                          />
+                        ) : (
+                          <div
+                            className="flex items-center gap-2 px-2 py-1 rounded-md text-gray-400  cursor-not-allowed select-none
+                transition-all duration-200"
+                          >
+                            <div className="flex items-center justify-center w-6 h-6 rounded-full bg-gray-200">
+                              <Lock className="w-3.5 h-3.5 text-gray-500" />
+                            </div>
+                            <span className="text-xs font-medium">Locked</span>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))}

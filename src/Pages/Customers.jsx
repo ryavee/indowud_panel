@@ -21,8 +21,8 @@ import CustomerDetails from "../Components/CustomerDetails";
 import Pagination from "../Components/Reusable/Pagination";
 import ExportButton from "../Components/export_button";
 import ImportButton from "../Components/Import_button";
+import { getCurrentUserRole, ROLES } from "../utils/rbac";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
-
 
 const Customers = () => {
   const [selectedCustomer, setSelectedCustomer] = useState(null);
@@ -46,7 +46,7 @@ const Customers = () => {
   } = useContext(CustomerContext);
 
   const totalCustomers = customersList.length;
-  const kycVerified = customersList.filter((c) => c.isKYCVerified).length;
+  const kycVerified = customersList.filter((c) => c.isKYCverifed).length;
   const blockedUsers = customersList.filter((c) => c.isBlocked).length;
   const activeUsers = totalCustomers - blockedUsers;
 
@@ -64,8 +64,8 @@ const Customers = () => {
         statusFilter === "All" ||
         (statusFilter === "Active" && !c.isBlocked) ||
         (statusFilter === "Blocked" && c.isBlocked) ||
-        (statusFilter === "KYC Verified" && c.isKYCVerified) ||
-        (statusFilter === "KYC Pending" && !c.isKYCVerified);
+        (statusFilter === "KYC Verified" && c.isKYCverifed) ||
+        (statusFilter === "KYC Pending" && !c.isKYCverifed);
 
       return matchesSearch && matchesStatus;
     });
@@ -73,6 +73,7 @@ const Customers = () => {
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+  const currentUserRole = getCurrentUserRole();
 
   const totalPages = Math.ceil(filteredCustomers.length / pageSize);
 
@@ -135,16 +136,16 @@ const Customers = () => {
     const customer = customersList.find((c) => c.uid === customerId);
     if (!customer) return;
 
-    const prevStatus = customer.isKYCVerified;
+    const prevStatus = customer.isKYCverifed;
     const newStatus = !prevStatus;
 
     setSelectedCustomer((prev) =>
       prev && prev.uid === customerId
-        ? { ...prev, isKYCVerified: newStatus }
+        ? { ...prev, isKYCverifed: newStatus }
         : prev
     );
     customersList.forEach((c) => {
-      if (c.uid === customerId) c.isKYCVerified = newStatus;
+      if (c.uid === customerId) c.isKYCverifed = newStatus;
     });
 
     setActionLoading((prev) => ({ ...prev, kyc: customerId }));
@@ -153,11 +154,11 @@ const Customers = () => {
     } catch {
       setSelectedCustomer((prev) =>
         prev && prev.uid === customerId
-          ? { ...prev, isKYCVerified: prevStatus }
+          ? { ...prev, isKYCverifed: prevStatus }
           : prev
       );
       customersList.forEach((c) => {
-        if (c.uid === customerId) c.isKYCVerified = prevStatus;
+        if (c.uid === customerId) c.isKYCverifed = prevStatus;
       });
     } finally {
       setActionLoading((prev) => ({ ...prev, kyc: null }));
@@ -196,7 +197,7 @@ const Customers = () => {
     { key: "pincode", header: "Pincode" },
     { key: "loyaltyPoint", header: "Loyalty Points" },
     {
-      key: "isKYCVerified",
+      key: "isKYCverifed",
       header: "KYC Status",
       formatter: (value) => (value ? "Verified" : "Pending"),
     },
@@ -341,19 +342,21 @@ const Customers = () => {
             />
             Reset
           </button>
-          
           <ImportButton
             requiredHeaders={requiredHeaders}
             onUpload={handleCSVUpload}
             label="Import CSV"
           />
-          <ExportButton
-            data={filteredCustomers}
-            columns={exportColumns}
-            filename="customers"
-            disabled={filteredCustomers.length === 0}
-          />
-
+          {currentUserRole === ROLES.SUPER_ADMIN && (
+            <>
+              <ExportButton
+                data={filteredCustomers}
+                columns={exportColumns}
+                filename="customers"
+                disabled={filteredCustomers.length === 0}
+              />
+            </>
+          )}
         </div>
 
         {/* Table */}
@@ -407,11 +410,24 @@ const Customers = () => {
                     >
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
-                          <img
-                            className="h-10 w-10 rounded-full object-cover"
-                            src={customer.profileImage}
-                            alt=""
-                          />
+                          <>
+                            {customer.profileImage ? (
+                              <img
+                                className="h-10 w-10 rounded-full object-cover"
+                                src={customer.profileImage}
+                                alt={`${customer.firstName} ${customer.lastName}`}
+                              />
+                            ) : (
+                              <div className="h-10 w-10 rounded-full bg-gray-200 flex items-center justify-center text-sm font-medium text-gray-700">
+                                {customer.firstName && customer.lastName
+                                  ? `${customer.firstName[0]}${customer.lastName[0]}`
+                                  : customer.firstName ||
+                                    customer.lastName ||
+                                    "?"}
+                              </div>
+                            )}
+                          </>
+
                           <div className="ml-4">
                             <div className="text-sm font-medium text-gray-900">
                               {customer.firstName} {customer.lastName}
@@ -451,12 +467,12 @@ const Customers = () => {
                         <div className="flex flex-col space-y-1">
                           <span
                             className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              customer.isKYCVerified
+                              customer.isKYCverifed
                                 ? "bg-green-100 text-green-800"
                                 : "bg-yellow-100 text-yellow-800"
                             }`}
                           >
-                            {customer.isKYCVerified
+                            {customer.isKYCverifed
                               ? "KYC Verified"
                               : "KYC Pending"}
                           </span>

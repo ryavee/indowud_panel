@@ -29,13 +29,11 @@ export const ProductProvider = ({ children }) => {
   }, [token]);
 
   const normalizeProduct = (product) => ({
-    id: product.productId || product.id,
-    productId: product.productId || product.id,
-    productName: product.productName || product.name,
-    name: product.productName || product.name,
+    id: product.id,
+    productId: product.productId,
+    productName: product.productName,
     productUnit: product.productUnit,
     productPoint: product.productPoint ?? 0,
-    ...product,
   });
 
   // Fetch products

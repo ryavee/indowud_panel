@@ -1,7 +1,10 @@
-// App.jsx - Optimized with role-based context providers
+// App.jsx - Role-based Dynamic Providers
 
 import { BrowserRouter } from "react-router-dom";
+import { useEffect, useState } from "react";
 import AppRoutes from "./Routes/AppRoutes";
+
+// Context Providers
 import { AuthProvider } from "./Context/AuthContext";
 import { UserProvider } from "./Context/userContext";
 import { CustomerProvider } from "./Context/CustomerContext";
@@ -17,36 +20,10 @@ import { RedemptionsContextProvider } from "./Context/RedemptionContext";
 import { CatalogProvider } from "./Context/CatalogContext";
 import { DashboardProvider } from "./Context/DashboardContext";
 import { SettingsProvider } from "./Context/SettingsContext";
-import { useEffect, useState } from "react";
 
-// 🎯 Define which providers each role needs
-const roleProviders = {
-  Admin: [
-    "Settings",
-    "Catalog",
-    "Redemptions",
-    "TrackQRData",
-    "Codes",
-    "Dealers",
-    "Product",
-    "Promotional",
-    "Feed",
-    "Ticket",
-    "Announcement",
-    "Customer",
-    "User",
-    "Dashboard",
-  ],
-  "QR Generate": [
-    "Dealers", // For Dealers page
-    "Product", // For Products page
-    "Codes", // For QR Generation page
-  ],
-  // Add more roles as needed
-};
-
-// 🧩 Provider component mapping
+// 🔧 Mapping provider names to components
 const providerComponents = {
+  Dashboard: DashboardProvider,
   Settings: SettingsProvider,
   Catalog: CatalogProvider,
   Redemptions: RedemptionsContextProvider,
@@ -60,22 +37,66 @@ const providerComponents = {
   Announcement: AnnouncementProvider,
   Customer: CustomerProvider,
   User: UserProvider,
-  Dashboard: DashboardProvider,
 };
 
-// 🔧 Dynamic Provider Wrapper Component
+// 🎯 Define which providers each role needs
+const roleProviders = {
+  "Super Admin": [
+    "Dashboard",
+    "Settings",
+    "Catalog",
+    "Redemptions",
+    "TrackQRData",
+    "Codes",
+    "Dealers",
+    "Product",
+    "Promotional",
+    "Feed",
+    "Ticket",
+    "Announcement",
+    "Customer",
+    "User",
+  ],
+  Admin: [
+    "Dashboard",
+    "Settings",
+    "Catalog",
+    "Redemptions",
+    "TrackQRData",
+    "Codes",
+    "Dealers",
+    "Product",
+    "Promotional",
+    "Feed",
+    "Ticket",
+    "Announcement",
+    "Customer",
+    "User",
+  ],
+  "QR Generate": [
+    "Dealers",
+    "Product",
+    "Codes",
+  ],
+  Guest: [],
+};
+
+// 🔧 DynamicProviders Component
 const DynamicProviders = ({ children }) => {
   const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    // Get user role from localStorage
-    const user = JSON.parse(localStorage.getItem("user"));
-    const role = user?.role || user?.user?.role || "Guest";
-    setUserRole(role);
-    console.log("🎭 User Role:", role);
+    try {
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      const role = storedUser?.role || storedUser?.user?.role || "Guest";
+      console.log("🎭 User Role:", role);
+      setUserRole(role);
+    } catch (error) {
+      console.error("⚠️ Failed to parse user from localStorage:", error);
+      setUserRole("Guest");
+    }
   }, []);
 
-  // Wait for role to be determined
   if (!userRole) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -87,16 +108,14 @@ const DynamicProviders = ({ children }) => {
     );
   }
 
-  // Get providers for this role
+  // Get allowed providers for this role
   const allowedProviders = roleProviders[userRole] || [];
-  console.log(
-    `📦 Loading ${allowedProviders.length} providers for role: ${userRole}`
-  );
+  console.log(`📦 Loading ${allowedProviders.length} providers for role: ${userRole}`);
 
-  // Build nested providers dynamically
+  // Wrap children with nested providers
   let wrappedChildren = children;
 
-  // Reverse the array to wrap from innermost to outermost
+  // Reverse to wrap from innermost to outermost
   [...allowedProviders].reverse().forEach((providerName) => {
     const Provider = providerComponents[providerName];
     if (Provider) {
@@ -109,6 +128,7 @@ const DynamicProviders = ({ children }) => {
   return wrappedChildren;
 };
 
+// 🔹 App Component
 function App() {
   return (
     <BrowserRouter>

@@ -19,18 +19,15 @@ const ProductSelectComponent = ({
     error: promotionsError,
   } = usePromotionalContext();
 
-  // Choose source based on fromQr
   const productList = fromQr ? promotions : products;
   const loading = fromQr ? promotionsLoading : productsLoading;
   const error = fromQr ? promotionsError : productsError;
 
   const handleProductChange = (e) => {
     const selectedId = e.target.value;
-
     const selectedProduct = productList.find((p) =>
       fromQr ? p.productId === selectedId : p.id === selectedId
     );
-
     if (selectedProduct) {
       handleInputChange({
         target: {
@@ -42,18 +39,14 @@ const ProductSelectComponent = ({
       handleInputChange({
         target: {
           name: "productName",
-          value: fromQr
-            ? selectedProduct.productName
-            : selectedProduct.productName,
+          value: selectedProduct.productName,
         },
       });
 
       handleInputChange({
         target: {
           name: "productUnit",
-          value: fromQr
-            ? selectedProduct.productUnit
-            : selectedProduct.productUnit,
+          value: selectedProduct.productUnit,
         },
       });
     } else {
@@ -103,7 +96,8 @@ const ProductSelectComponent = ({
               key={fromQr ? product.productId : product.id}
               value={fromQr ? product.productId : product.id}
             >
-              {product.productName} ({product.productUnit})
+              {product.productName} ({product.productUnit}
+              {fromQr ? product.productPoint : "EA"})
             </option>
           ))}
         </select>

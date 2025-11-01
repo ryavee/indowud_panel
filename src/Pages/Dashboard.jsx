@@ -24,7 +24,7 @@ import {
   Legend,
 } from "recharts";
 import { DashboardContext } from "../Context/DashboardContext";
-import LoadingSpinner from "../Components/Reusable/LoadingSpinner"
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 
 const COLORS = [
   "#169698",
@@ -36,9 +36,14 @@ const COLORS = [
 ];
 
 const Dashboard = () => {
-  const { dashboardData, loading, error } = useContext(DashboardContext);
+  const context = useContext(DashboardContext);
 
-  // Loading state
+  if (!context) {
+    return <div>Unauthorized or no dashboard access</div>;
+  }
+
+  const { dashboardData, loading, error } = context;
+
   if (loading) {
     return <LoadingSpinner centered message="Loading Products..." />;
   }
@@ -84,8 +89,8 @@ const Dashboard = () => {
 
   // Calculate KYC percentage
   const kycPercentage =
-    totalUsers > 0 ? ((totalKycApproved / totalUsers) * 100).toFixed(1) : 0;
-  const kycPending = totalUsers - totalKycApproved;
+    totalUsers > 0 ? ((totalKycApproved / totalCustomers) * 100).toFixed(1) : 0;
+  const kycPending = totalCustomers - totalKycApproved;
 
   // Prepare pie chart data for KYC
   const kycPieData = [
@@ -97,7 +102,6 @@ const Dashboard = () => {
   const handleRefresh = () => {
     window.location.reload();
   };
-
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8 py-6 space-y-8 transition-all duration-500">
@@ -111,7 +115,6 @@ const Dashboard = () => {
             Welcome back! Here's what's happening today.
           </p>
         </div>
-
       </div>
 
       {/* Quick Stats - Top Row */}
@@ -130,7 +133,7 @@ const Dashboard = () => {
             border: "border-[#8B5CF6]",
           },
           {
-            title: "Total Factories",
+            title: "Total Admin Users",
             value: totalFactories.toLocaleString(),
             icon: <Factory className="w-8 h-8 text-[#F97316]" />,
             border: "border-[#F97316]",
@@ -204,9 +207,11 @@ const Dashboard = () => {
                 <XAxis
                   dataKey="state"
                   stroke="#9ca3af"
-                  angle={-45}
+                  angle={-90}
                   textAnchor="end"
-                  height={80}
+                  height={100}
+                  interval={0}
+                  tick={{ fontSize: 12 }}
                 />
                 <YAxis stroke="#9ca3af" />
                 <Tooltip />
@@ -270,8 +275,6 @@ const Dashboard = () => {
                 />
               </PieChart>
             </ResponsiveContainer>
-
-
           </div>
         </div>
       </div>
