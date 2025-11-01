@@ -165,7 +165,7 @@ const Dashboard = () => {
             border: "border-[#22C55E]",
           },
           {
-            title: "Points Redeemed",
+            title: "Points Scanned",
             value: totalRedeemedPoints.toLocaleString(),
             icon: <TrendingUp className="w-8 h-8 text-[#D7145D]" />,
             border: "border-[#D7145D]",
@@ -373,7 +373,7 @@ const Dashboard = () => {
                   <th className="pb-2">User Name</th>
                   <th className="pb-2">City</th>
                   <th className="pb-2">State</th>
-                  <th className="pb-2">Points Redeemed</th>
+                  <th className="pb-2">Points Scanned</th>
                 </tr>
               </thead>
               <tbody>
