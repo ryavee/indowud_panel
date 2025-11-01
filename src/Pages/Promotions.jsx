@@ -379,10 +379,17 @@ const Promotions = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-xs animate-fadeIn p-4"
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-xs flex items-center justify-center z-50 animate-fadeIn p-4"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) setIsModalOpen(false);
+          }}
         >
-          <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-full sm:max-w-2xl p-6 border border-gray-100 transform animate-modalPop relative">
-            {/* Close button */}
+          <div
+            className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-full sm:max-w-3xl p-6 border border-gray-100 transform animate-modalPop relative"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* ✕ Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 cursor-pointer"
@@ -395,12 +402,46 @@ const Promotions = () => {
               {editingPromotion ? "Edit Promotion" : "Add New Promotion"}
             </h3>
 
-            <ProductSelectComponent
-              formData={formData}
-              handleInputChange={handleInputChange}
-            />
+            {/* Product Selection */}
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Select Product(s) <span className="text-red-500">*</span>
+              </label>
+              <div className="flex items-center gap-2 mb-2">
+                <input
+                  type="checkbox"
+                  id="selectAll"
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      const allIds = products.map((p) => p.id);
+                      const allNames = products.map((p) => p.productName);
+                      setFormData((prev) => ({
+                        ...prev,
+                        productId: allIds,
+                        productName: allNames.join(", "),
+                      }));
+                    } else {
+                      setFormData((prev) => ({
+                        ...prev,
+                        productId: "",
+                        productName: "",
+                      }));
+                    }
+                  }}
+                />
+                <label htmlFor="selectAll" className="text-sm text-gray-700 cursor-pointer">
+                  Select All Products
+                </label>
+              </div>
 
-            <div>
+              <ProductSelectComponent
+                formData={formData}
+                handleInputChange={handleInputChange}
+              />
+            </div>
+
+            {/* Description */}
+            <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Description <span className="text-red-500">*</span>
               </label>
@@ -409,12 +450,42 @@ const Promotions = () => {
                 value={formData.Discription}
                 onChange={handleInputChange}
                 rows={3}
+                placeholder="Enter promotion details..."
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
-                placeholder="Enter promotion description"
               />
             </div>
 
+            {/* Offer Period */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Start Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="startDate"
+                  value={formData.startDate || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  End Date <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="date"
+                  name="endDate"
+                  value={formData.endDate || ""}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                />
+              </div>
+            </div>
+
+            {/* Points & Bonus */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Category
@@ -423,39 +494,79 @@ const Promotions = () => {
                   name="category"
                   value={formData.category}
                   onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3] cursor-pointer"
                 >
                   <option value="Bonus">Bonus</option>
                   <option value="Product Offer">Product Offer</option>
                 </select>
               </div>
 
+              {/* Bonus Type */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Points <span className="text-red-500">*</span>
+                  Bonus Type
+                </label>
+                <select
+                  name="bonusType"
+                  value={formData.bonusType || "points"}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3] cursor-pointer"
+                >
+                  <option value="points">Fixed Points</option>
+                  <option value="percentage">Percentage (%)</option>
+                </select>
+              </div>
+
+              {/* Points or % Input */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  {formData.bonusType === "percentage" ? "Bonus Percentage (%)" : "Points"}
+                  <span className="text-red-500">*</span>
                 </label>
                 <input
                   type="number"
                   name="point"
                   value={formData.point}
-                  onChange={handleInputChange}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setFormData((prev) => ({
+                      ...prev,
+                      point: value,
+                      calculatedPoints:
+                        prev.bonusType === "percentage"
+                          ? Math.round((Number(prev.basePoints || 50) * (1 + value / 100)) * 10) / 10
+                          : value,
+                    }));
+                  }}
+                  placeholder={formData.bonusType === "percentage" ? "Enter %" : "Enter points"}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
-                  placeholder="Enter points"
                 />
               </div>
-
-              <label className="flex items-center mt-6">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={formData.isActive}
-                  onChange={handleInputChange}
-                  className="mr-2 text-[#00A9A3] focus:ring-[#00A9A3]"
-                />
-                <span className="text-sm text-gray-700">Active</span>
-              </label>
             </div>
 
+            {/* Show calculated result */}
+            {formData.bonusType === "percentage" && (
+              <p className="text-sm text-gray-600 mt-2">
+                Final Points after bonus:{" "}
+                <span className="font-semibold text-[#00A9A3]">
+                  {formData.calculatedPoints || 0}
+                </span>
+              </p>
+            )}
+
+            {/* Active Toggle */}
+            <label className="flex items-center mt-4">
+              <input
+                type="checkbox"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleInputChange}
+                className="mr-2 text-[#00A9A3] focus:ring-[#00A9A3]"
+              />
+              <span className="text-sm text-gray-700">Active</span>
+            </label>
+
+            {/* Buttons */}
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}
@@ -476,6 +587,7 @@ const Promotions = () => {
           </div>
         </div>
       )}
+
 
 
       {/* ConfirmationModal (reusable) for delete */}
