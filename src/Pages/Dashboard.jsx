@@ -105,7 +105,6 @@ const Dashboard = () => {
     window.location.reload();
   };
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8 py-6 space-y-8 transition-all duration-500">
       {/* Header */}
@@ -118,7 +117,6 @@ const Dashboard = () => {
             Welcome back! Here's what's happening today.
           </p>
         </div>
-
       </div>
 
       {/* Quick Stats - Top Row */}
@@ -137,7 +135,7 @@ const Dashboard = () => {
             border: "border-[#8B5CF6]",
           },
           {
-            title: "Total Factories",
+            title: "Total Admin Users",
             value: totalFactories.toLocaleString(),
             icon: <Factory className="w-8 h-8 text-[#F97316]" />,
             border: "border-[#F97316]",
@@ -211,9 +209,11 @@ const Dashboard = () => {
                 <XAxis
                   dataKey="state"
                   stroke="#9ca3af"
-                  angle={-45}
+                  angle={-90}
                   textAnchor="end"
-                  height={80}
+                  height={100}
+                  interval={0}
+                  tick={{ fontSize: 12 }}
                 />
                 <YAxis stroke="#9ca3af" />
                 <Tooltip />

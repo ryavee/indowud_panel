@@ -47,6 +47,8 @@ const StatusBadge = ({ status }) => {
 const RoleBadge = ({ role }) => {
   const getRoleColor = (role) => {
     switch (role) {
+      case "Super Admin":
+        return "bg-red-100 text-red-800";
       case "Admin":
         return "bg-blue-100 text-blue-800";
       case "QR Generate":
@@ -219,6 +221,7 @@ const AdminUsers = () => {
             className="border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-500"
           >
             <option value="All">All Roles</option>
+            <option value="Super Admin">Super Admin</option>
             <option value="Admin">Admin</option>
             <option value="QR Generate">QR Generate</option>
           </select>
