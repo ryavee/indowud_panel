@@ -35,20 +35,28 @@ export const PromotionalProvider = ({ children }) => {
       setError(null);
       const response = await createNewPromotion(promotionData);
 
-      let newPromotion;
-      if (response && response.data) newPromotion = response.data;
-      else if (response && response.promotion)
-        newPromotion = response.promotion;
-      else newPromotion = response;
+      let newPromotions = [];
 
-      if (!newPromotion) {
-        console.warn("API didn't return created promotion, refetching all");
+      if (Array.isArray(response)) {
+        newPromotions = response;
+      } else if (response && response.data) {
+        newPromotions = Array.isArray(response.data)
+          ? response.data
+          : [response.data];
+      } else if (response && response.promotion) {
+        newPromotions = [response.promotion];
+      } else if (response) {
+        newPromotions = [response];
+      }
+
+      if (!newPromotions.length) {
+        console.warn("API didn't return created promotions, refetching all");
         await fetchPromotions();
         return;
       }
 
-      setPromotions((prev) => [...prev, newPromotion]);
-      return newPromotion;
+      setPromotions((prev) => [...prev, ...newPromotions]);
+      return newPromotions;
     } catch (err) {
       console.error("Error creating promotion:", err);
       setError(err.message || "Failed to create promotion");

@@ -465,9 +465,7 @@ const Promotions = () => {
                         />
                       </td>
                       <td className="px-6 py-4 text-blue-600 font-medium">
-                        {`${promotion.bonusValue || 0} ${
-                          promotion.bonusType === "Percentage" ? "%" : "pts"
-                        }`}
+                        {promotion.calculation}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-xs">
