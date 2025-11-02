@@ -3,12 +3,14 @@ import {
   Plus,
   Loader,
   AlertCircle,
-  Box,           // product
-  FileText,      // description
-  Tag,           // category
-  CheckCircle as CheckIcon, // status (alias to avoid name clash)
-  CircleStar,          // points
-  MoreVertical,  // actions
+  Box,
+  FileText,
+  Tag,
+  CheckCircle,
+  Star,
+  MoreVertical,
+  Calendar,
+  Percent,
 } from "lucide-react";
 
 import { toast } from "react-hot-toast";
@@ -22,17 +24,16 @@ import ActionButtons from "../Components/Reusable/ActionButtons";
 import Pagination from "../Components/Reusable/Pagination";
 import ConfirmationModal from "../Components/ConfirmationModal";
 
-// Status badge
 const StatusBadge = ({ status }) => (
   <span
-    className={`px-2 py-1 rounded-full text-xs font-medium ${status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-      }`}
+    className={`px-2 py-1 rounded-full text-xs font-medium ${
+      status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+    }`}
   >
     {status ? "Active" : "Inactive"}
   </span>
 );
 
-// Category badge
 const CategoryBadge = ({ category }) => {
   const colors = {
     Bonus: "bg-blue-100 text-blue-800",
@@ -40,15 +41,31 @@ const CategoryBadge = ({ category }) => {
   };
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium ${colors[category] || "bg-gray-100 text-gray-800"
-        }`}
+      className={`px-2 py-1 rounded-full text-xs font-medium ${
+        colors[category] || "bg-gray-100 text-gray-800"
+      }`}
     >
       {category}
     </span>
   );
 };
 
-// Error alert
+const BonusTypeBadge = ({ bonusType }) => {
+  const colors = {
+    "Fixed Points": "bg-indigo-100 text-indigo-800",
+    Percentage: "bg-amber-100 text-amber-800",
+  };
+  return (
+    <span
+      className={`px-2 py-1 rounded-full text-xs font-medium ${
+        colors[bonusType] || "bg-gray-100 text-gray-800"
+      }`}
+    >
+      {bonusType}
+    </span>
+  );
+};
+
 const ErrorAlert = ({ error, onClose }) => {
   if (!error) return null;
   return (
@@ -83,28 +100,30 @@ const Promotions = () => {
 
   const { products, loading: productsLoading } = useProductContext();
 
-  // UI + form state
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPromotion, setEditingPromotion] = useState(null);
 
-  // Delete flow state (uses ConfirmationModal)
   const [promotionToDelete, setPromotionToDelete] = useState(null);
   const [deleteLoading, setDeleteLoading] = useState(false);
 
   const [formData, setFormData] = useState({
-    productName: "",
-    productId: "",
+    products: [],
     Discription: "",
     isActive: true,
     category: "Bonus",
+    bonusType: "Fixed Points",
     point: "",
+    bonusPercentage: "",
+    startDate: "",
+    endDate: "",
   });
 
-  // Operation loaders
   const [createOrUpdateLoading, setCreateOrUpdateLoading] = useState(false);
-  const [actionLoading, setActionLoading] = useState({ edit: null, delete: null });
+  const [actionLoading, setActionLoading] = useState({
+    edit: null,
+    delete: null,
+  });
 
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const totalPages = Math.max(1, Math.ceil(promotions.length / pageSize));
@@ -114,30 +133,32 @@ const Promotions = () => {
     return promotions.slice(start, start + pageSize);
   }, [promotions, currentPage, pageSize]);
 
-  // reset form when modal closes
   useEffect(() => {
     if (!isModalOpen) {
       setFormData({
-        productName: "",
-        productId: "",
+        products: [],
         Discription: "",
         isActive: true,
         category: "Bonus",
+        bonusType: "Fixed Points",
         point: "",
+        bonusPercentage: "",
+        startDate: "",
+        endDate: "",
       });
       setEditingPromotion(null);
     }
   }, [isModalOpen]);
 
-  // Input change handler
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
-    if (name === "productName") {
-      const selectedProduct = products.find((p) => p.productName === value);
+    if (name === "bonusType") {
+      // Clear the other field when switching bonus type
       setFormData((prev) => ({
         ...prev,
-        productName: value,
-        productId: selectedProduct ? selectedProduct.id : "",
+        bonusType: value,
+        point: value === "Fixed Points" ? prev.point : "",
+        bonusPercentage: value === "Percentage" ? prev.bonusPercentage : "",
       }));
     } else {
       setFormData((prev) => ({
@@ -147,16 +168,77 @@ const Promotions = () => {
     }
   };
 
-  // Create / Update submit
   const handleFormSubmit = async () => {
-    if (!formData.productName || !formData.Discription || !formData.point) {
-      toast.error("Please fill in all required fields");
+    // Validation
+    if (!formData.products || formData.products.length === 0) {
+      toast.error("Please select at least one product");
+      return;
+    }
+    const selectedProductIds = formData.products.map((p) => p.productId);
+    const productsWithActivePromotions = [];
+
+    for (const productId of selectedProductIds) {
+      const existingPromotion = promotions.find(
+        (promo) =>
+          promo.productIds?.includes(productId) &&
+          promo.active &&
+          promo.id !== editingPromotion?.id 
+      );
+
+      if (existingPromotion) {
+        const product = formData.products.find(
+          (p) => p.productId === productId
+        );
+        productsWithActivePromotions.push(product?.productName || productId);
+      }
+    }
+
+    if (productsWithActivePromotions.length > 0) {
+      const productList = productsWithActivePromotions.join(", ");
+      toast.error(
+        `The following product(s) already have active promotions: ${productList}. Please deactivate existing promotions first.`,
+        { duration: 5000 }
+      );
+      return;
+    }
+
+    if (formData.bonusType === "Fixed Points" && !formData.point) {
+      toast.error("Please enter points for Fixed Points bonus type");
+      return;
+    }
+
+    if (formData.bonusType === "Percentage" && !formData.bonusPercentage) {
+      toast.error("Please enter percentage for Percentage bonus type");
+      return;
+    }
+
+    if (!formData.startDate || !formData.endDate) {
+      toast.error("Please select both start and end dates");
+      return;
+    }
+
+    if (new Date(formData.startDate) > new Date(formData.endDate)) {
+      toast.error("End date must be after start date");
       return;
     }
 
     setCreateOrUpdateLoading(true);
     try {
-      const payload = { ...formData, point: parseInt(formData.point, 10) };
+      const payload = {
+        productIds: formData.products.map((p) => p.productId),
+        productNames: formData.products.map((p) => p.productName),
+        description: formData.Discription,
+        active: formData.isActive,
+        category: formData.category,
+        bonusType: formData.bonusType,
+        bonusValue:
+          formData.bonusType === "Fixed Points"
+            ? parseInt(formData.point, 10)
+            : parseFloat(formData.bonusPercentage),
+        startDate: formData.startDate,
+        endDate: formData.endDate,
+      };
+
       if (editingPromotion) {
         await editPromotion(editingPromotion.id, payload);
         toast.success("Promotion updated successfully");
@@ -172,23 +254,38 @@ const Promotions = () => {
     }
   };
 
-  // Prepare edit
   const handleEditPromotion = (promotion) => {
     setActionLoading((prev) => ({ ...prev, edit: promotion.id }));
     setEditingPromotion(promotion);
+
+    // Reconstruct products array from productIds and productNames
+    const productsArray =
+      promotion.productIds?.map((id, index) => ({
+        productId: id,
+        productName: promotion.productNames?.[index] || "",
+      })) || [];
+
     setFormData({
-      productName: promotion.productName || "",
-      productId: promotion.productId || "",
-      Discription: promotion.Discription || "",
-      isActive: promotion.isActive ?? true,
+      products: productsArray,
+      Discription: promotion.description || "",
+      isActive: promotion.active ?? true,
       category: promotion.category || "Bonus",
-      point: promotion.point?.toString() || "",
+      bonusType: promotion.bonusType || "Fixed Points",
+      point:
+        promotion.bonusType === "Fixed Points"
+          ? promotion.bonusValue?.toString() || ""
+          : "",
+      bonusPercentage:
+        promotion.bonusType === "Percentage"
+          ? promotion.bonusValue?.toString() || ""
+          : "",
+      startDate: promotion.startDate || "",
+      endDate: promotion.endDate || "",
     });
     setIsModalOpen(true);
     setActionLoading((prev) => ({ ...prev, edit: null }));
   };
 
-  // Open confirmation modal for delete
   const handleDeletePromotion = (promotion) => {
     setPromotionToDelete(promotion);
   };
@@ -197,7 +294,6 @@ const Promotions = () => {
     setPromotionToDelete(null);
   };
 
-  // Confirm delete -> uses removePromotion from context
   const handleConfirmDelete = async () => {
     if (!promotionToDelete) return;
     setDeleteLoading(true);
@@ -212,21 +308,29 @@ const Promotions = () => {
     }
   };
 
-  // global initial loading
+  const formatDate = (dateString) => {
+    if (!dateString) return "-";
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  };
+
   if (loading && promotions.length === 0) {
     return <LoadingSpinner centered message="Loading promotions..." />;
   }
-
 
   const headerConfig = [
     { key: "productName", label: "Product Name", Icon: Box },
     { key: "description", label: "Description", Icon: FileText },
     { key: "category", label: "Category", Icon: Tag },
-    { key: "status", label: "Status", Icon: CheckIcon },
-    { key: "points", label: "Points", Icon: CircleStar },
+    { key: "bonusType", label: "Bonus Type", Icon: Percent },
+    { key: "value", label: "Value", Icon: Star },
+    { key: "dates", label: "Duration", Icon: Calendar },
+    { key: "status", label: "Status", Icon: CheckCircle },
     { key: "actions", label: "Action", Icon: MoreVertical },
   ];
-
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
@@ -249,15 +353,17 @@ const Promotions = () => {
           </p>
         </div>
 
-        <div className="flex  item-center gap-2">
-
-
+        <div className="flex item-center gap-2">
           <ImportButton
             label="Import"
             requiredHeaders={[
               { key: "productName", header: "Product Name" },
               { key: "productId", header: "Product ID" },
+              { key: "bonusType", header: "Bonus Type" },
               { key: "point", header: "Point" },
+              { key: "bonusPercentage", header: "Bonus Percentage" },
+              { key: "startDate", header: "Start Date" },
+              { key: "endDate", header: "End Date" },
             ]}
             disabled={loading}
             onUpload={async (file) => {
@@ -274,10 +380,13 @@ const Promotions = () => {
             columns={[
               { key: "productName", header: "Product Name" },
               { key: "productId", header: "Product ID" },
-              { key: "Discription", header: "Description" },
-              { key: "isActive", header: "Active" },
+              { key: "description", header: "Description" },
+              { key: "active", header: "Active" },
               { key: "category", header: "Category" },
-              { key: "point", header: "Point" },
+              { key: "bonusType", header: "Bonus Type" },
+              { key: "bonusValue", header: "Bonus Value" },
+              { key: "startDate", header: "Start Date" },
+              { key: "endDate", header: "End Date" },
             ]}
             filename="promotions"
           />
@@ -293,11 +402,10 @@ const Promotions = () => {
               <Loader className="w-4 h-4 animate-spin" />
             ) : (
               <>
-                <Plus className="W-4 h-4" />
+                <Plus className="w-4 h-4" />
                 <span>Add Promotion</span>
               </>
             )}
-
           </button>
         </div>
       </div>
@@ -328,31 +436,64 @@ const Promotions = () => {
                   </tr>
                 </thead>
 
-
                 <tbody className="bg-white divide-y divide-gray-200">
                   {paginatedPromotions.map((promotion) => (
-                    <tr key={promotion.id || promotion.productName} className="hover:bg-gray-50">
-                      <td className="px-6 py-4">{promotion.productName}</td>
-                      <td className="px-6 py-4">{promotion.Discription}</td>
+                    <tr key={promotion.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4">
+                        {promotion.productNames?.length > 1 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {promotion.productNames.map((name, idx) => (
+                              <span
+                                key={idx}
+                                className="px-2 py-1 bg-gray-100 text-gray-700 rounded text-xs"
+                              >
+                                {name}
+                              </span>
+                            ))}
+                          </div>
+                        ) : (
+                          promotion.productNames?.[0] || "-"
+                        )}
+                      </td>
+                      <td className="px-6 py-4">{promotion.description}</td>
                       <td className="px-6 py-4">
                         <CategoryBadge category={promotion.category} />
                       </td>
                       <td className="px-6 py-4">
-                        <StatusBadge status={promotion.isActive} />
+                        <BonusTypeBadge
+                          bonusType={promotion.bonusType || "Fixed Points"}
+                        />
                       </td>
                       <td className="px-6 py-4 text-blue-600 font-medium">
-                        {promotion.point || 0} pts
+                        {`${promotion.bonusValue || 0} ${
+                          promotion.bonusType === "Percentage" ? "%" : "pts"
+                        }`}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-xs">
+                          <div className="text-gray-600">
+                            {formatDate(promotion.startDate)}
+                          </div>
+                          <div className="text-gray-400">to</div>
+                          <div className="text-gray-600">
+                            {formatDate(promotion.endDate)}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <StatusBadge status={promotion.active} />
                       </td>
                       <td className="px-6 py-4">
                         <ActionButtons
-                          onEdit={() => handleEditPromotion(promotion)}
+                          onEdit={() =>{}}
                           onDelete={() => handleDeletePromotion(promotion)}
                           loadingEdit={
                             actionLoading.edit === promotion.id ||
                             createOrUpdateLoading
                           }
                           loadingDelete={
-                            actionLoading.delete === promotion.id || deleteLoading
+                            actionLoading.delete === promotion.id ||
+                            deleteLoading
                           }
                           disableAll={createOrUpdateLoading}
                         />
@@ -379,9 +520,8 @@ const Promotions = () => {
 
       {/* Add/Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-xs animate-fadeIn p-4"
-        >
-          <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-full sm:max-w-2xl p-6 border border-gray-100 transform animate-modalPop relative">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 backdrop-blur-xs animate-fadeIn p-4">
+          <div className="bg-white rounded-xl shadow-2xl w-[90%] sm:w-full sm:max-w-3xl p-6 border border-gray-100 transform animate-modalPop relative max-h-[90vh] overflow-y-auto">
             {/* Close button */}
             <button
               onClick={() => setIsModalOpen(false)}
@@ -395,65 +535,134 @@ const Promotions = () => {
               {editingPromotion ? "Edit Promotion" : "Add New Promotion"}
             </h3>
 
-            <ProductSelectComponent
-              formData={formData}
-              handleInputChange={handleInputChange}
-            />
-
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description <span className="text-red-500">*</span>
-              </label>
-              <textarea
-                name="Discription"
-                value={formData.Discription}
-                onChange={handleInputChange}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
-                placeholder="Enter promotion description"
+            <div className="space-y-4">
+              <ProductSelectComponent
+                formData={formData}
+                handleInputChange={handleInputChange}
+                isMultiple={true}
               />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category
-                </label>
-                <select
-                  name="category"
-                  value={formData.category}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
-                >
-                  <option value="Bonus">Bonus</option>
-                  <option value="Product Offer">Product Offer</option>
-                </select>
-              </div>
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Points <span className="text-red-500">*</span>
+                  Description <span className="text-red-500">*</span>
                 </label>
-                <input
-                  type="number"
-                  name="point"
-                  value={formData.point}
+                <textarea
+                  name="Discription"
+                  value={formData.Discription}
                   onChange={handleInputChange}
+                  rows={3}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
-                  placeholder="Enter points"
+                  placeholder="Enter promotion description"
                 />
               </div>
 
-              <label className="flex items-center mt-6">
-                <input
-                  type="checkbox"
-                  name="isActive"
-                  checked={formData.isActive}
-                  onChange={handleInputChange}
-                  className="mr-2 text-[#00A9A3] focus:ring-[#00A9A3]"
-                />
-                <span className="text-sm text-gray-700">Active</span>
-              </label>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Start Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="startDate"
+                    value={formData.startDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    End Date <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="date"
+                    name="endDate"
+                    value={formData.endDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Category
+                  </label>
+                  <select
+                    name="category"
+                    value={formData.category}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                  >
+                    <option value="Bonus">Bonus</option>
+                    <option value="Product Offer">Product Offer</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Bonus Type <span className="text-red-500">*</span>
+                  </label>
+                  <select
+                    name="bonusType"
+                    value={formData.bonusType}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                  >
+                    <option value="Fixed Points">Fixed Points</option>
+                    <option value="Percentage">Percentage</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {formData.bonusType === "Fixed Points" ? (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Points <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="point"
+                      value={formData.point}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                      placeholder="Enter points"
+                      min="0"
+                    />
+                  </div>
+                ) : (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Bonus Percentage (%){" "}
+                      <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="number"
+                      name="bonusPercentage"
+                      value={formData.bonusPercentage}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
+                      placeholder="Enter percentage"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                    />
+                  </div>
+                )}
+
+                <label className="flex items-center mt-6">
+                  <input
+                    type="checkbox"
+                    name="isActive"
+                    checked={formData.isActive}
+                    onChange={handleInputChange}
+                    className="mr-2 text-[#00A9A3] focus:ring-[#00A9A3]"
+                  />
+                  <span className="text-sm text-gray-700">Active</span>
+                </label>
+              </div>
             </div>
 
             <div className="flex justify-end gap-3 mt-6">
@@ -469,7 +678,9 @@ const Promotions = () => {
                 disabled={createOrUpdateLoading || productsLoading}
                 className="px-4 py-2 bg-[#00A9A3] hover:bg-[#128083] text-white rounded-md flex items-center gap-2 cursor-pointer"
               >
-                {createOrUpdateLoading && <Loader className="w-4 h-4 animate-spin" />}
+                {createOrUpdateLoading && (
+                  <Loader className="w-4 h-4 animate-spin" />
+                )}
                 {editingPromotion ? "Update Promotion" : "Create Promotion"}
               </button>
             </div>
@@ -477,14 +688,13 @@ const Promotions = () => {
         </div>
       )}
 
-
       {/* ConfirmationModal (reusable) for delete */}
       <ConfirmationModal
         isOpen={!!promotionToDelete}
         title="Delete Promotion"
         message={
           promotionToDelete
-            ? `Are you sure you want to delete "${promotionToDelete.productName}"? This action cannot be undone.`
+            ? `Are you sure you want to delete this promotion? This action cannot be undone.`
             : ""
         }
         onConfirm={handleConfirmDelete}
