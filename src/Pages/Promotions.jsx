@@ -665,6 +665,29 @@ const Promotions = () => {
               </div>
             </div>
 
+            {/* Show calculated result */}
+            {formData.bonusType === "percentage" && (
+              <p className="text-sm text-gray-600 mt-2">
+                Final Points after bonus:{" "}
+                <span className="font-semibold text-[#00A9A3]">
+                  {formData.calculatedPoints || 0}
+                </span>
+              </p>
+            )}
+
+            {/* Active Toggle */}
+            <label className="flex items-center mt-4">
+              <input
+                type="checkbox"
+                name="isActive"
+                checked={formData.isActive}
+                onChange={handleInputChange}
+                className="mr-2 text-[#00A9A3] focus:ring-[#00A9A3]"
+              />
+              <span className="text-sm text-gray-700">Active</span>
+            </label>
+
+            {/* Buttons */}
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}

@@ -37,10 +37,11 @@ const ProductSelectComponent = ({
         },
       });
     } else {
-      handleInputChange({ target: { name: "productId", value: "" } });
-      handleInputChange({ target: { name: "productName", value: "" } });
-      handleInputChange({ target: { name: "productUnit", value: "" } });
+      // union of selected and visible
+      next = Array.from(new Set([...selected, ...visible]));
     }
+    setSelected(next);
+    commitSelection(next);
   };
 
   const handleCheckboxChange = (product) => {

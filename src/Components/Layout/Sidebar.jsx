@@ -56,11 +56,7 @@ const Sidebar = ({ onLogout, onClose }) => {
       items: [
         { name: "Feed", icon: Newspaper, path: "/feed" },
         { name: "Manage Tickets", icon: TicketCheck, path: "/tickets" },
-        {
-          name: "Announcements",
-          icon: Megaphone,
-          path: "/system/announcements",
-        },
+        {name: "Announcements", icon: Megaphone, path: "/announcements",},
         { name: "Settings", icon: Settings, path: "/settings" },
       ],
     },
