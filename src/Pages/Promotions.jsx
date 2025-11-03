@@ -18,7 +18,6 @@ import { usePromotionalContext } from "../Context/PromotionalContext";
 import { useProductContext } from "../Context/ProductsContext";
 import ProductSelectComponent from "../Components/select_product";
 import ExportButton from "../Components/export_button";
-import ImportButton from "../Components/Import_button";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 import ActionButtons from "../Components/Reusable/ActionButtons";
 import Pagination from "../Components/Reusable/Pagination";
@@ -94,7 +93,6 @@ const Promotions = () => {
     createPromotion,
     editPromotion,
     removePromotion,
-    importPromotions,
     clearError,
   } = usePromotionalContext();
 
@@ -182,7 +180,7 @@ const Promotions = () => {
         (promo) =>
           promo.productIds?.includes(productId) &&
           promo.active &&
-          promo.id !== editingPromotion?.id 
+          promo.id !== editingPromotion?.id
       );
 
       if (existingPromotion) {
@@ -354,29 +352,21 @@ const Promotions = () => {
         </div>
 
         <div className="flex item-center gap-2">
-          <ImportButton
-            label="Import"
-            requiredHeaders={[
-              { key: "productName", header: "Product Name" },
-              { key: "productId", header: "Product ID" },
-              { key: "bonusType", header: "Bonus Type" },
-              { key: "point", header: "Point" },
-              { key: "bonusPercentage", header: "Bonus Percentage" },
-              { key: "startDate", header: "Start Date" },
-              { key: "endDate", header: "End Date" },
-            ]}
-            disabled={loading}
-            onUpload={async (file) => {
-              try {
-                await importPromotions(file);
-                toast.success("Promotions imported successfully");
-              } catch (err) {
-                toast.error(err?.message || "Import failed");
-              }
-            }}
-          />
           <ExportButton
-            data={promotions}
+            data={promotions.map((promo) => ({
+              productName: promo.productNames?.join(", ") || "",
+              productId: promo.productIds?.join(", ") || "",
+              description: promo.description || "",
+              active: promo.active ? "Yes" : "No",
+              category: promo.category || "",
+              bonusType: promo.bonusType || "",
+              bonusValue: promo.bonusValue ?? "",
+              startDate: promo.startDate || "",
+              endDate: promo.endDate || "",
+              createdAt: promo.createdAt
+                ? new Date(promo.createdAt).toLocaleString()
+                : "",
+            }))}
             columns={[
               { key: "productName", header: "Product Name" },
               { key: "productId", header: "Product ID" },
@@ -387,10 +377,10 @@ const Promotions = () => {
               { key: "bonusValue", header: "Bonus Value" },
               { key: "startDate", header: "Start Date" },
               { key: "endDate", header: "End Date" },
+              { key: "createdAt", header: "Created At" },
             ]}
             filename="promotions"
           />
-
           <button
             onClick={() => setIsModalOpen(true)}
             disabled={createOrUpdateLoading}
@@ -483,7 +473,7 @@ const Promotions = () => {
                       </td>
                       <td className="px-6 py-4">
                         <ActionButtons
-                          onEdit={() =>{}}
+                          onEdit={() => {}}
                           onDelete={() => handleDeletePromotion(promotion)}
                           loadingEdit={
                             actionLoading.edit === promotion.id ||
@@ -662,8 +652,6 @@ const Promotions = () => {
                 </label>
               </div>
             </div>
-
-            {/* Show calculated result */}
             {formData.bonusType === "percentage" && (
               <p className="text-sm text-gray-600 mt-2">
                 Final Points after bonus:{" "}
@@ -672,20 +660,6 @@ const Promotions = () => {
                 </span>
               </p>
             )}
-
-            {/* Active Toggle */}
-            <label className="flex items-center mt-4">
-              <input
-                type="checkbox"
-                name="isActive"
-                checked={formData.isActive}
-                onChange={handleInputChange}
-                className="mr-2 text-[#00A9A3] focus:ring-[#00A9A3]"
-              />
-              <span className="text-sm text-gray-700">Active</span>
-            </label>
-
-            {/* Buttons */}
             <div className="flex justify-end gap-3 mt-6">
               <button
                 onClick={() => setIsModalOpen(false)}

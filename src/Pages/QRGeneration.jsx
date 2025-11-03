@@ -603,7 +603,7 @@ const QRGeneration = () => {
             {formData.batchId && (
               <button
                 onClick={resetForm}
-                className="bg-orange-500 text-white py-2 px-4 rounded-md hover:bg-orange-600 transition-colors font-medium"
+                className=" text-white py-2 px-4 rounded-md text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083]  transition-colors font-medium"
               >
                 Reset
               </button>
@@ -715,7 +715,7 @@ const QRGeneration = () => {
             <button
               onClick={handleGenerate}
               disabled={loading || generatingPDF}
-              className="flex-1 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 text-white py-2 px-4 rounded-md text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083]  transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {loading
                 ? "Generating..."

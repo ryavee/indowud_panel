@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import toast, { Toaster } from "react-hot-toast";
 import {
   Users,
   CheckCircle,
@@ -22,24 +23,22 @@ const RedemptionManagement = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedDate, setSelectedDate] = useState("");
   const [actionLoading, setActionLoading] = useState(null);
-  const [notification, setNotification] = useState(null);
-
-  const showNotification = (message, type = "success") => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 4000);
-  };
+  const [selectedRows, setSelectedRows] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [bulkActionLoading, setBulkActionLoading] = useState(false);
 
   const handleStatusChange = async (id, uid, newStatus) => {
     try {
       setActionLoading(id);
       const result = await updateRedemptionStatus(id, uid, newStatus);
       if (result.success) {
-        showNotification(result.message, "success");
+        toast.success(result.message);
       } else {
-        showNotification(result.message, "error");
+        toast.error(result.message);
       }
     } catch (err) {
-      showNotification("An unexpected error occurred", "error");
+      toast.error("An unexpected error occurred");
       console.error("Error in handleStatusChange:", err);
     } finally {
       setActionLoading(null);
@@ -47,25 +46,28 @@ const RedemptionManagement = () => {
   };
 
   const getStatusDisplay = (status) => {
-    switch (status) {
-      case "P":
-        return "Pending";
-      case "A":
-        return "Approved";
-      case "R":
-        return "Rejected";
-      default:
-        return status;
-    }
+    const statusMap = {
+      P: "Pending",
+      A: "Approved",
+      R: "Rejected",
+    };
+    return statusMap[status] || status;
   };
 
-  // ✅ Filtering logic
+  const getStatusClasses = (status) => {
+    const classMap = {
+      P: "bg-yellow-100 text-yellow-700",
+      A: "bg-green-100 text-green-700",
+      R: "bg-red-100 text-red-700",
+    };
+    return `${classMap[status]} px-3 py-1 rounded-full text-xs font-medium`;
+  };
+
   const filteredData = useMemo(() => {
     let filtered = redemptions;
 
     if (filter !== "All") {
-      const statusCode =
-        filter === "Pending" ? "P" : filter === "Approved" ? "A" : "R";
+      const statusCode = { Pending: "P", Approved: "A", Rejected: "R" }[filter];
       filtered = filtered.filter((r) => r.status === statusCode);
     }
 
@@ -82,9 +84,7 @@ const RedemptionManagement = () => {
 
     if (selectedDate) {
       filtered = filtered.filter((r) => {
-        const requestDate = new Date(r.requestedAt)
-          .toISOString()
-          .split("T")[0];
+        const requestDate = new Date(r.requestedAt).toISOString().split("T")[0];
         return requestDate === selectedDate;
       });
     }
@@ -100,26 +100,166 @@ const RedemptionManagement = () => {
     return { total, pending, approved, rejected };
   }, [redemptions]);
 
-  // ✅ Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
   const totalPages = Math.ceil(filteredData.length / pageSize);
   const paginatedData = filteredData.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
 
-  const getStatusClasses = (status) => {
-    switch (status) {
-      case "P":
-        return "bg-yellow-100 text-yellow-700 px-3 py-1 rounded-full text-xs font-medium";
-      case "A":
-        return "bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-medium";
-      case "R":
-        return "bg-red-100 text-red-700 px-3 py-1 rounded-full text-xs font-medium";
-      default:
-        return "";
+  const handleSelectAll = (e) => {
+    setSelectedRows(e.target.checked ? paginatedData.map((r) => r.id) : []);
+  };
+
+  const handleBulkAction = async (newStatus) => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one redemption");
+      return;
     }
+
+    // Filter only pending redemptions
+    const selectedRedemptions = redemptions.filter(
+      (r) => selectedRows.includes(r.id) && r.status === "P"
+    );
+
+    if (selectedRedemptions.length === 0) {
+      toast.error("No pending redemptions selected");
+      return;
+    }
+
+    const actionText = newStatus === "A" ? "approve" : "reject";
+    const confirmMessage = `Are you sure you want to ${actionText} ${selectedRedemptions.length} redemption(s)?`;
+
+    if (!window.confirm(confirmMessage)) {
+      return;
+    }
+
+    try {
+      setBulkActionLoading(true);
+
+      // Log the selected IDs and status for API connection
+      console.log("Bulk Action Data:", {
+        redemptionIds: selectedRedemptions.map((r) => r.id),
+        userIds: selectedRedemptions.map((r) => r.uid),
+        status: newStatus,
+        count: selectedRedemptions.length,
+      });
+
+      // Process each redemption
+      let successCount = 0;
+      let failCount = 0;
+
+      for (const redemption of selectedRedemptions) {
+        try {
+          const result = await updateRedemptionStatus(
+            redemption.id,
+            redemption.uid,
+            newStatus
+          );
+          if (result.success) {
+            successCount++;
+          } else {
+            failCount++;
+          }
+        } catch (err) {
+          console.error(`Error updating ${redemption.id}:`, err);
+          failCount++;
+        }
+      }
+
+      // Show results
+      if (successCount > 0) {
+        toast.success(
+          `Successfully ${actionText}ed ${successCount} redemption(s)`
+        );
+      }
+      if (failCount > 0) {
+        toast.error(`Failed to ${actionText} ${failCount} redemption(s)`);
+      }
+
+      // Clear selection after bulk action
+      setSelectedRows([]);
+    } catch (err) {
+      toast.error("An unexpected error occurred during bulk action");
+      console.error("Error in handleBulkAction:", err);
+    } finally {
+      setBulkActionLoading(false);
+    }
+  };
+
+  const handleSelectRow = (id) => {
+    setSelectedRows((prev) =>
+      prev.includes(id) ? prev.filter((rowId) => rowId !== id) : [...prev, id]
+    );
+  };
+
+  const isAllSelected =
+    paginatedData.length > 0 && selectedRows.length === paginatedData.length;
+  const isSomeSelected =
+    selectedRows.length > 0 && selectedRows.length < paginatedData.length;
+
+  const exportColumns = [
+    { header: "ID", key: "id" },
+    { header: "User Name", key: "userName" },
+    { header: "Phone", key: "userPhone" },
+    { header: "UPI ID", key: "upiId" },
+    { header: "UPI Number", key: "upiNumber" },
+    { header: "Points", key: "points" },
+    { header: "Ratio", key: "ratio" },
+    { header: "Total Value (₹)", key: "totalValue" },
+    {
+      header: "Status",
+      key: "status",
+      formatter: (value) => getStatusDisplay(value),
+    },
+    {
+      header: "Requested Date",
+      key: "requestedAt",
+      formatter: (value) => new Date(value).toLocaleString(),
+    },
+    { header: "Account Holder", key: "accountHolder" },
+    { header: "Account Number", key: "accountNumber" },
+    { header: "Account Type", key: "accountType" },
+    { header: "IFSC Code", key: "ifscCode" },
+    { header: "Bank Name", key: "bankName" },
+  ];
+
+  const handleCustomExport = () => {
+    if (selectedRows.length === 0) {
+      toast.error("Please select at least one row to export");
+      return;
+    }
+
+    const dataToExport = redemptions.filter((r) => selectedRows.includes(r.id));
+    const headers = exportColumns.map((col) => col.header);
+    const csvRows = [headers.join(",")];
+
+    dataToExport.forEach((item) => {
+      const row = exportColumns.map((col) => {
+        const value = item[col.key];
+        const formattedValue = col.formatter
+          ? col.formatter(value, item)
+          : value || "";
+        return formattedValue;
+      });
+      csvRows.push(row.map((field) => `"${field}"`).join(","));
+    });
+
+    const csvContent = csvRows.join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+
+    link.setAttribute("href", url);
+    link.setAttribute(
+      "download",
+      `redemptions-${new Date().toISOString().split("T")[0]}.csv`
+    );
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    toast.success(`Exported ${selectedRows.length} redemptions`);
   };
 
   const formatDate = (dateString) =>
@@ -129,7 +269,7 @@ const RedemptionManagement = () => {
       day: "numeric",
     });
 
-  if (loading)
+  if (loading) {
     return (
       <div className="p-6 flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -138,8 +278,9 @@ const RedemptionManagement = () => {
         </div>
       </div>
     );
+  }
 
-  if (error)
+  if (error) {
     return (
       <div className="p-6">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -148,28 +289,95 @@ const RedemptionManagement = () => {
         </div>
       </div>
     );
+  }
 
   return (
-
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
-      <div className="w-full max-w-7xl mx-auto">
-        {/* Toast Notification */}
-        {notification && (
-          <div
-            className={`fixed top-5 right-5 z-50 px-5 py-3 rounded-lg shadow-lg text-white transition-all ${notification.type === "success" ? "bg-green-600" : "bg-red-600"
-              }`}
-          >
-            {notification.message}
-          </div>
-        )}
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 4000,
+          style: {
+            background: "#363636",
+            color: "#fff",
+          },
+          success: {
+            style: {
+              background: "#059669",
+            },
+            iconTheme: {
+              primary: "#fff",
+              secondary: "#059669",
+            },
+          },
+          error: {
+            style: {
+              background: "#DC2626",
+            },
+            iconTheme: {
+              primary: "#fff",
+              secondary: "#DC2626",
+            },
+          },
+        }}
+      />
 
+      <div className="w-full max-w-7xl mx-auto">
         {/* Header */}
-        <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
-          Redemption Management
-        </h1>
-        <p className=" text-sm text-gray-600 mb-6">
-          Manage user redemption requests and update their statuses.
-        </p>
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+              Redemption Management
+            </h1>
+            <p className="text-sm text-gray-600">
+              Manage user redemption requests and update their statuses.
+            </p>
+          </div>
+          {selectedRows.length > 0 && (
+            <>
+              {" "}
+              <div className="flex flex-wrap gap-3 mb-4">
+                <button
+                  onClick={() => handleBulkAction("A")}
+                  disabled={bulkActionLoading || selectedRows.length === 0}
+                  className={`bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium transition 
+      ${
+        bulkActionLoading || selectedRows.length === 0
+          ? "opacity-50 cursor-not-allowed"
+          : ""
+      }`}
+                >
+                  {bulkActionLoading
+                    ? "Processing..."
+                    : `Approve Selected (${selectedRows.length})`}
+                </button>
+
+                <button
+                  onClick={() => handleBulkAction("R")}
+                  disabled={bulkActionLoading || selectedRows.length === 0}
+                  className={`bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition 
+      ${
+        bulkActionLoading || selectedRows.length === 0
+          ? "opacity-50 cursor-not-allowed"
+          : ""
+      }`}
+                >
+                  {bulkActionLoading
+                    ? "Processing..."
+                    : `Reject Selected (${selectedRows.length})`}
+                </button>
+
+                <button
+                  onClick={handleCustomExport}
+                  disabled={selectedRows.length === 0}
+                  className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md text-sm font-medium transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  Export Selected ({selectedRows.length})
+                </button>
+              </div>
+            </>
+          )}
+        </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 mb-8">
@@ -198,7 +406,7 @@ const RedemptionManagement = () => {
               icon: XCircle,
               color: "red",
             },
-          ].map((stat, i) => {
+          ].map((stat) => {
             const colorMap = {
               orange: "bg-orange-100 text-orange-600",
               yellow: "bg-yellow-100 text-yellow-600",
@@ -207,15 +415,18 @@ const RedemptionManagement = () => {
             };
             return (
               <div
-                key={i}
+                key={stat.title}
                 onClick={() =>
-                  setFilter(stat.title === "Total Redemptions" ? "All" : stat.title)
+                  setFilter(
+                    stat.title === "Total Redemptions" ? "All" : stat.title
+                  )
                 }
-                className={`bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 flex items-center gap-4 cursor-pointer ${filter === stat.title ||
-                    (filter === "All" && stat.title === "Total Redemptions")
+                className={`bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 flex items-center gap-4 cursor-pointer ${
+                  filter === stat.title ||
+                  (filter === "All" && stat.title === "Total Redemptions")
                     ? "ring-2 ring-orange-500"
                     : ""
-                  }`}
+                }`}
               >
                 <div className={`p-3 rounded-full ${colorMap[stat.color]}`}>
                   <stat.icon className="w-6 h-6" />
@@ -281,6 +492,19 @@ const RedemptionManagement = () => {
                 <table className="min-w-full divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-100">
                     <tr>
+                      <th className="px-6 py-3 text-left">
+                        <input
+                          type="checkbox"
+                          checked={isAllSelected}
+                          ref={(input) => {
+                            if (input) {
+                              input.indeterminate = isSomeSelected;
+                            }
+                          }}
+                          onChange={handleSelectAll}
+                          className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
+                        />
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <div className="flex items-center gap-1">
                           <Gift className="h-4 w-4" /> User Name
@@ -320,11 +544,26 @@ const RedemptionManagement = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {paginatedData.map((r) => (
-                      <tr key={r.id} className="hover:bg-orange-50/40 transition-all">
+                      <tr
+                        key={r.id}
+                        className={`hover:bg-orange-50/40 transition-all ${
+                          selectedRows.includes(r.id) ? "bg-orange-50/60" : ""
+                        }`}
+                      >
+                        <td className="px-6 py-4">
+                          <input
+                            type="checkbox"
+                            checked={selectedRows.includes(r.id)}
+                            onChange={() => handleSelectRow(r.id)}
+                            className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
+                          />
+                        </td>
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {r.userName}
                         </td>
-                        <td className="px-6 py-4 text-gray-700">{r.userPhone}</td>
+                        <td className="px-6 py-4 text-gray-700">
+                          {r.userPhone}
+                        </td>
                         <td className="px-6 py-4 text-gray-700">
                           <div className="text-sm">{r.upiId || "-"}</div>
                           <div className="text-xs text-gray-500">
@@ -355,10 +594,11 @@ const RedemptionManagement = () => {
                                   handleStatusChange(r.id, r.uid, "A")
                                 }
                                 disabled={actionLoading === r.id}
-                                className={`bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-xs font-medium transition ${actionLoading === r.id
+                                className={`bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                                  actionLoading === r.id
                                     ? "opacity-60 cursor-not-allowed"
                                     : ""
-                                  }`}
+                                }`}
                               >
                                 Approve
                               </button>
@@ -367,10 +607,11 @@ const RedemptionManagement = () => {
                                   handleStatusChange(r.id, r.uid, "R")
                                 }
                                 disabled={actionLoading === r.id}
-                                className={`bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition ${actionLoading === r.id
+                                className={`bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition ${
+                                  actionLoading === r.id
                                     ? "opacity-60 cursor-not-allowed"
                                     : ""
-                                  }`}
+                                }`}
                               >
                                 Reject
                               </button>
@@ -387,8 +628,8 @@ const RedemptionManagement = () => {
                 </table>
               </div>
 
-              {/* ✅ Pagination Component */}
-              <div className="bg-gray-50 border-t border-gray-100 ">
+              {/* Pagination Component */}
+              <div className="bg-gray-50 border-t border-gray-100">
                 <Pagination
                   currentPage={currentPage}
                   totalPages={totalPages}

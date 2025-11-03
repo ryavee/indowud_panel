@@ -40,7 +40,6 @@ const ProductSelectComponent = ({
       // union of selected and visible
       next = Array.from(new Set([...selected, ...visible]));
     }
-    setSelected(next);
     commitSelection(next);
   };
 

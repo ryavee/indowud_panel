@@ -101,14 +101,19 @@ const ExportButton = ({
 
       {isOpen && (
         <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 py-1 z-50">
-          <button
-            onClick={handleExportDemo}
-            className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
-          >
-            <Upload className="w-4 h-4" />
-            Demo
-          </button>
-          {currentUserRole !== ROLES.QR_GENERATE && page === "dealers" ? (
+          {/* Show Demo only for QR_GENERATE role and dealers page */}
+          {currentUserRole === ROLES.QR_GENERATE && page === "dealers" && (
+            <button
+              onClick={handleExportDemo}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors flex items-center gap-2 cursor-pointer"
+            >
+              <Upload className="w-4 h-4" />
+              Demo
+            </button>
+          )}
+
+          {/* Show Export to CSV for everyone else */}
+          {currentUserRole !== ROLES.QR_GENERATE ? (
             <button
               onClick={handleExportCSV}
               disabled={data.length === 0}

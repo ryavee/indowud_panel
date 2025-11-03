@@ -84,6 +84,15 @@ const QRTrack = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      <div className="mb-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">QR Code Tracking</h1>
+          <p className="text-gray-600 text-sm mt-1">
+            Monitor and manage all generated QR codes — view their status, scan
+            details, and locations in real-time.
+          </p>
+        </div>
+      </div>
       {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -160,9 +169,6 @@ const QRTrack = () => {
                       Batch ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Points
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -195,11 +201,6 @@ const QRTrack = () => {
                           {qr.batchId || "N/A"}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
-                          <span className="text-sm font-semibold text-gray-900">
-                            {qr.points || 0}
-                          </span>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
                               qr.status
@@ -209,9 +210,9 @@ const QRTrack = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                          {qr.scannedBy ? (
+                          {qr.scannedByName ? (
                             <span className="font-mono text-xs">
-                              {qr.scannedBy.substring(0, 10)}...
+                              {qr.scannedByName.substring(0, 10)}...
                             </span>
                           ) : (
                             <span className="text-gray-400">-</span>
@@ -225,6 +226,7 @@ const QRTrack = () => {
                             <>
                               <span className="text-gray-700 text-sm">
                                 {qr.city}
+                                {qr.state ? `, ${qr.state}` : ""}
                               </span>
                               <button
                                 onClick={() =>
@@ -243,7 +245,6 @@ const QRTrack = () => {
                               className="inline-flex items-center p-1 text-gray-500 hover:text-gray-700 transition-colors"
                             >
                               <MapPin className="w-4 h-4" />{" "}
-        
                             </button>
                           ) : (
                             <span className="text-gray-400 text-xs">
