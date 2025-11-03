@@ -5,7 +5,6 @@ import {
   createNewPromotion,
   updatePromotion,
   deletePromotion,
-  importpromotional,
 } from "../Services/promotionalService.js";
 
 export const PromotionalContext = createContext();
@@ -111,28 +110,6 @@ export const PromotionalProvider = ({ children }) => {
     }
   };
 
-  const importPromotions = async (file) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await importpromotional(file);
-
-      if (result && result.promotions) {
-        setPromotions(result.promotions);
-      } else {
-        await fetchPromotions();
-      }
-
-      return result;
-    } catch (err) {
-      console.error("Error importing promotions:", err);
-      setError(err.message || "Failed to import promotional data");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const clearError = () => setError(null);
 
   useEffect(() => {
@@ -148,7 +125,6 @@ export const PromotionalProvider = ({ children }) => {
     createPromotion,
     editPromotion,
     removePromotion,
-    importPromotions,
     clearError,
   };
 

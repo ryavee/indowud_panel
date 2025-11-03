@@ -1,5 +1,9 @@
 import { createContext, useState, useContext, useEffect } from "react";
-import { loginToAdminPortal, getUserData } from "../Services/authService";
+import {
+  loginToAdminPortal,
+  getUserData,
+  forgotPassword,
+} from "../Services/authService";
 
 const AuthContext = createContext();
 
@@ -17,6 +21,7 @@ export function AuthProvider({ children }) {
     const storedToken = localStorage.getItem("authToken");
     const storedRefreshToken = localStorage.getItem("refreshToken");
     const storedUser = localStorage.getItem("user");
+
     if (storedToken) {
       setToken(storedToken);
     }
@@ -57,20 +62,23 @@ export function AuthProvider({ children }) {
 
       localStorage.setItem("authToken", idToken);
       localStorage.setItem("refreshToken", refreshToken);
+
       const userData = await getUserData(loginRes.uid, idToken);
-      if(!userData) {
+
+      if (!userData) {
         const errorMessage = "User data not found";
         setError(errorMessage);
         setLoading(false);
         throw new Error(errorMessage);
       }
+
       setUserData(userData);
       localStorage.setItem("user", JSON.stringify(userData));
       setError(null);
       setLoading(false);
       return userData;
     } catch (error) {
-      console.log("Login error:", error);
+      console.error("Login error:", error);
       setLoading(false);
 
       const errorMessage =
@@ -78,15 +86,45 @@ export function AuthProvider({ children }) {
         "Login failed. Please check your credentials and try again.";
       setError(errorMessage);
 
-      throw new Error(errorMessage);
+      throw error;
+    }
+  };
+
+  const handleForgotPassword = async (email) => {
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await forgotPassword(email);
+
+      if (!response) {
+        const errorMessage = "Password reset failed. Please try again.";
+        setError(errorMessage);
+        setLoading(false);
+        throw new Error(errorMessage);
+      }
+
+      setLoading(false);
+      return response;
+    } catch (error) {
+      console.error("Forgot password error:", error);
+      setLoading(false);
+
+      const errorMessage =
+        error.message || "Failed to send password reset email.";
+      setError(errorMessage);
+
+      throw error;
     }
   };
 
   const logout = () => {
     setUserData(null);
     setToken(null);
+    setRefreshToken(null);
     setError(null);
     localStorage.removeItem("authToken");
+    localStorage.removeItem("refreshToken");
     localStorage.removeItem("user");
   };
 
@@ -95,8 +133,10 @@ export function AuthProvider({ children }) {
       value={{
         userData,
         token,
+        refreshToken,
         login,
         logout,
+        handleForgotPassword,
         loading,
         error,
         setError,

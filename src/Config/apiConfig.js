@@ -6,6 +6,7 @@ export const ENDPOINTS = {
   FETCHDASHBOARDDATA: "/api/dashboard/get-dashboard-data",
   LOGIN: "/api/v1/auth/login",
   GETUSERDATA: "/api/v1/auth/users/:uid",
+  FORGETPASSWORD: "/api/v1/auth/resetPassword",
   // REDEEM
   GETALLREDEEM: "/api/v2/redeem/manage-redemption",
   CHANGEREDAMPTIONSTATUS: "/api/v2/redeem/change-redemption-status",

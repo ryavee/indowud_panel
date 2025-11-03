@@ -36,3 +36,20 @@ export async function getUserData(uid, token) {
     return null;
   }
 }
+export async function forgotPassword(email) {
+  try {
+    const res = await fetch(`${BASE_URL}${ENDPOINTS.FORGETPASSWORD}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ email }),
+    });
+
+    if (!res.ok) throw new Error("Password reset request failed");
+    return res.json();
+  } catch (error) {
+    console.log(error);
+    return false;
+  }
+}

@@ -425,7 +425,7 @@ const Products = () => {
               type="text"
               value={newProductUnit}
               onChange={(e) => setNewProductUnit(e.target.value)}
-              placeholder="Product Unit (e.g., 08 mm)"
+              placeholder="(e.g., 08 mm)"
               className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#169698]"
             />
             <input
