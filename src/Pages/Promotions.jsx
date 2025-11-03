@@ -223,6 +223,7 @@ const Promotions = () => {
     setCreateOrUpdateLoading(true);
     try {
       const payload = {
+        id: editingPromotion?.id,
         productIds: formData.products.map((p) => p.productId),
         productNames: formData.products.map((p) => p.productName),
         description: formData.Discription,
@@ -238,7 +239,36 @@ const Promotions = () => {
       };
 
       if (editingPromotion) {
-        await editPromotion(editingPromotion.id, payload);
+        const noChanges =
+          JSON.stringify({
+            productIds: editingPromotion.productIds || [],
+            productNames: editingPromotion.productNames || [],
+            description: editingPromotion.description || "",
+            active: editingPromotion.active ?? true,
+            category: editingPromotion.category || "Bonus",
+            bonusType: editingPromotion.bonusType || "Fixed Points",
+            bonusValue: editingPromotion.bonusValue ?? 0,
+            startDate: editingPromotion.startDate || "",
+            endDate: editingPromotion.endDate || "",
+          }) ===
+          JSON.stringify({
+            productIds: payload.productIds,
+            productNames: payload.productNames,
+            description: payload.description,
+            active: payload.active,
+            category: payload.category,
+            bonusType: payload.bonusType,
+            bonusValue: payload.bonusValue,
+            startDate: payload.startDate,
+            endDate: payload.endDate,
+          });
+
+        if (noChanges) {
+          setIsModalOpen(false);
+          setCreateOrUpdateLoading(false);
+          return;
+        }
+        await editPromotion(payload);
         toast.success("Promotion updated successfully");
       } else {
         await createPromotion(payload);
@@ -455,7 +485,7 @@ const Promotions = () => {
                         />
                       </td>
                       <td className="px-6 py-4 text-blue-600 font-medium">
-                        {promotion.calculation}
+                        {promotion.calculations?.[0]?.calculation || "-"}
                       </td>
                       <td className="px-6 py-4">
                         <div className="text-xs">
@@ -473,7 +503,9 @@ const Promotions = () => {
                       </td>
                       <td className="px-6 py-4">
                         <ActionButtons
-                          onEdit={() => {}}
+                          onEdit={() => {
+                            handleEditPromotion(promotion);
+                          }}
                           onDelete={() => handleDeletePromotion(promotion)}
                           loadingEdit={
                             actionLoading.edit === promotion.id ||
@@ -528,6 +560,7 @@ const Promotions = () => {
                 formData={formData}
                 handleInputChange={handleInputChange}
                 isMultiple={true}
+                disabled={!!editingPromotion}
               />
 
               <div>
@@ -542,6 +575,9 @@ const Promotions = () => {
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
                   placeholder="Enter promotion description"
                 />
+                <p className="text-xs text-gray-500 mt-1">
+                  This description will be sent to users in the notification.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

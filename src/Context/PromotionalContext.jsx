@@ -65,29 +65,34 @@ export const PromotionalProvider = ({ children }) => {
     }
   };
 
-  const editPromotion = async (id, promotionData) => {
+  const editPromotion = async (promotionData) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await updatePromotion(id, promotionData);
 
-      let updatedPromotion;
-      if (response && response.data) updatedPromotion = response.data;
-      else if (response && response.promotion)
-        updatedPromotion = response.promotion;
-      else updatedPromotion = response;
+      if (!promotionData.id)
+        throw new Error("Promotion ID is required for update");
 
+      // Call API
+      const response = await updatePromotion(promotionData);
+
+      // The updated promotion is inside response.data.data
+      const updatedPromotion = response?.data?.data;
+
+      if (!updatedPromotion) {
+        throw new Error("No updated promotion returned from API");
+      }
+
+      // Update local state
       setPromotions((prev) =>
         prev.map((promo) =>
-          promo.id === id
-            ? { ...promo, ...(updatedPromotion || promotionData) }
-            : promo
+          promo.id === updatedPromotion.id ? updatedPromotion : promo
         )
       );
 
-      return updatedPromotion || promotionData;
+      return updatedPromotion;
     } catch (err) {
-      console.error("Error updating promotion:", err);
+      console.error("❌ Error updating promotion:", err);
       setError(err.message || "Failed to update promotion");
       throw err;
     } finally {
