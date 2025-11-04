@@ -29,6 +29,7 @@ const Products = () => {
     addProduct,
     removeProduct,
     importProductsFromFile,
+    updateProduct,
     refreshProducts,
   } = useProductContext();
 
@@ -140,6 +141,7 @@ const Products = () => {
     setEditLoading(true);
     try {
       await updateProduct(editTarget.id, {
+        productId: editTarget.productId,
         productName: editTarget.productName.trim(),
         productUnit: editTarget.productUnit.trim(),
         productPoint,
@@ -525,6 +527,7 @@ const Products = () => {
           setEditTarget(null);
           setFormError("");
         }}
+        loadingText="Updating..."
         isLoading={editLoading}
         confirmText="Update"
         cancelText="Cancel"
