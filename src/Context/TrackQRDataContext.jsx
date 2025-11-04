@@ -1,6 +1,6 @@
 import { createContext, useState, useEffect, useContext } from "react";
 import { useAuthContext } from "./AuthContext";
-import { getAllQRData } from "../Services/trackQRDataService";
+import { getAllQRData, searchQRByBatch } from "../Services/trackQRDataService";
 
 export const TrackQRDataContext = createContext();
 
@@ -12,6 +12,7 @@ export const TrackQRDataProvider = ({ children }) => {
   const [page, setPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalItems, setTotalItems] = useState(0);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const fetchQRData = async (currentPage) => {
     if (!token) return;
@@ -21,13 +22,10 @@ export const TrackQRDataProvider = ({ children }) => {
     try {
       const response = await getAllQRData(token, currentPage);
 
-      // Handle the nested response structure from your API
       const qrCodes = response?.qrCodes?.qrCodes || [];
       const pages = response?.qrCodes?.totalPages || 1;
-      const totalCount = response?.qrCodes?.totalCount || 0; // Get actual total count
-      const currentPageNum = response?.qrCodes?.currentPage || currentPage;
+      const totalCount = response?.qrCodes?.totalCount || 0;
 
-      // Transform location data from lon/lat to lng/lat for consistency
       const transformedQrCodes = qrCodes.map((qr) => ({
         ...qr,
         location:
@@ -41,7 +39,7 @@ export const TrackQRDataProvider = ({ children }) => {
 
       setQRData(transformedQrCodes);
       setTotalPages(pages);
-      setTotalItems(totalCount); // Use the actual totalCount from API
+      setTotalItems(totalCount);
     } catch (err) {
       console.error("Error fetching QR data:", err);
       setError(err.message || "Failed to fetch QR data");
@@ -53,9 +51,47 @@ export const TrackQRDataProvider = ({ children }) => {
     }
   };
 
+  const searchQRData = async (query) => {
+    if (!query) return;
+
+    setLoading(true);
+    setError(null);
+    setSearchQuery(query);
+
+    try {
+      const response = await searchQRByBatch(query);
+      const qrCodes = response?.qrCodes || [];
+
+      const transformedQrCodes = qrCodes.map((qr) => ({
+        ...qr,
+        location:
+          qr.lon && qr.lat
+            ? {
+                lng: qr.lon,
+                lat: qr.lat,
+              }
+            : null,
+      }));
+
+      setQRData(transformedQrCodes);
+      setTotalPages(1);
+      setTotalItems(qrCodes.length);
+    } catch (err) {
+      console.error("Error searching QR data:", err);
+      setError(err.message || "Failed to search QR data");
+      setQRData([]);
+      setTotalPages(1);
+      setTotalItems(0);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    fetchQRData(page);
-  }, [token, page]);
+    if (!searchQuery) {
+      fetchQRData(page);
+    }
+  }, [token, page, searchQuery]);
 
   return (
     <TrackQRDataContext.Provider
@@ -68,18 +104,14 @@ export const TrackQRDataProvider = ({ children }) => {
         totalItems,
         setPage,
         fetchQRData,
+        searchQRData,
+        setSearchQuery,
       }}
     >
       {children}
     </TrackQRDataContext.Provider>
   );
 };
-
-// Custom hook for using the context
 export const useTrackQRData = () => {
-  const context = useContext(TrackQRDataContext);
-  if (!context) {
-    throw new Error("useTrackQRData must be used within TrackQRDataProvider");
-  }
-  return context;
-};
+  return useContext(TrackQRDataContext);
+}
