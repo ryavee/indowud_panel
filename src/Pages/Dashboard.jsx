@@ -333,7 +333,6 @@ const Dashboard = () => {
                 <thead>
                   <tr className="text-gray-500 text-left border-b">
                     <th className="pb-2">City</th>
-                    <th className="pb-2">State</th>
                     <th className="pb-2">Points Redeemed</th>
                   </tr>
                 </thead>
@@ -346,9 +345,6 @@ const Dashboard = () => {
                       <td className="py-2 font-medium text-gray-800">
                         {city.city}
                       </td> 
-                      <td className="py-2 font-medium text-gray-800"> {/*pass the data of state here */}
-                        {city.State} 
-                      </td>
                       <td className="py-2">
                         <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#D7145D]/10 text-[#D7145D]">
                           {city.points} pts
