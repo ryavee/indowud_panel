@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { MapPin, X, Loader2, EyeIcon } from "lucide-react";
+import { useState, useEffect, useContext } from "react";
+import { MapPin, X, Loader2, EyeIcon, RefreshCw } from "lucide-react";
 import { useTrackQRData } from "../Context/TrackQRDataContext";
 
 const QRTrack = () => {
@@ -12,8 +12,30 @@ const QRTrack = () => {
     totalItems,
     setPage,
     fetchQRData,
+    searchQRData,
+    setSearchQuery: setContextSearchQuery,
   } = useTrackQRData();
+
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [localSearchQuery, setLocalSearchQuery] = useState("");
+
+  const handleSearch = () => {
+    if (localSearchQuery.trim()) {
+      searchQRData(localSearchQuery.trim());
+      setPage(1);
+    } else {
+      setContextSearchQuery("");
+      fetchQRData(1);
+      setPage(1);
+    }
+  };
+
+  const handleClearSearch = () => {
+    setLocalSearchQuery("");
+    setContextSearchQuery("");
+    fetchQRData(1);
+    setPage(1);
+  };
 
   const handleLocationClick = (location, qrId) => {
     setSelectedLocation({ ...location, qrId });
@@ -72,9 +94,6 @@ const QRTrack = () => {
     }
   };
 
-  const handleRefresh = () => {
-    fetchQRData(page);
-  };
 
   // Calculate showing range
   const pageSize = 10;
@@ -93,6 +112,37 @@ const QRTrack = () => {
           </p>
         </div>
       </div>
+
+      {/* Search Bar */}
+      <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-2">
+        <input
+          type="text"
+          placeholder="Search by Batch ID"
+          value={localSearchQuery}
+          onChange={(e) => setLocalSearchQuery(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+          className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
+        />
+        <div className="flex gap-2">
+          <button
+            onClick={handleSearch}
+            disabled={loading}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Search
+          </button>
+          {localSearchQuery && (
+            <button
+              onClick={handleClearSearch}
+              disabled={loading}
+              className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Clear
+            </button>
+          )}
+        </div>
+      </div>
+
       {/* Error Message */}
       {error && (
         <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg flex items-start gap-3">
@@ -169,6 +219,9 @@ const QRTrack = () => {
                       Batch ID
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Supplier Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -200,6 +253,9 @@ const QRTrack = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {qr.batchId || "N/A"}
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
+                          {qr.companyName || "N/A"}
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(
@@ -212,7 +268,9 @@ const QRTrack = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {qr.scannedByName ? (
                             <span className="font-mono text-xs">
-                              {qr.scannedByName.substring(0, 10)}...
+                              {qr.scannedByName.length > 15
+                                ? `${qr.scannedByName.substring(0, 15)}...`
+                                : qr.scannedByName}
                             </span>
                           ) : (
                             <span className="text-gray-400">-</span>
@@ -221,42 +279,49 @@ const QRTrack = () => {
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
                           {formatDate(qr.createdAt)}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm flex items-center gap-2">
-                          {qr.city ? (
-                            <>
-                              <span className="text-gray-700 text-sm">
-                                {qr.city}
-                                {qr.state ? `, ${qr.state}` : ""}
-                              </span>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm">
+                          <div className="flex items-center gap-2">
+                            {qr.city ? (
+                              <>
+                                <span className="text-gray-700 text-sm">
+                                  {qr.city}
+                                  {qr.state ? `, ${qr.state}` : ""}
+                                </span>
+                                {qr.location && (
+                                  <button
+                                    onClick={() =>
+                                      handleLocationClick(qr.location, qr.qrId)
+                                    }
+                                    className="inline-flex items-center p-1 text-blue-500 hover:text-blue-600 transition-colors"
+                                    title="View location on map"
+                                  >
+                                    <EyeIcon className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </>
+                            ) : qr.location ? (
                               <button
                                 onClick={() =>
                                   handleLocationClick(qr.location, qr.qrId)
                                 }
-                                className="inline-flex items-center p-1 text-blue-500 hover:text-blue-600 transition-colors"
+                                className="inline-flex items-center gap-1 p-1 text-gray-500 hover:text-gray-700 transition-colors"
+                                title="View location on map"
                               >
-                                <EyeIcon className="w-4 h-4" />
+                                <MapPin className="w-4 h-4" />
+                                <span className="text-xs">View Map</span>
                               </button>
-                            </>
-                          ) : qr.location ? (
-                            <button
-                              onClick={() =>
-                                handleLocationClick(qr.location, qr.qrId)
-                              }
-                              className="inline-flex items-center p-1 text-gray-500 hover:text-gray-700 transition-colors"
-                            >
-                              <MapPin className="w-4 h-4" />{" "}
-                            </button>
-                          ) : (
-                            <span className="text-gray-400 text-xs">
-                              No location
-                            </span>
-                          )}
+                            ) : (
+                              <span className="text-gray-400 text-xs">
+                                No location
+                              </span>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan="7" className="px-6 py-12 text-center">
+                      <td colSpan="6" className="px-6 py-12 text-center">
                         <div className="flex flex-col items-center">
                           <svg
                             className="w-12 h-12 text-gray-400"
@@ -275,7 +340,9 @@ const QRTrack = () => {
                             No QR codes available
                           </p>
                           <p className="text-sm text-gray-400">
-                            Start by creating your first QR code
+                            {localSearchQuery
+                              ? "Try a different search term"
+                              : "Start by creating your first QR code"}
                           </p>
                         </div>
                       </td>
@@ -362,7 +429,10 @@ const QRTrack = () => {
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
           style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
         >
-          <div className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl">
+          <div
+            className="bg-white rounded-lg w-full max-w-4xl max-h-[90vh] flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             {/* Modal Header */}
             <div className="flex items-center justify-between p-4 border-b bg-gray-50">
               <div>
@@ -373,8 +443,8 @@ const QRTrack = () => {
                   QR ID: {selectedLocation.qrId?.substring(0, 13)}...
                 </p>
                 <p className="text-xs text-gray-500 mt-0.5">
-                  Coordinates: {selectedLocation.lat.toFixed(6)},{" "}
-                  {selectedLocation.lng.toFixed(6)}
+                  Coordinates: {selectedLocation.lat?.toFixed(6)},{" "}
+                  {selectedLocation.lng?.toFixed(6)}
                 </p>
               </div>
               <button
