@@ -41,8 +41,6 @@ export async function getBatchById(token, id) {
 
 export async function generateQR(token, qrData) {
   try {
-    console.log(`QR Data: ${JSON.stringify(qrData)}`);
-
     const res = await fetch(`${BASE_URL}${ENDPOINTS.GENERATEQR}`, {
       method: "POST",
       headers: {

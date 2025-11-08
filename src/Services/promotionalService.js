@@ -33,25 +33,31 @@ export async function createNewPromotion(promotionData) {
   }
 }
 
-export async function updatePromotion(id, promotionData) {
+export async function updatePromotion(promotionData = {}) {
   try {
-    const dataWithId = {
-      id: id,
-      ...promotionData,
-    };
+    const { id, ...restData } = promotionData;
+
+    if (!id) throw new Error("Promotion ID is required");
+
+    const dataToSend = { id, ...restData };
+
+    console.log("Updating promotion:", dataToSend);
+
     const res = await fetch(`${BASE_URL}${ENDPOINTS.UPDATEPROMOTIONS}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify(dataWithId),
+      body: JSON.stringify(dataToSend),
     });
+
     if (!res.ok) {
       const errorText = await res.text();
       throw new Error(
         `Failed to update promotion: ${res.status} ${res.statusText} - ${errorText}`
       );
     }
+
     return await res.json();
   } catch (error) {
     console.error("Error in updatePromotion:", error);
@@ -77,29 +83,6 @@ export async function deletePromotion(id) {
     return await res.json();
   } catch (error) {
     console.error("Error in deletePromotion:", error);
-    throw error;
-  }
-}
-
-
-
-export async function importpromotional(file) {
-  try {
-    const formData = new FormData();
-    formData.append("file", file);
-    const res = await fetch(`${BASE_URL}${ENDPOINTS.IMPORTPROMOTIONALDATA}`, {
-      method: "POST",
-      body: formData,
-    });
-    const data = await res.json();
-    if (!res.ok) {
-      throw new Error(
-        data.message || data.error || `HTTP error! status: ${res.status}`
-      );
-    }
-    return data;
-  } catch (error) {
-    console.error("❌ Upload failed:", error);
     throw error;
   }
 }

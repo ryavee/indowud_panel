@@ -1,11 +1,12 @@
 export const BASE_URL =
-//  "http://localhost:2000";
-"https://indowud-main-engine.onrender.com";
+  //  "http://localhost:2000";
+  "https://indowud-main-engine.onrender.com";
 export const ENDPOINTS = {
   // Dashboard
   FETCHDASHBOARDDATA: "/api/dashboard/get-dashboard-data",
   LOGIN: "/api/v1/auth/login",
   GETUSERDATA: "/api/v1/auth/users/:uid",
+  FORGETPASSWORD: "/api/v1/auth/resetPassword",
   // REDEEM
   GETALLREDEEM: "/api/v2/redeem/manage-redemption",
   CHANGEREDAMPTIONSTATUS: "/api/v2/redeem/change-redemption-status",
@@ -64,6 +65,7 @@ export const ENDPOINTS = {
   IMPORTDEALERSDATA: "/api/v12/dealers/import-dealers",
   // TRACK QR
   GETALLQRDATA: "/api/v11/qrCodes/all-qr-codes",
+  SEARCHQRBYBATCH: "/api/v11/qrCodes/search-qr-codes",
   // CATALOGUE
   GETALLCATALOGUES: "/api/v13/catalogs/get-all-catalogs",
   CREATECATALOGUE: "/api/v13/catalogs/create-new-catalog",
