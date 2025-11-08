@@ -12,6 +12,7 @@ const ConfirmationModal = ({
   cancelText = "Cancel",
   type = "info", // "danger" | "success" | "warning" | "info"
   closeOnBackdrop = true,
+  loadingText,
 }) => {
   if (!isOpen) return null;
 
@@ -97,7 +98,7 @@ const ConfirmationModal = ({
             {isLoading ? (
               <>
                 <Loader className="w-4 h-4 animate-spin" />
-                Deleting...
+              {loadingText ??  "Deleting..."}
               </>
             ) : (
               confirmText

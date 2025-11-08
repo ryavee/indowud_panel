@@ -23,23 +23,27 @@ export const CodesProvider = ({ children }) => {
 
     try {
       let computedExpiry = "None";
-      if (formData.expiryType !== "None") {
+
+      // ✅ Added validation before accessing expiryType
+      if (formData.expiryType && formData.expiryType !== "None") {
         if (formData.expiryType === "custom" && formData.customDate) {
           computedExpiry = formData.customDate;
-        } else {
+        } else if (formData.expiryType.includes("months")) {
+          // ✅ Added check to ensure "months" exists in the string
           const months = parseInt(formData.expiryType.replace("months", ""));
           const today = new Date();
           today.setMonth(today.getMonth() + months);
           computedExpiry = today.toISOString().split("T")[0];
         }
       }
+
       // ✅ Clean payload (no mismatched keys)
       const payload = {
         noOfCodes: parseInt(formData.numberOfCodes),
         dealerId: formData.dealerId?.toString(),
         productId: formData.productId?.toString(),
         batchId: formData.batchId?.toString(),
-        expiryDate: computedExpiry, // ✅ final computed value
+        expiryDate: computedExpiry || "", // ✅ final computed value
         remark: formData.remarks || "",
       };
 

@@ -1,12 +1,11 @@
 import { BASE_URL, ENDPOINTS } from "../Config/apiConfig.js";
 
-export async function getProducts(token) {
+export async function getProducts() {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.GETALLPRODUCTS}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
     });
     if (!res.ok) throw new Error("User data not found");
@@ -17,13 +16,12 @@ export async function getProducts(token) {
   }
 }
 
-export async function createProduct(token, productData) {
+export async function createProduct(productData) {
   try {
     const res = await fetch(`${BASE_URL}${ENDPOINTS.CREATEPRODUCTS}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(productData),
     });
@@ -35,16 +33,13 @@ export async function createProduct(token, productData) {
   }
 }
 
-export async function deleteProduct(token, productId) {
+export async function deleteProduct(productId) {
   try {
     const payload = { id: productId };
-    console.log(payload);
-
     const res = await fetch(`${BASE_URL}${ENDPOINTS.DELETEPRODUCTS}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
       },
       body: JSON.stringify(payload),
     });
@@ -65,6 +60,23 @@ export async function importproducts(formData) {
     const data = await res.json();
     if (!res.ok) throw new Error(data?.message || "Failed to import products");
 
+    return data;
+  } catch (error) {
+    console.log(error);
+    return null;
+  }
+}
+export async function updateProductService(productData) {
+  try {
+    const res = await fetch(`${BASE_URL}${ENDPOINTS.UPDATEPRODUCTS}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(productData),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data?.message || "Failed to update product");
     return data;
   } catch (error) {
     console.log(error);

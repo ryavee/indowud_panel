@@ -5,7 +5,6 @@ import {
   createNewPromotion,
   updatePromotion,
   deletePromotion,
-  importpromotional,
 } from "../Services/promotionalService.js";
 
 export const PromotionalContext = createContext();
@@ -35,20 +34,28 @@ export const PromotionalProvider = ({ children }) => {
       setError(null);
       const response = await createNewPromotion(promotionData);
 
-      let newPromotion;
-      if (response && response.data) newPromotion = response.data;
-      else if (response && response.promotion)
-        newPromotion = response.promotion;
-      else newPromotion = response;
+      let newPromotions = [];
 
-      if (!newPromotion) {
-        console.warn("API didn't return created promotion, refetching all");
+      if (Array.isArray(response)) {
+        newPromotions = response;
+      } else if (response && response.data) {
+        newPromotions = Array.isArray(response.data)
+          ? response.data
+          : [response.data];
+      } else if (response && response.promotion) {
+        newPromotions = [response.promotion];
+      } else if (response) {
+        newPromotions = [response];
+      }
+
+      if (!newPromotions.length) {
+        console.warn("API didn't return created promotions, refetching all");
         await fetchPromotions();
         return;
       }
 
-      setPromotions((prev) => [...prev, newPromotion]);
-      return newPromotion;
+      setPromotions((prev) => [...prev, ...newPromotions]);
+      return newPromotions;
     } catch (err) {
       console.error("Error creating promotion:", err);
       setError(err.message || "Failed to create promotion");
@@ -58,29 +65,34 @@ export const PromotionalProvider = ({ children }) => {
     }
   };
 
-  const editPromotion = async (id, promotionData) => {
+  const editPromotion = async (promotionData) => {
     try {
       setLoading(true);
       setError(null);
-      const response = await updatePromotion(id, promotionData);
 
-      let updatedPromotion;
-      if (response && response.data) updatedPromotion = response.data;
-      else if (response && response.promotion)
-        updatedPromotion = response.promotion;
-      else updatedPromotion = response;
+      if (!promotionData.id)
+        throw new Error("Promotion ID is required for update");
 
+      // Call API
+      const response = await updatePromotion(promotionData);
+
+      // The updated promotion is inside response.data.data
+      const updatedPromotion = response?.data?.data;
+
+      if (!updatedPromotion) {
+        throw new Error("No updated promotion returned from API");
+      }
+
+      // Update local state
       setPromotions((prev) =>
         prev.map((promo) =>
-          promo.id === id
-            ? { ...promo, ...(updatedPromotion || promotionData) }
-            : promo
+          promo.id === updatedPromotion.id ? updatedPromotion : promo
         )
       );
 
-      return updatedPromotion || promotionData;
+      return updatedPromotion;
     } catch (err) {
-      console.error("Error updating promotion:", err);
+      console.error("❌ Error updating promotion:", err);
       setError(err.message || "Failed to update promotion");
       throw err;
     } finally {
@@ -103,28 +115,6 @@ export const PromotionalProvider = ({ children }) => {
     }
   };
 
-  const importPromotions = async (file) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const result = await importpromotional(file);
-
-      if (result && result.promotions) {
-        setPromotions(result.promotions);
-      } else {
-        await fetchPromotions();
-      }
-
-      return result;
-    } catch (err) {
-      console.error("Error importing promotions:", err);
-      setError(err.message || "Failed to import promotional data");
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const clearError = () => setError(null);
 
   useEffect(() => {
@@ -140,7 +130,6 @@ export const PromotionalProvider = ({ children }) => {
     createPromotion,
     editPromotion,
     removePromotion,
-    importPromotions,
     clearError,
   };
 
