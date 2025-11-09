@@ -10,6 +10,7 @@ export const ENDPOINTS = {
   // REDEEM
   GETALLREDEEM: "/api/v2/redeem/manage-redemption",
   CHANGEREDAMPTIONSTATUS: "/api/v2/redeem/change-redemption-status",
+  BULKCHANGEREDAMPTIONSTATUS: "/api/v2/redeem/change-bulk-redemption-status",
   // USERS
   GETUSERS: "/api/v4/users/all-users",
   CREATEUSER: "/api/v4/users/create-new-user",
