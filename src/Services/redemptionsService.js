@@ -34,3 +34,25 @@ export async function changeRedemptionStatus(token, id, uid, status) {
     return null;
   }
 }
+
+export async function bulkChangeRedemptionStatus(token, redemptionIds, status) {
+  try {
+    const res = await fetch(`${BASE_URL}${ENDPOINTS.BULKCHANGEREDAMPTIONSTATUS}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        redemptionIds, // array of IDs
+        status,        // "A" for Approve or "R" for Reject
+      }),
+    });
+
+    if (!res.ok) throw new Error("Failed to update redemption statuses");
+    return res.json();
+  } catch (error) {
+    console.error(error);
+    return null;
+  }
+}
