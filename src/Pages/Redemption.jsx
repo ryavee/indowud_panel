@@ -346,7 +346,7 @@ const RedemptionManagement = () => {
             <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
               Redemption Management
             </h1>
-            <p className="text-sm text-gray-600">
+          <p className="text-sm text-gray-600 mt-1">
               Manage user redemption requests and update their statuses.
             </p>
           </div>
