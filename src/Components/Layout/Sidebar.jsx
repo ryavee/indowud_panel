@@ -48,7 +48,7 @@ const Sidebar = ({ onLogout, onClose }) => {
         { name: "QR Track", icon: MapPin, path: "/Track" },
         { name: "Catalogue", icon: BookOpen, path: "/catalogue" },
         { name: "Bonus Promotion", icon: BadgePercent, path: "/promotions" },
-        { name: "Manage Redeemption", icon: Coins, path: "/redeemption" },
+        { name: "Manage Redemption", icon: Coins, path: "/redemption" },
       ],
     },
     {

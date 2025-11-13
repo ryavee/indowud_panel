@@ -448,7 +448,7 @@ const Settings = () => {
             </div>
 
             {/* computed final value preview */}
-            <div className="mt-4 flex items-center justify-between gap-4 border-t pt-4">
+            <div className="mt-4 flex items-center justify-between gap-4 pt-4">
               <div>
                 <p className="text-xs text-gray-400">Estimated value</p>
                 <p className="text-lg font-semibold text-gray-800">
