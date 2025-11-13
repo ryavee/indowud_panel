@@ -408,13 +408,13 @@ const RedemptionManagement = () => {
         </div>
 
         {/* Filters + Bulk Actions */}
-        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-4 mb-6 justify-between">
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 mb-8 justify-between">
 
           {/* Left side: Filters */}
           <div className="flex flex-wrap items-center gap-3">
 
             {/* Search */}
-            <div className="relative">
+            <div className="relative min-w-[260px] sm:min-w-[300px] md:w-72 lg:w-80 flex-1">
               <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
               <input
                 type="text"
@@ -429,8 +429,6 @@ const RedemptionManagement = () => {
                    focus:outline-none transition-all"
               />
             </div>
-
-
 
             {/* Date Filter */}
             <input
@@ -469,7 +467,7 @@ const RedemptionManagement = () => {
                  text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white 
                  rounded-lg shadow-sm hover:shadow-md transition-transform cursor-pointer"
             >
-              <RotateCcw className="w-4 h-4" />
+              <RotateCcw className="w-4 h-4 " />
               Reset
             </button>
           </div>
