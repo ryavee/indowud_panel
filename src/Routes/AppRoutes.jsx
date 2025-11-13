@@ -14,7 +14,7 @@ import AdminLayout from "../Components/Layout/AdminLayout";
 import Settings from "../Pages/Settings";
 import ManageTickets from "../Pages/ManageTickets";
 import Dealers from "../Pages/Dealers";
-import Redeemption from "../Pages/Redeemption";
+import Redeemption from "../Pages/Redemption";
 
 const AppRoutes = () => {
   return (
