@@ -1,4 +1,4 @@
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState, useMemo } from "react";
 import { SettingsContext } from "../Context/SettingsContext";
 import {
   FaEnvelope,
@@ -176,6 +176,13 @@ const Settings = () => {
     }
   };
 
+  const finalValue = useMemo(() => {
+    const r = Number(redemptionLimit);
+    const ratio = Number(coinValue);
+    if (!isFinite(r) || !isFinite(ratio) || r <= 0 || ratio <= 0) return 0;
+    return r * ratio;
+  }, [redemptionLimit, coinValue]);
+
   const handleSaveReferral = async () => {
     if (!updateReferralPoints) return;
 
@@ -273,7 +280,7 @@ const Settings = () => {
   }
 
   return (
-      <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
+    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <Toaster
         position="top-right"
         toastOptions={{
@@ -440,19 +447,43 @@ const Settings = () => {
               </div>
             </div>
 
+            {/* computed final value preview */}
+            <div className="mt-4 flex items-center justify-between gap-4 pt-4">
+              <div>
+                <p className="text-xs text-gray-400">Estimated value</p>
+                <p className="text-lg font-semibold text-gray-800">
+                  {new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR" }).format(finalValue)}
+                </p>
+              </div>
+
+              <div className="text-right">
+                <p className="text-xs text-gray-500">
+                  {redemptionLimit && coinValue ? (
+                    <>Based on {redemptionLimit} pts × {coinValue} ₹/pt</>
+                  ) : (
+                    <>Enter both fields to calculate</>
+                  )}
+                </p>
+              </div>
+            </div>
+
+
             <div className="mt-4 flex justify-end">
               <button
                 onClick={handleSaveLimits}
-                disabled={updateRatioRedemptionLoading || savingLimits}
+                disabled={updateRatioRedemptionLoading || savingLimits || finalValue <= 0}
                 className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-white bg-[#169698] rounded-lg hover:bg-[#128083] shadow-sm hover:shadow-md transition-all cursor-pointer disabled:opacity-50"
               >
-                {savingLimits || updateRatioRedemptionLoading ? (
+                {(savingLimits || updateRatioRedemptionLoading) ? (
                   <span className="inline-flex items-center gap-2">
                     <FaSpinner className="animate-spin" /> Saving
                   </span>
+                ) : finalValue <= 0 ? (
+                  <span className="text-sm">Enter valid limit & ratio</span>
                 ) : (
                   "Save Limits"
                 )}
+
               </button>
             </div>
           </div>

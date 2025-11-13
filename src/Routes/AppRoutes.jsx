@@ -36,7 +36,7 @@ const AppRoutes = () => {
         <Route path="/track" element={<QRTrack />} />
         <Route path="/catalogue" element={<Catalogue />} />
         <Route path="/promotions" element={<Promotions />} />
-        <Route path="/Redeemption" element={<Redeemption />} />
+        <Route path="/redemption" element={<RedemptionManagement />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/tickets" element={<ManageTickets />} />
         <Route path="/feed" element={<Feed />} />
