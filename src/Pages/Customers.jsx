@@ -304,59 +304,67 @@ const Customers = () => {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by name, email, or referral..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-            />
-          </div>
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 mb-8 justify-between">
 
-          <select
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
-          >
-            <option>All</option>
-            <option>Active</option>
-            <option>Blocked</option>
-            <option>KYC Verified</option>
-            <option>KYC Pending</option>
-          </select>
+          {/* Left side: Filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative min-w-[260px] sm:min-w-[300px] md:w-72 lg:w-80 flex-1">            <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by name, email, or referral..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+              />
+            </div>
 
-          <button
-            type="button"
-            onClick={handleResetFilters}
-            className="flex items-center justify-center gap-1.5 px-4 py-2 
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
+            >
+              <option>All</option>
+              <option>Active</option>
+              <option>Blocked</option>
+              <option>KYC Verified</option>
+              <option>KYC Pending</option>
+            </select>
+
+            <button
+              type="button"
+              onClick={handleResetFilters}
+              className="flex items-center justify-center gap-1.5 px-4 py-2 
             text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white 
             rounded-lg shadow-sm hover:shadow-md  transition-transform cursor-pointer"
-          >
-            <RotateCcw
-              className={`w-4 h-4 ${
-                resetSpinning ? "animate-spin-reverse" : ""
-              }`}
-            />
-            Reset
-          </button>
-          <ImportButton
-            requiredHeaders={requiredHeaders}
-            onUpload={handleCSVUpload}
-            label="Import CSV"
-          />
-          {currentUserRole === ROLES.SUPER_ADMIN && (
-            <>
-              <ExportButton
-                data={filteredCustomers}
-                columns={exportColumns}
-                filename="customers"
-                disabled={filteredCustomers.length === 0}
+            >
+              <RotateCcw
+                className={`w-4 h-4 ${resetSpinning ? "animate-spin-reverse" : ""
+                  }`}
               />
-            </>
-          )}
+              Reset
+            </button>
+          </div>
+
+          {/* Right side – Buttons */}
+          <div className="flex flex-wrap items-center gap-3 mt-2 sm:mt-0">
+
+            <ImportButton
+              requiredHeaders={requiredHeaders}
+              onUpload={handleCSVUpload}
+              label="Import CSV"
+            />
+            {currentUserRole === ROLES.SUPER_ADMIN && (
+              <>
+                <ExportButton
+                  data={filteredCustomers}
+                  columns={exportColumns}
+                  filename="customers"
+                  disabled={filteredCustomers.length === 0}
+                />
+              </>
+            )}
+
+          </div>
         </div>
 
         {/* Table */}
@@ -422,8 +430,8 @@ const Customers = () => {
                                 {customer.firstName && customer.lastName
                                   ? `${customer.firstName[0]}${customer.lastName[0]}`
                                   : customer.firstName ||
-                                    customer.lastName ||
-                                    "?"}
+                                  customer.lastName ||
+                                  "?"}
                               </div>
                             )}
                           </>
@@ -466,22 +474,20 @@ const Customers = () => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex flex-col space-y-1">
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              customer.isKYCverifed
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
-                            }`}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isKYCverifed
+                              ? "bg-green-100 text-green-800"
+                              : "bg-yellow-100 text-yellow-800"
+                              }`}
                           >
                             {customer.isKYCverifed
                               ? "KYC Verified"
                               : "KYC Pending"}
                           </span>
                           <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                              customer.isBlocked
-                                ? "bg-red-100 text-red-800"
-                                : "bg-green-100 text-green-800"
-                            }`}
+                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${customer.isBlocked
+                              ? "bg-red-100 text-red-800"
+                              : "bg-green-100 text-green-800"
+                              }`}
                           >
                             {customer.isBlocked ? "Blocked" : "Active"}
                           </span>
@@ -521,7 +527,7 @@ const Customers = () => {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
