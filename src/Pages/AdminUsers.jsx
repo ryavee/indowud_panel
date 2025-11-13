@@ -215,67 +215,78 @@ const AdminUsers = () => {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-3 mb-8">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search users..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+        <div className="flex flex-col sm:flex-row flex-wrap items-center gap-3 mb-8 justify-between">
+
+          {/* Left side: Filters */}
+          <div className="flex flex-wrap items-center gap-3">
+
+            {/* Search */}
+            <div className="relative min-w-[260px] sm:min-w-[300px] md:w-72 lg:w-80 flex-1">
+              <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search users..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
 
 
-            />
+              />
+            </div>
+
+            <select
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
+            >
+              <option value="All">All Roles</option>
+              <option value="Super Admin">Super Admin</option>
+              <option value="Admin">Admin</option>
+              <option value="QR Generate">QR Generate</option>
+            </select>
           </div>
 
-          <select
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
-          >
-            <option value="All">All Roles</option>
-            <option value="Super Admin">Super Admin</option>
-            <option value="Admin">Admin</option>
-            <option value="QR Generate">QR Generate</option>
-          </select>
 
-          <div className="flex item-center gap-2">
-            {currentUserRole === ROLES.SUPER_ADMIN && (
-              <>
-                <ImportCSVButton
-                  requiredHeaders={exportColumns}
-                  onUpload={uploadUserFile}
-                  label="Import Users"
-                />
-                <ExportButton
-                  data={filteredUsers}
-                  columns={exportColumns}
-                  filename="admin-users"
-                  disabled={false}
-                />
-              </>
-            )}
+          {/* Right side – Buttons*/}
+          <div className="flex flex-wrap items-center gap-3 mt-2 sm:mt-0">
 
-            <button
-              onClick={handleAddUser}
-              disabled={createOrUpdateUserLoading}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
-                          shadow-sm hover:shadow-md transition-all cursor-pointer"
-            >
-              {createOrUpdateUserLoading ? (
+            <div className="flex item-center gap-2">
+              {currentUserRole === ROLES.SUPER_ADMIN && (
                 <>
-                  <Loader className="w-4 h-4 animate-spin" />
-                  <span>Adding...</span>
-                </>
-              ) : (
-                <>
-                  <Plus className="w-4 h-4" />
-                  <span>Add User</span>
+                  <ImportCSVButton
+                    requiredHeaders={exportColumns}
+                    onUpload={uploadUserFile}
+                    label="Import Users"
+                  />
+                  <ExportButton
+                    data={filteredUsers}
+                    columns={exportColumns}
+                    filename="admin-users"
+                    disabled={false}
+                  />
                 </>
               )}
-            </button>
+
+              <button
+                onClick={handleAddUser}
+                disabled={createOrUpdateUserLoading}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+                          shadow-sm hover:shadow-md transition-all cursor-pointer"
+              >
+                {createOrUpdateUserLoading ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span>Adding...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Add User</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
 

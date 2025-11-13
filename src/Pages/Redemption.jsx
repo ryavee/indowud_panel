@@ -29,6 +29,8 @@ const RedemptionManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
+  const [resetSpin, setResetSpin] = useState(false);
+
 
   const handleStatusChange = async (id, uid, newStatus) => {
     try {
@@ -272,11 +274,16 @@ const RedemptionManagement = () => {
     });
 
   const handleResetFilters = () => {
+    setResetSpin(true);
+
     setFilter("All");
     setSelectedDate("");
     setSearchQuery("");
     setCurrentPage(1);
+
+    setTimeout(() => setResetSpin(false), 600);
   };
+
 
 
   if (loading) {
@@ -464,12 +471,16 @@ const RedemptionManagement = () => {
               type="button"
               onClick={handleResetFilters}
               className="flex items-center justify-center gap-1.5 px-4 py-2 
-                 text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white 
-                 rounded-lg shadow-sm hover:shadow-md transition-transform cursor-pointer"
-            >
-              <RotateCcw className="w-4 h-4 " />
+                         text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white 
+                         rounded-lg shadow-sm hover:shadow-md transition cursor-pointer"
+              >
+              <RotateCcw
+                className={`w-4 h-4 transition-transform ${resetSpin ? "animate-spin-reverse" : ""
+                  }`}
+              />
               Reset
             </button>
+
           </div>
 
           {/* Right side – Bulk Actions */}
