@@ -14,18 +14,16 @@ import AdminLayout from "../Components/Layout/AdminLayout";
 import Settings from "../Pages/Settings";
 import ManageTickets from "../Pages/ManageTickets";
 import Dealers from "../Pages/Dealers";
-import Redeemption from "../Pages/Redemption";
+import RedemptionManagement from "../Pages/Redemption";
 
 const AppRoutes = () => {
   return (
     <Routes>
       {/* Public Route */}
       <Route path="/login" element={<Login />} />
-
       {/* Protected Routes */}
       ) : (
-        <Route path="*" element={<Navigate to="/login" />} />
-      )
+      <Route path="*" element={<Navigate to="/login" />} />)
       <Route element={<AdminLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/factoryUsers" element={<AdminUsers />} />
@@ -43,7 +41,6 @@ const AppRoutes = () => {
         <Route path="/announcements" element={<Announcements />} />
       </Route>
       <Route path="/" element={<Navigate to="/login" />} />
-
       {/* Catch-all 404 */}
       <Route path="*" element={<h1>404 Not Found</h1>} />
     </Routes>
