@@ -46,7 +46,6 @@ export const ENDPOINTS = {
   CREATENEWPROMOTIONS: "/api/v9/promotional/create-new-promotional",
   UPDATEPROMOTIONS: "/api/v9/promotional/update-promotional",
   DELETEPROMOTIONS: "/api/v9/promotional/delete-promotional",
-  IMPORTPROMOTIONALDATA: "/api/v9/promotional/import-promotionals",
   // Products
   GETALLPRODUCTS: "/api/v10/products/all-products",
   CREATEPRODUCTS: "/api/v10/products/create-new-product",
