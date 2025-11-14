@@ -149,19 +149,14 @@ const QRGeneration = () => {
         pdf.setTextColor(20);
         pdf.text(productName, qrX, cardY + 5);
 
-        const qrCodeDataUrl = await QRCode.toDataURL(
-          `${qrData.qrId}_${batchId}`,
-          {
-            width: 250,
-            margin: 1,
-            errorCorrectionLevel: "M",
-          }
-        );
+        // ✅ New QR content for flat structure
+        const qrContent = qrData.qrId; // Only QR ID; optionally append batchId if desired
+        const qrCodeDataUrl = await QRCode.toDataURL(qrContent, {
+          width: 250,
+          margin: 1,
+          errorCorrectionLevel: "M",
+        });
         pdf.addImage(qrCodeDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
-
-        pdf.setFontSize(7);
-        pdf.setFont("helvetica", "bold");
-        pdf.setTextColor(0);
 
         const rightX = qrX + qrSize + 2;
         let textY = qrY;
