@@ -13,6 +13,7 @@ import {
   ExternalLink,
   Send,
   IdCard,
+  Gift,
 } from "lucide-react";
 
 const CustomerDetails = ({
@@ -22,12 +23,18 @@ const CustomerDetails = ({
   onKYCAction,
   handleDocumentView,
   actionLoading,
+  onGrantBonus, 
 }) => {
   const [customMessage, setCustomMessage] = useState("");
   const { notifyCustomer, notificationLoading } = useContext(CustomerContext);
   const [sending, setSending] = useState(false);
   const [kycCardHeight, setKycCardHeight] = useState(0);
   const kycCardRef = useRef(null);
+
+  // 👇 NEW state for bonus
+  const [bonusAmount, setBonusAmount] = useState("");
+  const [bonusReason, setBonusReason] = useState("");
+  const [bonusLoading, setBonusLoading] = useState(false);
 
   const presetReasons = [
     "Invalid PAN details",
@@ -56,6 +63,38 @@ const CustomerDetails = ({
       setSending(false);
     }
   };
+
+
+  const handleGrantBonus = async () => {
+    const amount = Number(bonusAmount);
+
+    if (!amount || amount <= 0) {
+      // If you use toast globally, uncomment:
+      // toast.error("Please enter a valid bonus amount");
+      return;
+    }
+
+    try {
+      setBonusLoading(true);
+
+      // 👇 This will come from parent via props (you’ll wire it in step 2)
+      if (typeof onGrantBonus === "function") {
+        await onGrantBonus(customer.uid, amount, bonusReason);
+      } else {
+        console.warn("onGrantBonus prop is not provided");
+      }
+
+      // clear fields on success
+      setBonusAmount("");
+      setBonusReason("");
+    } catch (err) {
+      console.error("Failed to grant bonus:", err);
+      // toast.error("Failed to grant bonus"); // optional
+    } finally {
+      setBonusLoading(false);
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
@@ -86,20 +125,18 @@ const CustomerDetails = ({
                   {customer.loyaltyPoint || 0} Points
                 </span>
                 <span
-                  className={`px-3 py-1 text-xs rounded-full font-medium ${
-                    customer.isKYCverifed
-                      ? "bg-green-100 text-green-800"
-                      : "bg-yellow-100 text-yellow-800"
-                  }`}
+                  className={`px-3 py-1 text-xs rounded-full font-medium ${customer.isKYCverifed
+                    ? "bg-green-100 text-green-800"
+                    : "bg-yellow-100 text-yellow-800"
+                    }`}
                 >
                   {customer.isKYCverifed ? "KYC Verified" : "KYC Pending"}
                 </span>
                 <span
-                  className={`px-3 py-1 text-xs rounded-full font-medium ${
-                    customer.isBlocked
-                      ? "bg-red-100 text-red-700"
-                      : "bg-green-100 text-green-800"
-                  }`}
+                  className={`px-3 py-1 text-xs rounded-full font-medium ${customer.isBlocked
+                    ? "bg-red-100 text-red-700"
+                    : "bg-green-100 text-green-800"
+                    }`}
                 >
                   {customer.isBlocked ? "Blocked" : "Active"}
                 </span>
@@ -112,11 +149,10 @@ const CustomerDetails = ({
             <button
               onClick={() => onBlockCustomer(customer.uid)}
               disabled={actionLoading.block === customer.uid}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all  cursor-pointer ${
-                customer.isBlocked
-                  ? "bg-green-600 hover:bg-green-700 text-white"
-                  : "bg-red-600 hover:bg-red-700 text-white"
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all  cursor-pointer ${customer.isBlocked
+                ? "bg-green-600 hover:bg-green-700 text-white"
+                : "bg-red-600 hover:bg-red-700 text-white"
+                }`}
             >
               {actionLoading.block === customer.uid ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -129,11 +165,10 @@ const CustomerDetails = ({
             <button
               onClick={() => onKYCAction(customer.uid)}
               disabled={actionLoading.kyc === customer.uid}
-              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all cursor-pointer ${
-                customer.isKYCverifed
-                  ? "bg-teal-600 hover:bg-teal-700 text-white"
-                  : "bg-orange-500 hover:bg-orange-600 text-white"
-              }`}
+              className={`flex items-center gap-2 px-5 py-2.5 text-sm font-semibold rounded-md shadow-sm transition-all cursor-pointer ${customer.isKYCverifed
+                ? "bg-teal-600 hover:bg-teal-700 text-white"
+                : "bg-orange-500 hover:bg-orange-600 text-white"
+                }`}
             >
               {actionLoading.kyc === customer.uid ? (
                 <Loader2 className="w-4 h-4 animate-spin" />
@@ -289,6 +324,67 @@ const CustomerDetails = ({
               </div>
             </div>
 
+            {/* 👇 NEW: Grant Bonus Card */}
+            <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+              <h3 className="flex items-center text-lg font-semibold text-gray-800 mb-4">
+                <Gift className="w-5 h-5 mr-2 text-orange-500" />
+                Grant Bonus / Adjust Points
+              </h3>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Bonus Points / Amount
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={bonusAmount}
+                    onChange={(e) => setBonusAmount(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm 
+                     focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                    placeholder="Enter bonus points (e.g., 100)"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-medium text-gray-600 mb-1">
+                    Reason (optional)
+                  </label>
+                  <textarea
+                    rows="2"
+                    value={bonusReason}
+                    onChange={(e) => setBonusReason(e.target.value)}
+                    className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm 
+                     focus:ring-2 focus:ring-orange-500 focus:outline-none"
+                    placeholder="Why are you granting this bonus? (e.g., Regular loyal customer)"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-2">
+                  <button
+                    onClick={handleGrantBonus}
+                    disabled={bonusLoading}
+                    className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 
+                     text-white rounded-md shadow-sm text-sm font-medium 
+                     disabled:opacity-60 cursor-pointer"
+                  >
+                    {bonusLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span>Granting Bonus...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Gift className="w-4 h-4" />
+                        <span>Grant Bonus</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+
             {/* Send Notification Card */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex-grow flex flex-col justify-between">
               <div>
@@ -315,7 +411,8 @@ const CustomerDetails = ({
                   rows="3"
                   value={customMessage}
                   onChange={(e) => setCustomMessage(e.target.value)}
-                  className="w-full border border-gray-300 rounded-md p-2 text-sm focus:ring-2 focus:ring-orange-500"
+                  className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm 
+                             focus:ring-2 focus:ring-orange-500 focus:outline-none"
                   placeholder="Write a custom message..."
                 ></textarea>
               </div>
