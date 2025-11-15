@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { Loader, AlertTriangle, CheckCircle, Info, X } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle, Info, X } from "lucide-react";
 
 const ConfirmationModal = ({
   isOpen,
@@ -97,7 +97,7 @@ const ConfirmationModal = ({
           >
             {isLoading ? (
               <>
-                <Loader className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-4 h-4 animate-spin" />
               {loadingText ??  "Deleting..."}
               </>
             ) : (
