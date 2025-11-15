@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useRedemptionsContext } from "../Context/RedemptionContext";
 import Pagination from "../Components/Reusable/Pagination";
+import ConfirmationModal from "../Components/ConfirmationModal";
 
 const RedemptionManagement = () => {
   const { redemptions, loading, error, updateRedemptionStatus } =
@@ -30,6 +31,35 @@ const RedemptionManagement = () => {
   const [pageSize, setPageSize] = useState(10);
   const [bulkActionLoading, setBulkActionLoading] = useState(false);
   const [resetSpin, setResetSpin] = useState(false);
+  // per-row confirmation modal state
+  const [confirmAction, setConfirmAction] = useState({
+    open: false,
+    id: null,
+    uid: null,
+    action: null, // "A" or "R"
+    name: "",     // optional display name
+  });
+  const [actionProcessing, setActionProcessing] = useState(false);
+
+  // open the confirmation modal for a single redemption
+  const openConfirmAction = (id, uid, action, name = "") => {
+    setConfirmAction({ open: true, id, uid, action, name });
+  };
+
+  // when user confirms in modal, call your existing handler
+  const handleConfirmAction = async () => {
+    if (!confirmAction.id || !confirmAction.action) return;
+    try {
+      setActionProcessing(true);
+      // reuse existing function that already handles API + toasts
+      await handleStatusChange(confirmAction.id, confirmAction.uid, confirmAction.action);
+    } catch (err) {
+      console.error("Confirm action error:", err);
+    } finally {
+      setActionProcessing(false);
+      setConfirmAction({ open: false, id: null, uid: null, action: null, name: "" });
+    }
+  };
 
 
   const handleStatusChange = async (id, uid, newStatus) => {
@@ -346,7 +376,7 @@ const RedemptionManagement = () => {
             <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
               Redemption Management
             </h1>
-          <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               Manage user redemption requests and update their statuses.
             </p>
           </div>
@@ -473,7 +503,7 @@ const RedemptionManagement = () => {
               className="flex items-center justify-center gap-1.5 px-4 py-2 
                          text-sm font-medium bg-orange-600 hover:bg-orange-700 text-white 
                          rounded-lg shadow-sm hover:shadow-md transition cursor-pointer"
-              >
+            >
               <RotateCcw
                 className={`w-4 h-4 transition-transform ${resetSpin ? "animate-spin-reverse" : ""
                   }`}
@@ -637,26 +667,20 @@ const RedemptionManagement = () => {
                           {r.status === "P" ? (
                             <div className="flex gap-2">
                               <button
-                                onClick={() =>
-                                  handleStatusChange(r.id, r.uid, "A")
-                                }
+                                onClick={() => openConfirmAction(r.id, r.uid, "A", r.userName || r.id)}
                                 disabled={actionLoading === r.id}
-                                className={`bg-green-600 hover:bg-green-700 text-white px-3 py-1.5 rounded-md text-xs font-medium transition ${actionLoading === r.id
-                                  ? "opacity-60 cursor-not-allowed"
-                                  : ""
-                                  }`}
+                                className={`bg-green-600 hover:bg-green-700 text-white px-3 
+                                  py-1.5 rounded-md text-xs font-medium transition
+                                   ${actionLoading === r.id ? "opacity-60 cursor-not-allowed" : ""}`}
                               >
                                 Approve
                               </button>
                               <button
-                                onClick={() =>
-                                  handleStatusChange(r.id, r.uid, "R")
-                                }
+                                onClick={() => openConfirmAction(r.id, r.uid, "R", r.userName || r.id)}
                                 disabled={actionLoading === r.id}
-                                className={`bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 rounded-md text-xs font-medium transition ${actionLoading === r.id
-                                  ? "opacity-60 cursor-not-allowed"
-                                  : ""
-                                  }`}
+                                className={`bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 
+                                  rounded-md text-xs font-medium transition
+                                   ${actionLoading === r.id ? "opacity-60 cursor-not-allowed" : ""}`}
                               >
                                 Reject
                               </button>
@@ -690,6 +714,22 @@ const RedemptionManagement = () => {
           )}
         </div>
       </div>
+      <ConfirmationModal
+        isOpen={confirmAction.open}
+        title={confirmAction.action === "A" ? "Approve Redemption" : "Reject Redemption"}
+        message={
+          confirmAction.open
+            ? `Are you sure you want to ${confirmAction.action === "A" ? "approve" : "reject"} the redemption for "${confirmAction.name}"? This action cannot be undone.`
+            : ""
+        }
+        onConfirm={handleConfirmAction}
+        onCancel={() => setConfirmAction({ open: false, id: null, uid: null, action: null, name: "" })}
+        isLoading={actionProcessing}
+        confirmText={confirmAction.action === "A" ? "Approve" : "Reject"}
+        cancelText="Cancel"
+        type={confirmAction.action === "A" ? "success" : "danger"}
+      />
+
     </div>
   );
 };
