@@ -95,3 +95,25 @@ export async function importCustomersData(formData) {
     throw error;
   }
 }
+export async function addPointsToCustomer(token, uid, points) {
+  try {
+    const res = await fetch(
+      `${BASE_URL}${ENDPOINTS.ADDPOINTSTOSPECIFICCUSTOMER}`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ uid, points }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to add points");
+
+    return res.json();
+  } catch (error) {
+    console.error("Error adding points:", error);
+    throw error;
+  }
+}

@@ -6,6 +6,7 @@ import {
   customerKYCVerification,
   sendCustomerNotification,
   importCustomersData,
+  addPointsToCustomer,
 } from "../Services/customerService";
 
 export const CustomerContext = createContext();
@@ -18,6 +19,7 @@ export const CustomerProvider = ({ children }) => {
   const [kycLoading, setKycLoading] = useState(null);
   const [notificationLoading, setNotificationLoading] = useState(null);
   const [importLoading, setImportLoading] = useState(false);
+  const [pointsLoading, setPointsLoading] = useState(null);
 
   // Fetch all customers
   const fetchCustomerList = async () => {
@@ -108,6 +110,26 @@ export const CustomerProvider = ({ children }) => {
     }
   };
 
+  const addPointsToSpecificCustomer = async (uid, points) => {
+    setPointsLoading(uid);
+    try {
+      const response = await addPointsToCustomer(token, uid, points);
+      setCustomersList((prevList) =>
+        prevList.map((customer) =>
+          customer.uid === uid
+            ? { ...customer, loyaltyPoint: response.points }
+            : customer
+        )
+      );
+      return response;
+    } catch (error) {
+      console.error("Failed to add points:", error);
+      throw error;
+    } finally {
+      setPointsLoading(null);
+    }
+  };
+
   // Load customers on mount
   useEffect(() => {
     if (token && customersList.length === 0) {
@@ -129,6 +151,8 @@ export const CustomerProvider = ({ children }) => {
         uploadCustomersData,
         importLoading,
         fetchCustomerList,
+        addPointsToSpecificCustomer,
+        pointsLoading,
       }}
     >
       {children}
