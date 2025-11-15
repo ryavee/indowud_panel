@@ -13,6 +13,7 @@ import {
   MoreVertical,
   Search,
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { useRedemptionsContext } from "../Context/RedemptionContext";
 import Pagination from "../Components/Reusable/Pagination";
@@ -60,6 +61,16 @@ const RedemptionManagement = () => {
       setConfirmAction({ open: false, id: null, uid: null, action: null, name: "" });
     }
   };
+
+  // Bulk confirmation modal
+  const [confirmBulk, setConfirmBulk] = useState({
+    open: false,
+    action: null, // "A" or "R"
+    count: 0
+  });
+  const [bulkLoadingAction, setBulkLoadingAction] = useState(null);
+
+
 
 
   const handleStatusChange = async (id, uid, newStatus) => {
@@ -150,7 +161,7 @@ const RedemptionManagement = () => {
       return;
     }
 
-    // Filter only pending redemptions
+    // Only pending redemptions
     const selectedRedemptions = redemptions.filter(
       (r) => selectedRows.includes(r.id) && r.status === "P"
     );
@@ -161,16 +172,14 @@ const RedemptionManagement = () => {
     }
 
     const actionText = newStatus === "A" ? "approve" : "reject";
-    const confirmMessage = `Are you sure you want to ${actionText} ${selectedRedemptions.length} redemption(s)?`;
 
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+    // close the bulk confirm modal
+    setConfirmBulk({ open: false, action: null, count: 0 });
 
     try {
       setBulkActionLoading(true);
+      setBulkLoadingAction(newStatus);        // 👈 mark which button is loading
 
-      // Log the selected IDs and status for API connection
       console.log("Bulk Action Data:", {
         redemptionIds: selectedRedemptions.map((r) => r.id),
         userIds: selectedRedemptions.map((r) => r.uid),
@@ -178,7 +187,6 @@ const RedemptionManagement = () => {
         count: selectedRedemptions.length,
       });
 
-      // Process each redemption
       let successCount = 0;
       let failCount = 0;
 
@@ -200,7 +208,6 @@ const RedemptionManagement = () => {
         }
       }
 
-      // Show results
       if (successCount > 0) {
         toast.success(
           `Successfully ${actionText}ed ${successCount} redemption(s)`
@@ -210,15 +217,17 @@ const RedemptionManagement = () => {
         toast.error(`Failed to ${actionText} ${failCount} redemption(s)`);
       }
 
-      // Clear selection after bulk action
       setSelectedRows([]);
     } catch (err) {
       toast.error("An unexpected error occurred during bulk action");
       console.error("Error in handleBulkAction:", err);
     } finally {
       setBulkActionLoading(false);
+      setBulkLoadingAction(null);            // 👈 reset which button is loading
     }
   };
+
+
 
   const handleSelectRow = (id) => {
     setSelectedRows((prev) =>
@@ -518,29 +527,80 @@ const RedemptionManagement = () => {
 
             {/* Approve */}
             <button
-              onClick={() => selectedRows.length > 0 && handleBulkAction("A")}
-              disabled={bulkActionLoading}
+              onClick={() => {
+                if (selectedRows.length > 0) {
+                  const pendingCount = redemptions.filter(
+                    (r) => selectedRows.includes(r.id) && r.status === "P"
+                  ).length;
+
+                  if (pendingCount === 0) {
+                    toast.error("No pending redemptions selected");
+                    return;
+                  }
+
+                  setConfirmBulk({
+                    open: true,
+                    action: "A",
+                    count: pendingCount,
+                  });
+                }
+              }}
+              disabled={bulkActionLoading && bulkLoadingAction !== "A"}
               className={`px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition  
-                  ${selectedRows.length > 0 && !bulkActionLoading
+                  ${selectedRows.length > 0 && (!bulkActionLoading || bulkLoadingAction === "A")
                   ? "bg-green-600 hover:bg-green-700 text-white cursor-pointer"
                   : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
             >
-              {bulkActionLoading ? "Processing..." : `Approve (${selectedRows.length})`}
+              {bulkActionLoading && bulkLoadingAction === "A" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Approving...
+                </span>
+              ) : (
+                `Approve (${selectedRows.length})`
+              )}
             </button>
 
             {/* Reject */}
             <button
-              onClick={() => selectedRows.length > 0 && handleBulkAction("R")}
-              disabled={bulkActionLoading}
+              onClick={() => {
+                if (selectedRows.length > 0) {
+                  const pendingCount = redemptions.filter(
+                    (r) => selectedRows.includes(r.id) && r.status === "P"
+                  ).length;
+
+                  if (pendingCount === 0) {
+                    toast.error("No pending redemptions selected");
+                    return;
+                  }
+
+                  setConfirmBulk({
+                    open: true,
+                    action: "R",
+                    count: pendingCount,
+                  });
+                }
+              }}
+              disabled={bulkActionLoading && bulkLoadingAction !== "R"}
               className={`px-4 py-2 text-sm font-medium rounded-lg shadow-sm transition  
-                  ${selectedRows.length > 0 && !bulkActionLoading
+                  ${selectedRows.length > 0 && (!bulkActionLoading || bulkLoadingAction === "R")
                   ? "bg-red-600 hover:bg-red-700 text-white cursor-pointer"
                   : "bg-gray-200 text-gray-500 cursor-not-allowed"
                 }`}
             >
-              {bulkActionLoading ? "Processing..." : `Reject (${selectedRows.length})`}
+              {bulkActionLoading && bulkLoadingAction === "R" ? (
+                <span className="inline-flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Rejecting...
+                </span>
+              ) : (
+                `Reject (${selectedRows.length})`
+              )}
             </button>
+
+
+
 
             {/* Export */}
             <button
@@ -670,7 +730,7 @@ const RedemptionManagement = () => {
                                 onClick={() => openConfirmAction(r.id, r.uid, "A", r.userName || r.id)}
                                 disabled={actionLoading === r.id}
                                 className={`bg-green-600 hover:bg-green-700 text-white px-3 
-                                  py-1.5 rounded-md text-xs font-medium transition
+                                  py-1.5 rounded-md text-xs font-medium transition cursor-pointer
                                    ${actionLoading === r.id ? "opacity-60 cursor-not-allowed" : ""}`}
                               >
                                 Approve
@@ -679,7 +739,7 @@ const RedemptionManagement = () => {
                                 onClick={() => openConfirmAction(r.id, r.uid, "R", r.userName || r.id)}
                                 disabled={actionLoading === r.id}
                                 className={`bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 
-                                  rounded-md text-xs font-medium transition
+                                  rounded-md text-xs font-medium transition cursor-pointer
                                    ${actionLoading === r.id ? "opacity-60 cursor-not-allowed" : ""}`}
                               >
                                 Reject
@@ -723,13 +783,32 @@ const RedemptionManagement = () => {
             : ""
         }
         onConfirm={handleConfirmAction}
-        onCancel={() => setConfirmAction({ open: false, id: null, uid: null, action: null, name: "" })}
+        onCancel={() =>
+          setConfirmAction({ open: false, id: null, uid: null, action: null, name: "" })
+        }
         isLoading={actionProcessing}
         confirmText={confirmAction.action === "A" ? "Approve" : "Reject"}
+        loadingText={confirmAction.action === "A" ? "Approving..." : "Rejecting..."}   // 👈 ADDED
         cancelText="Cancel"
         type={confirmAction.action === "A" ? "success" : "danger"}
       />
 
+      <ConfirmationModal
+        isOpen={confirmBulk.open}
+        title={confirmBulk.action === "A" ? "Approve Multiple Redemptions" : "Reject Multiple Redemptions"}
+        message={
+          confirmBulk.open
+            ? `Are you sure you want to ${confirmBulk.action === "A" ? "approve" : "reject"} ${confirmBulk.count} pending redemption(s)?`
+            : ""
+        }
+        onConfirm={() => handleBulkAction(confirmBulk.action)}
+        onCancel={() => setConfirmBulk({ open: false, action: null, count: 0 })}
+        isLoading={bulkActionLoading}
+        confirmText={confirmBulk.action === "A" ? "Approve All" : "Reject All"}
+        loadingText={confirmBulk.action === "A" ? "Approving..." : "Rejecting..."}   // 👈 ADDED
+        cancelText="Cancel"
+        type={confirmBulk.action === "A" ? "success" : "danger"}
+      />
     </div>
   );
 };
