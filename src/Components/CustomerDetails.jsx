@@ -62,7 +62,7 @@ const CustomerDetails = ({
     const amount = Number(bonusAmount);
 
     if (!amount || amount <= 0) {
-      // You can plug in toast here if you want
+      // Plug toast here if needed
       // toast.error("Please enter a valid bonus amount");
       return;
     }
@@ -88,6 +88,7 @@ const CustomerDetails = ({
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-4">
+      {/* Single width container for BOTH header and main */}
       <div className="max-w-7xl mx-auto">
         {/* ⭐ Sticky Header ⭐ */}
         <header className="sticky top-0 z-20 pb-3 bg-gradient-to-b from-white/95 to-transparent backdrop-blur">
@@ -183,10 +184,10 @@ const CustomerDetails = ({
           </div>
         </header>
 
-        {/* Main Content – same width as header via max-w-7xl wrapper */}
-        <main className="mt-4 px-2 sm:px-4 md:px-6">
+        {/* ⭐ Main Content (same width as header, no extra max-w or side padding) ⭐ */}
+        <main className="mt-4">
           <div className="space-y-6">
-            {/* Row 1: Personal Info + Bank Info */}
+            {/* Row 1: Personal Info + Bank Info (2 cards) */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {/* Personal Info */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-full">
@@ -249,7 +250,7 @@ const CustomerDetails = ({
               </div>
             </section>
 
-            {/* Row 2: KYC Documents (full width) */}
+            {/* Row 2: KYC Documents (1 full-width card) */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h3 className="flex items-center text-lg font-semibold text-gray-800 mb-4">
                 <IdCard className="w-5 h-5 mr-2 text-orange-500" />
@@ -327,7 +328,7 @@ const CustomerDetails = ({
               </div>
             </section>
 
-            {/* Row 3: Bonus + Notification */}
+            {/* Row 3: Bonus + Notification (2 cards) */}
             <section className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
               {/* Grant Bonus */}
               <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 h-full">
