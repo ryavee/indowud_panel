@@ -12,7 +12,7 @@ import {
   Loader2,
   ExternalLink,
   Send,
-  IdCard,
+  FileText,
   Gift,
 } from "lucide-react";
 
@@ -25,22 +25,30 @@ const presetReasons = [
 ];
 
 const CustomerDetails = ({
-  customer,
+  customer: initialCustomer,
   onBack,
   onBlockCustomer,
   onKYCAction,
   handleDocumentView,
   actionLoading,
-  onGrantBonus,
 }) => {
-  const { notifyCustomer, notificationLoading } = useContext(CustomerContext);
+  const {
+    notifyCustomer,
+    notificationLoading,
+    addPointsToSpecificCustomer,
+    pointsLoading,
+    customersList,
+  } = useContext(CustomerContext);
 
   const [customMessage, setCustomMessage] = useState("");
   const [sending, setSending] = useState(false);
 
   const [bonusAmount, setBonusAmount] = useState("");
-  const [bonusReason, setBonusReason] = useState("");
-  const [bonusLoading, setBonusLoading] = useState(false);
+
+  // Get the latest customer data from context
+  const customer =
+    customersList.find((c) => c.uid === initialCustomer?.uid) ||
+    initialCustomer;
 
   if (!customer) return null;
 
@@ -62,27 +70,14 @@ const CustomerDetails = ({
     const amount = Number(bonusAmount);
 
     if (!amount || amount <= 0) {
-      // Plug toast here if needed
-      // toast.error("Please enter a valid bonus amount");
       return;
     }
 
     try {
-      setBonusLoading(true);
-
-      if (typeof onGrantBonus === "function") {
-        await onGrantBonus(customer.uid, amount, bonusReason);
-      } else {
-        console.warn("onGrantBonus prop is not provided");
-      }
-
+      await addPointsToSpecificCustomer(customer.uid, amount);
       setBonusAmount("");
-      setBonusReason("");
     } catch (err) {
       console.error("Failed to grant bonus:", err);
-      // toast.error("Failed to grant bonus");
-    } finally {
-      setBonusLoading(false);
     }
   };
 
@@ -253,7 +248,7 @@ const CustomerDetails = ({
             {/* Row 2: KYC Documents (1 full-width card) */}
             <section className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
               <h3 className="flex items-center text-lg font-semibold text-gray-800 mb-4">
-                <IdCard className="w-5 h-5 mr-2 text-orange-500" />
+                <FileText className="w-5 h-5 mr-2 text-orange-500" />
                 KYC Documents
               </h3>
 
@@ -352,26 +347,13 @@ const CustomerDetails = ({
                     />
                   </div>
 
-                  <div>
-                    <label className="block text-xs font-medium text-gray-600 mb-1">
-                      Reason (optional)
-                    </label>
-                    <textarea
-                      rows="2"
-                      value={bonusReason}
-                      onChange={(e) => setBonusReason(e.target.value)}
-                      className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none"
-                      placeholder="Why are you granting this bonus? (e.g., Regular loyal customer)"
-                    />
-                  </div>
-
                   <div className="flex justify-end pt-2">
                     <button
                       onClick={handleGrantBonus}
-                      disabled={bonusLoading}
+                      disabled={pointsLoading === customer.uid}
                       className="flex items-center gap-2 px-5 py-2 bg-green-600 hover:bg-green-700 text-white rounded-md shadow-sm text-sm font-medium disabled:opacity-60 cursor-pointer"
                     >
-                      {bonusLoading ? (
+                      {pointsLoading === customer.uid ? (
                         <>
                           <Loader2 className="w-4 h-4 animate-spin" />
                           <span>Granting Bonus...</span>

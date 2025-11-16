@@ -1,6 +1,6 @@
-export const BASE_URL =
-  //  "http://localhost:2000";
-  "https://indowud-main-engine.onrender.com";
+export const BASE_URL = 
+// "http://localhost:2000";
+"https://indowud-main-engine.onrender.com";
 export const ENDPOINTS = {
   // Dashboard
   FETCHDASHBOARDDATA: "/api/dashboard/get-dashboard-data",
@@ -23,6 +23,7 @@ export const ENDPOINTS = {
   KYCVERIFICATION: "/api/v5/customers/kyc-verification",
   SENDCUSTOMERNOTIFICATION: "/api/v5/customers/send-customer-notification",
   IMPORTCUSTOMERSDATA: "/api/v5/customers/import-customers",
+  ADDPOINTSTOSPECIFICCUSTOMER: "/api/v5/customers/add-points-to-customer",
   // Announcement
   GETANNOUNCEMENTS: "/api/v6/announcements/get-all-announcements",
   CREATEANNOUNCEMENT: "/api/v6/announcements/create-new-announcement",
@@ -46,7 +47,6 @@ export const ENDPOINTS = {
   CREATENEWPROMOTIONS: "/api/v9/promotional/create-new-promotional",
   UPDATEPROMOTIONS: "/api/v9/promotional/update-promotional",
   DELETEPROMOTIONS: "/api/v9/promotional/delete-promotional",
-  IMPORTPROMOTIONALDATA: "/api/v9/promotional/import-promotionals",
   // Products
   GETALLPRODUCTS: "/api/v10/products/all-products",
   CREATEPRODUCTS: "/api/v10/products/create-new-product",
