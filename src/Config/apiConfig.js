@@ -1,6 +1,7 @@
 export const BASE_URL = 
 // "http://localhost:2000";
-"https://indowud-main-engine.onrender.com";
+// "https://indowud-main-engine.onrender.com";
+"https://indowud-main-engine-production.up.railway.app";
 export const ENDPOINTS = {
   // Dashboard
   FETCHDASHBOARDDATA: "/api/dashboard/get-dashboard-data",
