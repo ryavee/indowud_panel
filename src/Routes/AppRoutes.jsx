@@ -1,4 +1,7 @@
+// src/Routes/AppRoutes.jsx
+import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
+
 import Login from "../Pages/Login";
 import Dashboard from "../Pages/Dashboard";
 import AdminUsers from "../Pages/AdminUsers";
@@ -15,15 +18,16 @@ import Settings from "../Pages/Settings";
 import ManageTickets from "../Pages/ManageTickets";
 import Dealers from "../Pages/Dealers";
 import RedemptionManagement from "../Pages/Redemption";
+import PrivacyPolicy from "../Pages/PrivacyPolicy";
 
 const AppRoutes = () => {
   return (
     <Routes>
-      {/* Public Route */}
+      {/* Public routes */}
       <Route path="/login" element={<Login />} />
-      {/* Protected Routes */}
-      ) : (
-      <Route path="*" element={<Navigate to="/login" />} />)
+      <Route path="/privacy-policy" element={<PrivacyPolicy />} />
+
+      {/* Protected/admin routes wrapped by AdminLayout */}
       <Route element={<AdminLayout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/factoryUsers" element={<AdminUsers />} />
@@ -40,9 +44,12 @@ const AppRoutes = () => {
         <Route path="/feed" element={<Feed />} />
         <Route path="/announcements" element={<Announcements />} />
       </Route>
-      <Route path="/" element={<Navigate to="/login" />} />
+
+      {/* Default/root redirect */}
+      <Route path="/" element={<Navigate to="/login" replace />} />
+
       {/* Catch-all 404 */}
-      <Route path="*" element={<h1>404 Not Found</h1>} />
+      <Route path="*" element={<h1 className="p-8 text-center">404 — Page not found</h1>} />
     </Routes>
   );
 };
