@@ -26,10 +26,7 @@ export default function PrivacyPolicy() {
 
             {/* Desktop nav */}
             <nav className="hidden md:flex items-center gap-6">
-              <Link to="/" className="text-sm text-white/90 hover:text-white/100">Home</Link>
-              <Link to="/products" className="text-sm text-white/90 hover:text-white/100">Products</Link>
-              <Link to="/catalogue" className="text-sm text-white/90 hover:text-white/100">Catalogue</Link>
-              <Link to="/contact" className="text-sm text-white/90 hover:text-white/100">Contact</Link>
+              
               <Link to="/privacy-policy" className="text-sm font-semibold text-white">Privacy Policy</Link>
             </nav>
 
