@@ -9,20 +9,54 @@ const teal = "#169698";
 export default function PrivacyPolicy() {
     const [mobileOpen, setMobileOpen] = useState(false);
 
-    return (
-        <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-[#E6F8F6] text-gray-800 flex flex-col">
-            {/* Header (theme like Login) */}
-            <header className="bg-gradient-to-r from-[#169698] to-[#128083] shadow-md">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex items-center justify-between h-16">
-                        <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-white rounded-xl flex items-center justify-center shadow-sm">
-                                <img src={logo} alt="Indowud logo" className="w-10 h-10 object-contain" />
-                            </div>
-                            <div className="hidden sm:flex flex-col leading-none">
-                                <span className="text-white text-sm font-bold tracking-wide">INDOWUD NFC PRIVATE LIMITED</span>
-                            </div>
-                        </div>
+            {/* Desktop nav */}
+            <nav className="hidden md:flex items-center gap-6">
+              
+              <Link to="/privacy-policy" className="text-sm font-semibold text-white">Privacy Policy</Link>
+            </nav>
+
+            {/* mobile menu button */}
+            <div className="md:hidden">
+              <button
+                onClick={() => setMobileOpen((s) => !s)}
+                className="p-2 rounded-md border border-white/20 bg-white/10"
+                aria-label="Toggle menu"
+              >
+                {mobileOpen ? <X className="w-5 h-5 text-white" /> : <Menu className="w-5 h-5 text-white" />}
+              </button>
+            </div>
+          </div>
+
+          {/* Mobile nav */}
+          {mobileOpen && (
+            <div className="md:hidden pb-4">
+              <div className="flex flex-col gap-2 py-3">
+                <Link to="/" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded hover:bg-white/10 text-white/95">Home</Link>
+                <Link to="/products" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded hover:bg-white/10 text-white/95">Products</Link>
+                <Link to="/catalogue" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded hover:bg-white/10 text-white/95">Catalogue</Link>
+                <Link to="/contact" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded hover:bg-white/10 text-white/95">Contact</Link>
+                <Link to="/privacy-policy" onClick={() => setMobileOpen(false)} className="px-3 py-2 rounded bg-white/10 text-white font-medium">Privacy Policy</Link>
+              </div>
+            </div>
+          )}
+        </div>
+      </header>
+
+      {/* HERO */}
+      <div className="bg-white/0 border-b border-gray-100">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-extrabold text-gray-900">
+                Privacy Policy
+              </h1>
+              <p className="mt-2 text-sm text-gray-600">
+                Last updated: <span className="font-medium text-gray-800">{new Date().toLocaleDateString()}</span>
+              </p>
+              <p className="mt-4 max-w-2xl text-sm text-gray-700">
+                This policy explains how Indowud collects, uses and protects your personal information when you use our services.
+              </p>
+            </div>
 
                         {/* Desktop nav */}
                         <nav className="hidden md:flex items-center gap-6">
