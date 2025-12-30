@@ -52,24 +52,35 @@ const Customers = () => {
 
   const filteredCustomers = useMemo(() => {
     const q = searchTerm.trim().toLowerCase();
-    return customersList.filter((c) => {
-      const matchesSearch =
-        !q ||
-        c.firstName?.toLowerCase().includes(q) ||
-        c.lastName?.toLowerCase().includes(q) ||
-        c.email?.toLowerCase().includes(q) ||
-        c.referralCode?.toLowerCase().includes(q);
 
-      const matchesStatus =
-        statusFilter === "All" ||
-        (statusFilter === "Active" && !c.isBlocked) ||
-        (statusFilter === "Blocked" && c.isBlocked) ||
-        (statusFilter === "KYC Verified" && c.isKYCverifed) ||
-        (statusFilter === "KYC Pending" && !c.isKYCverifed);
+    return customersList
+      .slice()
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+      .filter((c) => {
+        const fullName = `${c.firstName || ""} ${c.lastName || ""}`
+          .trim()
+          .toLowerCase();
 
-      return matchesSearch && matchesStatus;
-    });
+        const matchesSearch =
+          !q ||
+          fullName.includes(q) ||
+          c.firstName?.toLowerCase().includes(q) ||
+          c.lastName?.toLowerCase().includes(q) ||
+          c.phone?.toString().includes(q) ||
+          c.email?.toLowerCase().includes(q) ||
+          c.referralCode?.toLowerCase().includes(q);
+
+        const matchesStatus =
+          statusFilter === "All" ||
+          (statusFilter === "Active" && !c.isBlocked) ||
+          (statusFilter === "Blocked" && c.isBlocked) ||
+          (statusFilter === "KYC Verified" && c.isKYCverifed) ||
+          (statusFilter === "KYC Pending" && !c.isKYCverifed);
+
+        return matchesSearch && matchesStatus;
+      });
   }, [customersList, searchTerm, statusFilter]);
+
 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -308,10 +319,11 @@ const Customers = () => {
 
           {/* Left side: Filters */}
           <div className="flex flex-wrap items-center gap-3">
-            <div className="relative min-w-[260px] sm:min-w-[300px] md:w-72 lg:w-80 flex-1">            <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+            <div className="relative min-w-[260px] sm:min-w-[300px] md:w-72 lg:w-80 flex-1">
+              <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search by name, email, or referral..."
+                placeholder="Search by name, mobile, email, or referral..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
