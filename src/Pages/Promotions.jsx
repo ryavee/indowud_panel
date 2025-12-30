@@ -25,13 +25,15 @@ import ConfirmationModal from "../Components/ConfirmationModal";
 
 const StatusBadge = ({ status }) => (
   <span
-    className={`px-2 py-1 rounded-full text-xs font-medium ${
-      status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-    }`}
+    className={`px-2 py-1 rounded-full text-xs font-medium ${status ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+      }`}
   >
     {status ? "Active" : "Inactive"}
   </span>
 );
+
+const todayStr = new Date().toISOString().split("T")[0];
+
 
 const CategoryBadge = ({ category }) => {
   const colors = {
@@ -40,9 +42,8 @@ const CategoryBadge = ({ category }) => {
   };
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium ${
-        colors[category] || "bg-gray-100 text-gray-800"
-      }`}
+      className={`px-2 py-1 rounded-full text-xs font-medium ${colors[category] || "bg-gray-100 text-gray-800"
+        }`}
     >
       {category}
     </span>
@@ -56,9 +57,8 @@ const BonusTypeBadge = ({ bonusType }) => {
   };
   return (
     <span
-      className={`px-2 py-1 rounded-full text-xs font-medium ${
-        colors[bonusType] || "bg-gray-100 text-gray-800"
-      }`}
+      className={`px-2 py-1 rounded-full text-xs font-medium ${colors[bonusType] || "bg-gray-100 text-gray-800"
+        }`}
     >
       {bonusType}
     </span>
@@ -215,10 +215,29 @@ const Promotions = () => {
       return;
     }
 
-    if (new Date(formData.startDate) > new Date(formData.endDate)) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const start = new Date(formData.startDate);
+    const end = new Date(formData.endDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(0, 0, 0, 0);
+
+    if (start < today) {
+      toast.error("Start date cannot be in the past");
+      return;
+    }
+
+    if (end < today) {
+      toast.error("End date cannot be in the past");
+      return;
+    }
+
+    if (end < start) {
       toast.error("End date must be after start date");
       return;
     }
+
 
     setCreateOrUpdateLoading(true);
     try {
@@ -589,9 +608,11 @@ const Promotions = () => {
                     type="date"
                     name="startDate"
                     value={formData.startDate}
+                    min={todayStr}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
                   />
+
                 </div>
 
                 <div>
@@ -602,9 +623,11 @@ const Promotions = () => {
                     type="date"
                     name="endDate"
                     value={formData.endDate}
+                    min={formData.startDate || todayStr}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-[#00A9A3]"
                   />
+
                 </div>
               </div>
 
