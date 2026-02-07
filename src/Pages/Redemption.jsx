@@ -18,6 +18,8 @@ import {
 import { useRedemptionsContext } from "../Context/RedemptionContext";
 import Pagination from "../Components/Reusable/Pagination";
 import ConfirmationModal from "../Components/ConfirmationModal";
+import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
+
 
 const RedemptionManagement = () => {
   const { redemptions, loading, error, updateRedemptionStatus } =
@@ -108,6 +110,58 @@ const RedemptionManagement = () => {
     return `${classMap[status]} px-3 py-1 rounded-full text-xs font-medium`;
   };
 
+  // sorting logic
+  const [sortConfig, setSortConfig] = useState({
+    key: "requestedAt", // default
+    direction: "desc",  // newest first
+  });
+
+  const STATUS_PRIORITY = {
+    P: 1,
+    A: 2,
+    R: 3,
+  };
+
+  // sorting used
+  const sortData = (data) => {
+    if (!sortConfig.key) return data;
+
+    return [...data].sort((a, b) => {
+      let aVal, bVal;
+
+      switch (sortConfig.key) {
+        case "userName":
+          aVal = (a.userName || "").toLowerCase();
+          bVal = (b.userName || "").toLowerCase();
+          break;
+
+        case "totalValue":
+          aVal = Number(a.totalValue) || 0;
+          bVal = Number(b.totalValue) || 0;
+          break;
+
+        case "requestedAt":
+          aVal = new Date(a.requestedAt);
+          bVal = new Date(b.requestedAt);
+          break;
+
+        case "status":
+          aVal = STATUS_PRIORITY[a.status] || 99;
+          bVal = STATUS_PRIORITY[b.status] || 99;
+          break;
+
+        default:
+          return 0;
+      }
+
+      if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
+      if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+      return 0;
+    });
+  };
+
+
+
   const filteredData = useMemo(() => {
     let filtered = redemptions;
 
@@ -134,8 +188,11 @@ const RedemptionManagement = () => {
       });
     }
 
-    return filtered;
-  }, [redemptions, filter, searchQuery, selectedDate]);
+    return sortData(filtered);
+  }, [redemptions, filter, searchQuery, selectedDate, sortConfig]);
+
+
+
 
   const stats = useMemo(() => {
     const total = redemptions.length;
@@ -326,14 +383,7 @@ const RedemptionManagement = () => {
 
 
   if (loading) {
-    return (
-      <div className="p-6 flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading redemptions...</p>
-        </div>
-      </div>
-    );
+    return <LoadingSpinner centered message="Loading Redemption Management..." />;
   }
 
   if (error) {
@@ -346,6 +396,39 @@ const RedemptionManagement = () => {
       </div>
     );
   }
+
+  const handleSort = (key) => {
+    setSortConfig((prev) => ({
+      key,
+      direction:
+        prev.key === key && prev.direction === "asc" ? "desc" : "asc",
+    }));
+  };
+
+
+  // ✅ Reusable sortable header (prevents layout shift)
+  const SortableHeader = ({ icon: Icon, label, sortKey }) => (
+    <div
+      onClick={() => handleSort(sortKey)}
+      className="flex items-center gap-2 cursor-pointer select-none
+           whitespace-nowrap text-gray-600 hover:text-orange-600
+           transition-colors h-5"
+    >
+      <Icon className="h-4 w-4 shrink-0" />
+      <span className="font-medium leading-none">{label}</span>
+
+      {/* fixed-width icon slot */}
+      <span className="inline-flex w-4 justify-center text-xs text-gray-400 leading-none">
+        {sortConfig.key === sortKey
+          ? sortConfig.direction === "asc"
+            ? "▲"
+            : "▼"
+          : ""}
+      </span>
+    </div>
+  );
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
@@ -627,7 +710,7 @@ const RedemptionManagement = () => {
           ) : (
             <>
               <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200 text-sm">
+                <table className="min-w-full table-fixed divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-100">
                     <tr>
                       <th className="px-6 py-3 text-left">
@@ -643,37 +726,53 @@ const RedemptionManagement = () => {
                           className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
                         />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex items-center gap-1">
-                          <Gift className="h-4 w-4" /> User Name
-                        </div>
+                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[180px]">
+                        <SortableHeader
+                          icon={Gift}
+                          label="User Name"
+                          sortKey="userName"
+                        />
                       </th>
+
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         <div className="flex items-center gap-1">
                           <Phone className="h-4 w-4" /> Contact
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex items-center gap-1">
-                          <Wallet className="h-4 w-4" /> UPI Details
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[160px]">
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <Wallet className="h-4 w-4 shrink-0" />UPI Details
+                          
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex items-center gap-1">
-                          <IndianRupee className="h-4 w-4" /> Amount
-                        </div>
+
+                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[140px]">
+                        <SortableHeader
+                          icon={IndianRupee}
+                          label="Amount"
+                          sortKey="totalValue"
+                        />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex items-center gap-1">
-                          <CalendarDays className="h-4 w-4" /> Date
-                        </div>
+
+                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[140px]">
+                        <SortableHeader
+                          icon={CalendarDays}
+                          label="Date"
+                          sortKey="requestedAt"
+                        />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex items-center gap-1">
-                          <CheckCircle className="h-4 w-4" /> Status
-                        </div>
+
+
+                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[140px]">
+                        <SortableHeader
+                          icon={CheckCircle}
+                          label="Status"
+                          sortKey="status"
+                        />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+
+
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px] whitespace-nowrap">
                         <div className="flex items-center gap-1">
                           <MoreVertical className="h-4 w-4" /> Action
                         </div>
@@ -684,10 +783,12 @@ const RedemptionManagement = () => {
                     {paginatedData.map((r) => (
                       <tr
                         key={r.id}
-                        className={`hover:bg-orange-50/40 transition-all ${selectedRows.includes(r.id) ? "bg-orange-50/60" : ""
-                          }`}
+                        className={`hover:bg-orange-50/40 transition-all
+              h-[56px] align-middle
+              ${selectedRows.includes(r.id) ? "bg-orange-50/60" : ""}`}
                       >
-                        <td className="px-6 py-4">
+
+                        <td className="px-6 py-4 align-middle whitespace-nowrap">
                           <input
                             type="checkbox"
                             checked={selectedRows.includes(r.id)}
@@ -698,16 +799,18 @@ const RedemptionManagement = () => {
                         <td className="px-6 py-4 font-medium text-gray-900">
                           {r.userName}
                         </td>
-                        <td className="px-6 py-4 text-gray-700">
+                        <td className="px-6 py-4 align-middle text-gray-700">
                           {r.userPhone}
                         </td>
-                        <td className="px-6 py-4 text-gray-700">
+                        <td className="px-6 py-4 align-middle text-gray-700 whitespace-nowrap">
+
                           <div className="text-sm">{r.upiId || "-"}</div>
                           <div className="text-xs text-gray-500">
                             {r.upiNumber}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-gray-700">
+                        <td className="px-6 py-4 align-middle text-gray-700">
+
                           <div className="font-medium">
                             {r.points} pts = ₹{r.totalValue}
                           </div>
@@ -715,22 +818,25 @@ const RedemptionManagement = () => {
                             Ratio: {r.ratio || "-"}
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-gray-700">
+                        <td className="px-6 py-4 align-middle text-gray-700">
+
                           {formatDate(r.requestedAt)}
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 align-middle whitespace-nowrap">
+
                           <span className={getStatusClasses(r.status)}>
                             {getStatusDisplay(r.status)}
                           </span>
                         </td>
-                        <td className="px-6 py-4">
+                        <td className="px-6 py-4 align-middle whitespace-nowrap">
+
                           {r.status === "P" ? (
                             <div className="flex gap-2">
                               <button
                                 onClick={() => openConfirmAction(r.id, r.uid, "A", r.userName || r.id)}
                                 disabled={actionLoading === r.id}
-                                className={`bg-green-600 hover:bg-green-700 text-white px-3 
-                                  py-1.5 rounded-md text-xs font-medium transition cursor-pointer
+                                className={`bg-green-600 hover:bg-green-700 text-white
+                                  h-8 px-3 rounded-md text-xs font-medium transition cursor-pointer
                                    ${actionLoading === r.id ? "opacity-60 cursor-not-allowed" : ""}`}
                               >
                                 Approve
@@ -738,8 +844,8 @@ const RedemptionManagement = () => {
                               <button
                                 onClick={() => openConfirmAction(r.id, r.uid, "R", r.userName || r.id)}
                                 disabled={actionLoading === r.id}
-                                className={`bg-red-500 hover:bg-red-600 text-white px-3 py-1.5 
-                                  rounded-md text-xs font-medium transition cursor-pointer
+                                className={`bg-red-500 hover:bg-red-600 text-white
+                                h-8 px-3 rounded-md text-xs font-medium transition cursor-pointer
                                    ${actionLoading === r.id ? "opacity-60 cursor-not-allowed" : ""}`}
                               >
                                 Reject
