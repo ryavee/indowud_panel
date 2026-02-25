@@ -72,13 +72,15 @@ export const ProductProvider = ({ children }) => {
       setError(null);
 
       const trimmedName = productData.productName?.trim();
-      const trimmedUnit = productData.productUnit?.trim();
+      const trimmedUnit = productData.productUnit?.trim() || "";
+      const trimmedId = productData.productId?.trim();
       const productPoint = Number(productData.productPoint) || 0;
 
+      if (!trimmedId) throw new Error("Product ID cannot be empty");
       if (!trimmedName) throw new Error("Product name cannot be empty");
-      if (!trimmedUnit) throw new Error("Product unit cannot be empty");
 
       const response = await createProduct({
+        productId: trimmedId,
         productName: trimmedName,
         productUnit: trimmedUnit,
         productPoint,
@@ -112,12 +114,17 @@ export const ProductProvider = ({ children }) => {
     if (!id) throw new Error("Product ID is required");
     try {
       setError(null);
-      const trimmedName = productData.productName?.trim() || "N/A";
-      const trimmedUnit = productData.productUnit?.trim() || "N/A";
+      const trimmedName = productData.productName?.trim() || "";
+      const trimmedUnit = productData.productUnit?.trim() || "";
+      const trimmedId = productData.productId?.trim() || "";
       const productPoint = Number(productData.productPoint) || 0;
+
+      if (!trimmedId) throw new Error("Product ID cannot be empty");
+      if (!trimmedName) throw new Error("Product name cannot be empty");
+
       const response = await updateProductService({
         id,
-        productId: productData.productId,
+        productId: trimmedId,
         productName: trimmedName,
         productUnit: trimmedUnit,
         productPoint,

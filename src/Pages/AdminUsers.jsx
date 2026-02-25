@@ -10,6 +10,8 @@ import {
   Calendar,
   MoreVertical,
   Lock,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import Modal from "../Components/Reusable/form";
 import UserForm from "../Components/add_user_form";
@@ -95,6 +97,8 @@ const AdminUsers = () => {
   });
   const [searchTerm, setSearchTerm] = useState("");
   const [roleFilter, setRoleFilter] = useState("All");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
   const handleFormSubmit = async (formData) => {
     if (editingUser) {
       const result = await updateUserData(formData);
@@ -159,6 +163,45 @@ const AdminUsers = () => {
     const matchesRole = roleFilter === "All" || user.role === roleFilter;
     return matchesSearch && matchesRole;
   });
+
+  const sortedUsers = React.useMemo(() => {
+    let sortableUsers = [...filteredUsers];
+    if (sortConfig.key !== null) {
+      sortableUsers.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (sortConfig.key === 'firstName') {
+          aValue = `${a.firstName || ''} ${a.lastName || ''}`.toLowerCase();
+          bValue = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase();
+        } else if (sortConfig.key === 'isUserInActive') {
+          aValue = a.isUserInActive ? 1 : 0;
+          bValue = b.isUserInActive ? 1 : 0;
+        } else {
+          if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+          if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableUsers;
+  }, [filteredUsers, sortConfig]);
+
+  const requestSort = (key) => {
+    if (!key) return;
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const exportColumns = [
     { header: "First Name", key: "firstName" },
@@ -259,7 +302,7 @@ const AdminUsers = () => {
                     label="Import Users"
                   />
                   <ExportButton
-                    data={filteredUsers}
+                    data={sortedUsers}
                     columns={exportColumns}
                     filename="admin-users"
                     disabled={false}
@@ -292,7 +335,7 @@ const AdminUsers = () => {
 
         {/* Table */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          {filteredUsers.length === 0 ? (
+          {sortedUsers.length === 0 ? (
             <div className="p-10 text-center">
               <p className="text-gray-500 mb-4">No users found</p>
               <button
@@ -308,26 +351,33 @@ const AdminUsers = () => {
                 <thead className="bg-gray-100">
                   <tr>
                     {[
-                      ["User", User],
-                      ["Contact", Phone],
-                      ["Role", Shield],
-                      ["Status", CheckCircle],
-                      ["Joined On", Calendar],
-                      ["Action", MoreVertical],
-                    ].map(([label, Icon]) => (
+                      { label: "User", Icon: User, sortKey: "firstName" },
+                      { label: "Contact", Icon: Phone, sortKey: "phone" },
+                      { label: "Role", Icon: Shield, sortKey: "role" },
+                      { label: "Status", Icon: CheckCircle, sortKey: "isUserInActive" },
+                      { label: "Joined On", Icon: Calendar, sortKey: "createdAt" },
+                      { label: "Action", Icon: MoreVertical, sortKey: null },
+                    ].map(({ label, Icon, sortKey }) => (
                       <th
                         key={label}
-                        className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors" : ""}`}
+                        onClick={() => requestSort(sortKey)}
                       >
                         <div className="flex items-center gap-1">
-                          <Icon className="h-4 w-4 text-gray-500" /> {label}
+                          <Icon className="h-4 w-4 text-gray-500" />
+                          <span>{label}</span>
+                          {sortConfig.key === sortKey && sortKey && (
+                            sortConfig.direction === 'asc' ?
+                              <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                              <ChevronDown className="h-4 w-4 text-gray-700" />
+                          )}
                         </div>
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 bg-white">
-                  {filteredUsers.map((user) => (
+                  {sortedUsers.map((user) => (
                     <tr
                       key={user.uid}
                       className="hover:bg-orange-50/40 transition-all"

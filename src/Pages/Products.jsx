@@ -34,6 +34,7 @@ const Products = () => {
   } = useProductContext();
 
   // Local states
+  const [newProductId, setNewProductId] = useState("");
   const [newProductName, setNewProductName] = useState("");
   const [newProductUnit, setNewProductUnit] = useState("");
   const [newProductPoints, setNewProductPoints] = useState("");
@@ -60,27 +61,31 @@ const Products = () => {
     setFormError("");
 
     if (
-      !newProductName.trim() ||
-      !newProductUnit.trim() ||
-      !newProductPoints.trim()
+      !newProductId.trim() ||
+      !newProductName.trim()
     ) {
-      setFormError("All fields are required.");
+      setFormError("Product ID and Product Name are required.");
       return;
     }
 
-    const productPoint = parseFloat(newProductPoints);
-    if (isNaN(productPoint) || productPoint < 0) {
-      setFormError("Product points must be a valid positive number.");
-      return;
+    let productPoint = 0;
+    if (newProductPoints.trim() !== "") {
+      productPoint = parseFloat(newProductPoints);
+      if (isNaN(productPoint) || productPoint < 0) {
+        setFormError("Product points must be a valid positive number.");
+        return;
+      }
     }
 
     try {
       await addProduct({
+        productId: newProductId.trim(),
         productName: newProductName.trim(),
         productUnit: newProductUnit.trim(),
         productPoint,
       });
       toast.success(`"${newProductName}" added successfully!`);
+      setNewProductId("");
       setNewProductName("");
       setNewProductUnit("");
       setNewProductPoints("");
@@ -98,8 +103,7 @@ const Products = () => {
     try {
       await removeProduct(deleteTarget.id);
       toast.success(
-        `"${
-          deleteTarget.productName || deleteTarget.name
+        `"${deleteTarget.productName || deleteTarget.name
         }" deleted successfully!`
       );
       setDeleteTarget(null);
@@ -123,27 +127,26 @@ const Products = () => {
   const handleUpdateProduct = async () => {
     setFormError("");
 
-    if (
-      !editTarget.productName.trim() ||
-      !editTarget.productUnit.trim() ||
-      editTarget.productPoint === ""
-    ) {
-      setFormError("All fields are required.");
+    if (!editTarget.productId?.trim() || !editTarget.productName?.trim()) {
+      setFormError("Product ID and Product Name are required.");
       return;
     }
 
-    const productPoint = parseFloat(editTarget.productPoint);
-    if (isNaN(productPoint) || productPoint < 0) {
-      setFormError("Product points must be a valid positive number.");
-      return;
+    let productPoint = 0;
+    if (editTarget.productPoint !== "" && editTarget.productPoint !== null && editTarget.productPoint !== undefined) {
+      productPoint = parseFloat(editTarget.productPoint);
+      if (isNaN(productPoint) || productPoint < 0) {
+        setFormError("Product points must be a valid positive number.");
+        return;
+      }
     }
 
     setEditLoading(true);
     try {
       await updateProduct(editTarget.id, {
-        productId: editTarget.productId,
+        productId: editTarget.productId.trim(),
         productName: editTarget.productName.trim(),
-        productUnit: editTarget.productUnit.trim(),
+        productUnit: editTarget.productUnit?.trim() || "",
         productPoint,
       });
       toast.success(`"${editTarget.productName}" updated successfully!`);
@@ -176,16 +179,14 @@ const Products = () => {
 
       if (successCount > 0) {
         toast.success(
-          `Successfully imported ${successCount} product${
-            successCount !== 1 ? "s" : ""
+          `Successfully imported ${successCount} product${successCount !== 1 ? "s" : ""
           }!`
         );
       }
 
       if (skipped.length > 0) {
         toast.error(
-          `${skipped.length} product${
-            skipped.length !== 1 ? "s were" : " was"
+          `${skipped.length} product${skipped.length !== 1 ? "s were" : " was"
           } skipped (already exist${skipped.length !== 1 ? "" : "s"})`,
           { duration: 4000 }
         );
@@ -193,8 +194,7 @@ const Products = () => {
 
       if (failed.length > 0) {
         toast.error(
-          `${failed.length} product${
-            failed.length !== 1 ? "s" : ""
+          `${failed.length} product${failed.length !== 1 ? "s" : ""
           } failed to import`,
           { duration: 4000 }
         );
@@ -257,11 +257,10 @@ const Products = () => {
                 flex items-center gap-2 px-4 py-2 text-sm font-semibold 
                 text-white rounded-lg shadow-sm transition-all cursor-pointer
                 active:scale-[0.97] 
-                ${
-                  creating || importing
-                    ? "bg-gray-400 cursor-not-allowed"
-                    : "bg-[#00A9A3] hover:bg-[#128083]"
-                }
+                ${creating || importing
+                      ? "bg-gray-400 cursor-not-allowed"
+                      : "bg-[#00A9A3] hover:bg-[#128083]"
+                    }
               `}
                 >
                   {creating ? (
@@ -418,6 +417,13 @@ const Products = () => {
             )}
             <input
               type="text"
+              value={newProductId}
+              onChange={(e) => setNewProductId(e.target.value)}
+              placeholder="Product ID"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#169698]"
+            />
+            <input
+              type="text"
               value={newProductName}
               onChange={(e) => setNewProductName(e.target.value)}
               placeholder="Product Name"
@@ -445,6 +451,7 @@ const Products = () => {
         onCancel={() => {
           setShowAddModal(false);
           setFormError("");
+          setNewProductId("");
           setNewProductName("");
           setNewProductUnit("");
           setNewProductPoints("");
@@ -459,9 +466,8 @@ const Products = () => {
       <ConfirmationModal
         isOpen={!!deleteTarget}
         title="Confirm Deletion"
-        message={`Are you sure you want to delete "${
-          deleteTarget?.productName || deleteTarget?.name
-        }"?`}
+        message={`Are you sure you want to delete "${deleteTarget?.productName || deleteTarget?.name
+          }"?`}
         onConfirm={confirmDelete}
         onCancel={() => setDeleteTarget(null)}
         isLoading={deleting === deleteTarget?.id}
@@ -482,6 +488,18 @@ const Products = () => {
                 <p className="text-sm">{formError}</p>
               </div>
             )}
+            <input
+              type="text"
+              value={editTarget?.productId || ""}
+              onChange={(e) =>
+                setEditTarget((prev) => ({
+                  ...prev,
+                  productId: e.target.value,
+                }))
+              }
+              placeholder="Product ID"
+              className="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:ring-2 focus:ring-[#169698]"
+            />
             <input
               type="text"
               value={editTarget?.productName || ""}
