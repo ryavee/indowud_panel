@@ -360,16 +360,22 @@ const AdminUsers = () => {
                     ].map(({ label, Icon, sortKey }) => (
                       <th
                         key={label}
-                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors" : ""}`}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
                         onClick={() => requestSort(sortKey)}
                       >
-                        <div className="flex items-center gap-1">
+                        <div className="flex items-center gap-1 whitespace-nowrap">
                           <Icon className="h-4 w-4 text-gray-500" />
                           <span>{label}</span>
-                          {sortConfig.key === sortKey && sortKey && (
-                            sortConfig.direction === 'asc' ?
-                              <ChevronUp className="h-4 w-4 text-gray-700" /> :
-                              <ChevronDown className="h-4 w-4 text-gray-700" />
+                          {sortKey && (
+                            <div className="w-4 h-4 flex items-center justify-center">
+                              {sortConfig.key === sortKey ? (
+                                sortConfig.direction === 'asc' ?
+                                  <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                  <ChevronDown className="h-4 w-4 text-gray-700" />
+                              ) : (
+                                <div className="w-4 h-4" />
+                              )}
+                            </div>
                           )}
                         </div>
                       </th>

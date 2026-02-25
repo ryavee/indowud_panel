@@ -1,10 +1,12 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import {
   ChevronLeft,
   ChevronRight,
   Plus,
   Calendar,
   Download,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useCodesContext } from "../Context/CodesContext";
@@ -50,11 +52,44 @@ const QRGeneration = () => {
     fetchAllBatches();
   }, []);
 
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const sortedBatches = useMemo(() => {
+    let sortableBatches = [...batches];
+    if (sortConfig.key !== null) {
+      sortableBatches.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableBatches;
+  }, [batches, sortConfig]);
+
+  const requestSort = (key) => {
+    if (!key) return;
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
   const itemsPerPage = 10;
-  const totalPages = Math.ceil(batches.length / itemsPerPage);
+  const totalPages = Math.ceil(sortedBatches.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
-  const currentData = batches.slice(startIndex, endIndex);
+  const currentData = sortedBatches.slice(startIndex, endIndex);
 
   const generateBatchId = (dealerId, productId, productUnit) => {
     if (!dealerId || !productId || !productUnit) return "";
@@ -715,8 +750,8 @@ const QRGeneration = () => {
               {loading
                 ? "Generating..."
                 : generatingPDF
-                ? "Creating PDF..."
-                : "Generate"}
+                  ? "Creating PDF..."
+                  : "Generate"}
             </button>
             <button
               onClick={handleCancel}
@@ -810,8 +845,8 @@ const QRGeneration = () => {
                       {exporting
                         ? "Exporting..."
                         : selectedBatches.length > 1
-                        ? "Export ZIP"
-                        : "Export PDF"}
+                          ? "Export ZIP"
+                          : "Export PDF"}
                     </button>
                     <button
                       onClick={() => setSelectedBatches([])}
@@ -835,7 +870,7 @@ const QRGeneration = () => {
               <table className="w-full">
                 <thead className="bg-gray-50 border-b border-gray-200">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none">
                       <input
                         type="checkbox"
                         checked={
@@ -845,27 +880,36 @@ const QRGeneration = () => {
                         onChange={handleSelectAll}
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Batch ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Product Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Dealer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Points
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Expiry Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Created At
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
+                    {[
+                      { label: "Batch ID", sortKey: "batchId" },
+                      { label: "Product Name", sortKey: "productName" },
+                      { label: "Dealer", sortKey: "companyName" },
+                      { label: "Points", sortKey: "points" },
+                      { label: "Expiry Date", sortKey: "expiryDate" },
+                      { label: "Created At", sortKey: "createdAt" },
+                      { label: "Actions", sortKey: null },
+                    ].map(({ label, sortKey }) => (
+                      <th
+                        key={label}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
+                        onClick={() => requestSort(sortKey)}
+                      >
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                          <span>{label}</span>
+                          {sortKey && (
+                            <div className="w-4 h-4 flex items-center justify-center">
+                              {sortConfig.key === sortKey ? (
+                                sortConfig.direction === 'asc' ?
+                                  <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                  <ChevronDown className="h-4 w-4 text-gray-700" />
+                              ) : (
+                                <div className="w-4 h-4" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
 
@@ -944,11 +988,10 @@ const QRGeneration = () => {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-2 text-sm font-medium rounded-md ${
-                            currentPage === page
+                          className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === page
                               ? "bg-blue-600 text-white"
                               : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                          }`}
+                            }`}
                         >
                           {page}
                         </button>
