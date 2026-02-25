@@ -14,6 +14,8 @@ import {
   Search,
   RotateCcw,
   Loader2,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { useRedemptionsContext } from "../Context/RedemptionContext";
 import Pagination from "../Components/Reusable/Pagination";
@@ -133,6 +135,16 @@ const RedemptionManagement = () => {
         case "userName":
           aVal = (a.userName || "").toLowerCase();
           bVal = (b.userName || "").toLowerCase();
+          break;
+
+        case "userPhone":
+          aVal = (a.userPhone || "").toLowerCase();
+          bVal = (b.userPhone || "").toLowerCase();
+          break;
+
+        case "upiId":
+          aVal = (a.upiId || "").toLowerCase();
+          bVal = (b.upiId || "").toLowerCase();
           break;
 
         case "totalValue":
@@ -406,27 +418,7 @@ const RedemptionManagement = () => {
   };
 
 
-  // ✅ Reusable sortable header (prevents layout shift)
-  const SortableHeader = ({ icon: Icon, label, sortKey }) => (
-    <div
-      onClick={() => handleSort(sortKey)}
-      className="flex items-center gap-2 cursor-pointer select-none
-           whitespace-nowrap text-gray-600 hover:text-orange-600
-           transition-colors h-5"
-    >
-      <Icon className="h-4 w-4 shrink-0" />
-      <span className="font-medium leading-none">{label}</span>
-
-      {/* fixed-width icon slot */}
-      <span className="inline-flex w-4 justify-center text-xs text-gray-400 leading-none">
-        {sortConfig.key === sortKey
-          ? sortConfig.direction === "asc"
-            ? "▲"
-            : "▼"
-          : ""}
-      </span>
-    </div>
-  );
+  // ✅ Reusable sortable header removed as headers are integrated inline
 
 
 
@@ -713,7 +705,7 @@ const RedemptionManagement = () => {
                 <table className="min-w-full table-fixed divide-y divide-gray-200 text-sm">
                   <thead className="bg-gray-100">
                     <tr>
-                      <th className="px-6 py-3 text-left">
+                      <th className="px-6 py-3 text-left outline-none focus:outline-none focus-visible:outline-none">
                         <input
                           type="checkbox"
                           checked={isAllSelected}
@@ -726,57 +718,37 @@ const RedemptionManagement = () => {
                           className="w-4 h-4 text-orange-600 border-gray-300 rounded focus:ring-orange-500 cursor-pointer"
                         />
                       </th>
-                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[180px]">
-                        <SortableHeader
-                          icon={Gift}
-                          label="User Name"
-                          sortKey="userName"
-                        />
-                      </th>
-
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        <div className="flex items-center gap-1">
-                          <Phone className="h-4 w-4" /> Contact
-                        </div>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[160px]">
-                        <div className="flex items-center gap-1 whitespace-nowrap">
-                          <Wallet className="h-4 w-4 shrink-0" />UPI Details
-                          
-                        </div>
-                      </th>
-
-                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[140px]">
-                        <SortableHeader
-                          icon={IndianRupee}
-                          label="Amount"
-                          sortKey="totalValue"
-                        />
-                      </th>
-
-                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[140px]">
-                        <SortableHeader
-                          icon={CalendarDays}
-                          label="Date"
-                          sortKey="requestedAt"
-                        />
-                      </th>
-
-
-                      <th className="px-6 py-3 text-left text-xs uppercase tracking-wider min-w-[140px]">
-                        <SortableHeader
-                          icon={CheckCircle}
-                          label="Status"
-                          sortKey="status"
-                        />
-                      </th>
-
-
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px] whitespace-nowrap">
-                        <div className="flex items-center gap-1">
-                          <MoreVertical className="h-4 w-4" /> Action
-                        </div>
-                      </th>
+                      {[
+                        { label: "User Name", Icon: Gift, sortKey: "userName" },
+                        { label: "Contact", Icon: Phone, sortKey: "userPhone" },
+                        { label: "UPI Details", Icon: Wallet, sortKey: "upiId" },
+                        { label: "Amount", Icon: IndianRupee, sortKey: "totalValue" },
+                        { label: "Date", Icon: CalendarDays, sortKey: "requestedAt" },
+                        { label: "Status", Icon: CheckCircle, sortKey: "status" },
+                        { label: "Action", Icon: MoreVertical, sortKey: null },
+                      ].map(({ label, Icon, sortKey }) => (
+                        <th
+                          key={label}
+                          className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
+                          onClick={() => sortKey ? handleSort(sortKey) : null}
+                        >
+                          <div className="flex items-center gap-1.5 whitespace-nowrap">
+                            <Icon className="h-4 w-4 text-gray-500" />
+                            <span>{label}</span>
+                            {sortKey && (
+                              <div className="w-4 h-4 flex items-center justify-center">
+                                {sortConfig.key === sortKey ? (
+                                  sortConfig.direction === 'asc' ?
+                                    <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                    <ChevronDown className="h-4 w-4 text-gray-700" />
+                                ) : (
+                                  <div className="w-4 h-4" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
   Plus,
   AlertCircle,
@@ -8,6 +8,8 @@ import {
   Layers,
   CircleStar,
   MoreVertical,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useProductContext } from "../Context/ProductsContext";
@@ -44,11 +46,49 @@ const Products = () => {
   const [editLoading, setEditLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
 
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const sortedProducts = useMemo(() => {
+    let sortableProducts = [...products];
+    if (sortConfig.key !== null) {
+      sortableProducts.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (sortConfig.key === 'productName') {
+          aValue = a.name || a.productName || '';
+          bValue = b.name || b.productName || '';
+        }
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableProducts;
+  }, [products, sortConfig]);
+
+  const requestSort = (key) => {
+    if (!key) return;
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
-  const totalPages = Math.ceil(products.length / pageSize);
-  const paginatedProducts = products.slice(
+  const totalPages = Math.ceil(sortedProducts.length / pageSize);
+  const paginatedProducts = sortedProducts.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -317,35 +357,37 @@ const Products = () => {
               <table className="min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <Hash className="h-4 w-4" /> Product ID
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <Box className="h-4 w-4" /> Product Name
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <Layers className="h-4 w-4" /> Unit
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <CircleStar className="h-4 w-4" /> Points
-                      </div>
-                    </th>
-                    {currentUserRole !== ROLES.QR_GENERATE ? (
-                      <>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          <div className="flex items-center gap-1">
-                            <MoreVertical className="h-4 w-4" /> Action
-                          </div>
-                        </th>
-                      </>
-                    ) : null}
+                    {[
+                      { label: "Product ID", Icon: Hash, sortKey: "productId" },
+                      { label: "Product Name", Icon: Box, sortKey: "productName" },
+                      { label: "Unit", Icon: Layers, sortKey: "productUnit" },
+                      { label: "Points", Icon: CircleStar, sortKey: "productPoint" },
+                      ...(currentUserRole !== ROLES.QR_GENERATE
+                        ? [{ label: "Action", Icon: MoreVertical, sortKey: null }]
+                        : []),
+                    ].map(({ label, Icon, sortKey }) => (
+                      <th
+                        key={label}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
+                        onClick={() => requestSort(sortKey)}
+                      >
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
+                          <Icon className="h-4 w-4 text-gray-500" />
+                          <span>{label}</span>
+                          {sortKey && (
+                            <div className="w-4 h-4 flex items-center justify-center">
+                              {sortConfig.key === sortKey ? (
+                                sortConfig.direction === 'asc' ?
+                                  <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                  <ChevronDown className="h-4 w-4 text-gray-700" />
+                              ) : (
+                                <div className="w-4 h-4" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">

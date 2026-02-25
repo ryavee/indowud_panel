@@ -1,5 +1,5 @@
-import { useState, useEffect, useContext } from "react";
-import { MapPin, X, Loader2, EyeIcon, RefreshCw } from "lucide-react";
+import { useState, useEffect, useContext, useMemo } from "react";
+import { MapPin, X, Loader2, EyeIcon, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
 import { useTrackQRData } from "../Context/TrackQRDataContext";
 
 const QRTrack = () => {
@@ -18,6 +18,38 @@ const QRTrack = () => {
 
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const sortedQrData = useMemo(() => {
+    let sortableData = [...qrData];
+    if (sortConfig.key !== null) {
+      sortableData.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableData;
+  }, [qrData, sortConfig]);
+
+  const requestSort = (key) => {
+    if (!key) return;
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
   const handleSearch = () => {
     if (localSearchQuery.trim()) {
@@ -111,7 +143,7 @@ const QRTrack = () => {
             <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
               QR Code Tracking
             </h1>
-          <p className="text-sm text-gray-600 mt-1">
+            <p className="text-sm text-gray-600 mt-1">
               Monitor and manage all generated QR codes — view their status, scan
               details, and locations in real-time.
             </p>
@@ -217,32 +249,41 @@ const QRTrack = () => {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        QR ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Batch ID
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Supplier Name
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Status
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Scanned By
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Created At
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Location
-                      </th>
+                      {[
+                        { label: "QR ID", sortKey: "qrId" },
+                        { label: "Batch ID", sortKey: "batchId" },
+                        { label: "Supplier Name", sortKey: "companyName" },
+                        { label: "Status", sortKey: "status" },
+                        { label: "Scanned By", sortKey: "scannedByName" },
+                        { label: "Created At", sortKey: "createdAt" },
+                        { label: "Location", sortKey: null },
+                      ].map(({ label, sortKey }) => (
+                        <th
+                          key={label}
+                          className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
+                          onClick={() => requestSort(sortKey)}
+                        >
+                          <div className="flex items-center gap-1.5 whitespace-nowrap">
+                            <span>{label}</span>
+                            {sortKey && (
+                              <div className="w-4 h-4 flex items-center justify-center">
+                                {sortConfig.key === sortKey ? (
+                                  sortConfig.direction === 'asc' ?
+                                    <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                    <ChevronDown className="h-4 w-4 text-gray-700" />
+                                ) : (
+                                  <div className="w-4 h-4" />
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </th>
+                      ))}
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {qrData.length > 0 ? (
-                      qrData.map((qr) => (
+                      sortedQrData.map((qr) => (
                         <tr
                           key={qr.qrId}
                           className="hover:bg-gray-50 transition-colors"
