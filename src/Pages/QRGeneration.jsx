@@ -159,6 +159,10 @@ const QRGeneration = () => {
         pdf.addImage(qrCodeDataUrl, "PNG", qrX, qrY, qrSize, qrSize);
 
         const rightX = qrX + qrSize + 2;
+        const textPaddingRight = 5;
+        const availableTextWidth =
+          cardWidth - (rightX - cardX) - textPaddingRight;
+
         let textY = qrY;
 
         pdf.setFontSize(12);
@@ -173,9 +177,19 @@ const QRGeneration = () => {
 
         pdf.setFont("helvetica", "bold");
         pdf.setTextColor(0);
-        pdf.text(batchId, rightX + 13, textY);
+        const batchTextX = rightX + 13;
 
-        textY += 8;
+        // auto-wrap text to fit inside card
+        const batchLines = pdf.splitTextToSize(
+          batchId,
+          availableTextWidth - 13
+        );
+
+        pdf.text(batchLines, batchTextX, textY);
+
+
+        textY += batchLines.length * 4 + 2;
+
         pdf.setFontSize(7);
         pdf.setFont("helvetica", "normal");
         pdf.setTextColor(100);
@@ -715,8 +729,8 @@ const QRGeneration = () => {
               {loading
                 ? "Generating..."
                 : generatingPDF
-                ? "Creating PDF..."
-                : "Generate"}
+                  ? "Creating PDF..."
+                  : "Generate"}
             </button>
             <button
               onClick={handleCancel}
@@ -810,8 +824,8 @@ const QRGeneration = () => {
                       {exporting
                         ? "Exporting..."
                         : selectedBatches.length > 1
-                        ? "Export ZIP"
-                        : "Export PDF"}
+                          ? "Export ZIP"
+                          : "Export PDF"}
                     </button>
                     <button
                       onClick={() => setSelectedBatches([])}
@@ -944,11 +958,10 @@ const QRGeneration = () => {
                         <button
                           key={page}
                           onClick={() => setCurrentPage(page)}
-                          className={`px-3 py-2 text-sm font-medium rounded-md ${
-                            currentPage === page
-                              ? "bg-blue-600 text-white"
-                              : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
-                          }`}
+                          className={`px-3 py-2 text-sm font-medium rounded-md ${currentPage === page
+                            ? "bg-blue-600 text-white"
+                            : "text-gray-700 bg-white border border-gray-300 hover:bg-gray-50"
+                            }`}
                         >
                           {page}
                         </button>

@@ -1,15 +1,14 @@
-import React, { useContext } from "react";
+import React, { useContext, useState } from "react";
 import {
   Users,
-  CreditCard,
   TrendingUp,
   CheckCircle,
-  ArrowRight,
   Building2,
   Factory,
   UserCheck,
-  MapPin,
+  QrCode
 } from "lucide-react";
+
 import {
   BarChart,
   Bar,
@@ -22,392 +21,1035 @@ import {
   Cell,
   ResponsiveContainer,
   Legend,
+  AreaChart,
+  Area,
 } from "recharts";
+
 import { DashboardContext } from "../Context/DashboardContext";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 
-const COLORS = [
-  "#169698",
-  "#D7145D",
-  "#22C55E",
-  "#EAB308",
-  "#8B5CF6",
-  "#F97316",
+/* ---------------- DEMO DATA ---------------- */
+
+const topSellingProducts = [
+  {
+    product: "Indowud MR Board 10mm thick",
+    productId: "NFC12",
+    category: "MR Board",
+    scans: 6324
+  },
+  {
+    product: "Indowud MR Board 12mm thick",
+    productId: "NFC18",
+    category: "MR Board",
+    scans: 5925
+  },
+  {
+    product: "Indowud MR Board 16mm thick",
+    productId: "NFC08",
+    category: "MR Board",
+    scans: 1780
+  },
+  {
+    product: "Zerowud Board 18mm thick",
+    productId: "ZWC18",
+    category: "Zerowud",
+    scans: 1504
+  },
+  {
+    product: "Indowud MR Board 6mm thick",
+    productId: "NFC06",
+    category: "MR Board",
+    scans: 817
+  },
+  {
+    product: "Premium Laminate Sheet",
+    productId: "LAM22",
+    category: "Laminate",
+    scans: 619
+  }
+];
+const demoTrend = [
+  { value: 10 },
+  { value: 20 },
+  { value: 18 },
+  { value: 25 },
+  { value: 30 }
 ];
 
-const Dashboard = () => {
-  const context = useContext(DashboardContext);
+const demoPointsTrend = [
+  { date: "Mon", earned: 1200, redeemed: 800 },
+  { date: "Tue", earned: 1500, redeemed: 900 },
+  { date: "Wed", earned: 1800, redeemed: 1000 },
+  { date: "Thu", earned: 1400, redeemed: 700 },
+  { date: "Fri", earned: 2000, redeemed: 1200 }
+];
 
-  if (!context) {
-    return <div>Unauthorized or no dashboard access</div>;
+const statisticsData = [
+  {
+    title: "Registered Customers",
+    value: 46,
+    color: "#6366F1",
+    data: [{ value: 10 }, { value: 20 }, { value: 30 }, { value: 40 }, { value: 46 }]
+  },
+  {
+    title: "Earn Points",
+    value: 170000,
+    color: "#22C55E",
+    data: [{ value: 20000 }, { value: 60000 }, { value: 90000 }, { value: 140000 }, { value: 170000 }]
+  },
+  {
+    title: "Redeem Points",
+    value: 180000,
+    color: "#EF4444",
+    data: [{ value: 20000 }, { value: 50000 }, { value: 90000 }, { value: 140000 }, { value: 180000 }]
+  },
+  {
+    title: "Scan Count",
+    value: 500,
+    color: "#F59E0B",
+    data: [{ value: 120 }, { value: 200 }, { value: 350 }, { value: 420 }, { value: 500 }]
   }
+];
+
+const monthlyPoints = [
+  { month: "Jan", earn: 5000, redeem: 2000 },
+  { month: "Feb", earn: 6500, redeem: 2500 },
+  { month: "Mar", earn: 7000, redeem: 3000 },
+  { month: "Apr", earn: 8500, redeem: 3500 },
+  { month: "May", earn: 9000, redeem: 4200 },
+  { month: "Jun", earn: 11000, redeem: 5200 },
+  { month: "Jul", earn: 10000, redeem: 4500 },
+  { month: "Aug", earn: 9500, redeem: 4300 },
+  { month: "Sep", earn: 8700, redeem: 3900 },
+  { month: "Oct", earn: 9200, redeem: 4100 },
+  { month: "Nov", earn: 9800, redeem: 4600 },
+  { month: "Dec", earn: 12000, redeem: 6000 }
+];
+
+const kycStatusData = [
+  { name: "Approved", value: 139, color: "#6366F1" },
+  { name: "Not provided", value: 662, color: "#F59E0B" },
+  { name: "Pending", value: 1, color: "#14B8A6" },
+  { name: "Rejected", value: 24, color: "#EF4444" }
+];
+
+const MAX_VALUE = Math.max(...kycStatusData.map(i => i.value), 1);
+
+const scanReportData = [
+  { day: 1, scans: 10 },
+  { day: 2, scans: 30 },
+  { day: 3, scans: 20 },
+  { day: 4, scans: 5 },
+  { day: 5, scans: 65 },
+  { day: 6, scans: 95 },
+  { day: 7, scans: 15 },
+  { day: 8, scans: 25 },
+  { day: 9, scans: 80 },
+  { day: 10, scans: 40 },
+  { day: 11, scans: 70 },
+  { day: 12, scans: 10 },
+  { day: 13, scans: 5 },
+  { day: 14, scans: 15 },
+  { day: 15, scans: 8 }
+];
+
+
+const productScanReport = [
+  { product: "Plywood 12mm", scans: 120 },
+  { product: "Plywood 18mm", scans: 95 },
+  { product: "Laminate A", scans: 75 },
+  { product: "Laminate B", scans: 60 },
+  { product: "Board Classic", scans: 48 },
+  { product: "Board Premium", scans: 35 }
+];
+/* ---------------- COMPONENT ---------------- */
+
+const Dashboard = () => {
+
+  const context = useContext(DashboardContext);
+  const [dateFilter, setDateFilter] = useState("all");
+  const [exportType, setExportType] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
+  const categories = [
+    "All",
+    ...new Set(topSellingProducts.map(p => p.category))
+  ];
+
+  const filteredProducts =
+    (selectedCategory === "All"
+      ? topSellingProducts
+      : topSellingProducts.filter(p => p.category === selectedCategory)
+    ).sort((a, b) => b.scans - a.scans);
+  const exportData = (type) => {
+
+    const data = topSellingProducts; // you can change to any dataset
+
+    if (!data || data.length === 0) return;
+
+    const headers = Object.keys(data[0]).join(",");
+    const rows = data.map(row => Object.values(row).join(",")).join("\n");
+
+    const csv = headers + "\n" + rows;
+
+    const blob = new Blob([csv], { type: "text/csv" });
+
+    const url = window.URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+
+    a.href = url;
+    a.download = type === "xls" ? "dashboard-data.xls" : "dashboard-data.csv";
+
+    a.click();
+  };
+
+  if (!context) return <div>No dashboard access</div>;
 
   const { dashboardData, loading, error } = context;
 
-  if (loading) {
-    return <LoadingSpinner centered message="Loading Products..." />;
-  }
+  if (loading)
+    return <LoadingSpinner centered message="Loading Dashboard..." />;
 
-  // Error state
-  if (error) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center px-4">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6 max-w-md">
-          <h2 className="text-red-800 font-semibold text-lg mb-2">
-            Error Loading Dashboard
-          </h2>
-          <p className="text-red-600">{error}</p>
-        </div>
-      </div>
-    );
-  }
+  if (error) return <div>{error}</div>;
 
-  // No data state
-  if (!dashboardData) {
-    return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center px-4">
-        <div className="text-center">
-          <p className="text-gray-600 text-lg">No dashboard data available</p>
-        </div>
-      </div>
-    );
-  }
+  if (!dashboardData) return <div>No data</div>;
 
   const {
     totalUsers,
     totalDealers,
     totalFactories,
     totalCustomers,
-    totalKycApproved,
-    totalGeneratedPoints,
-    totalRedeemedPoints,
+    totalQrGenerated,
+    totalQrScanned,
+    totalQrApproved,
+    totalQrRejected,
+    totalQrDuplicate,
+    userTrend,
+    dealerTrend,
+    adminTrend,
+    customerTrend,
+    qrGeneratedTrend,
+    qrScannedTrend,
+    qrApprovedTrend,
+    qrRejectedTrend,
+    pointsTrend,
+
+    registrationsByState,
     dealerQRStats,
     redemptionByCity,
-    topScanners,
-    registrationsByState,
+    topScanners
+
   } = dashboardData;
 
-  // Calculate KYC percentage
-  const kycPercentage =
-    totalUsers > 0 ? ((totalKycApproved / totalCustomers) * 100).toFixed(1) : 0;
-  const kycPending = totalCustomers - totalKycApproved;
-
-  // Prepare pie chart data for KYC
-  const kycPieData = [
-    { name: "KYC Verified", value: totalKycApproved },
-    { name: "Pending KYC", value: kycPending },
+  const stats = [
+    {
+      title: "Total Users",
+      value: totalUsers || 0,
+      trend: userTrend || demoTrend,
+      color: "#169698",
+      icon: <Users className="w-6 h-6 text-[#169698]" />
+    },
+    {
+      title: "Total Dealers",
+      value: totalDealers || 0,
+      trend: dealerTrend || demoTrend,
+      color: "#8B5CF6",
+      icon: <Building2 className="w-6 h-6 text-[#8B5CF6]" />
+    },
+    {
+      title: "Admin Users",
+      value: totalFactories || 0,
+      trend: adminTrend || demoTrend,
+      color: "#F97316",
+      icon: <Factory className="w-6 h-6 text-[#F97316]" />
+    },
+    {
+      title: "Customers",
+      value: totalCustomers || 0,
+      trend: customerTrend || demoTrend,
+      color: "#22C55E",
+      icon: <UserCheck className="w-6 h-6 text-[#22C55E]" />
+    },
+    {
+      title: "QR Generated",
+      value: totalQrGenerated || 0,
+      trend: qrGeneratedTrend || demoTrend,
+      color: "#6366F1",
+      icon: <QrCode className="w-6 h-6 text-indigo-500" />
+    },
+    {
+      title: "QR Scanned",
+      value: totalQrScanned || 0,
+      trend: qrScannedTrend || demoTrend,
+      color: "#EC4899",
+      icon: <TrendingUp className="w-6 h-6 text-pink-500" />
+    },
+    {
+      title: "QR Approved",
+      value: totalQrApproved || 0,
+      trend: qrApprovedTrend || demoTrend,
+      color: "#10B981",
+      icon: <CheckCircle className="w-6 h-6 text-green-500" />
+    },
+    {
+      title: "QR Rejected",
+      value: totalQrRejected || 0,
+      trend: qrRejectedTrend || demoTrend,
+      color: "#EF4444",
+      icon: <CheckCircle className="w-6 h-6 text-red-500" />
+    }
   ];
 
-  // Refresh handler
-  const handleRefresh = () => {
-    window.location.reload();
-  };
+  const qrStatusData = [
+    { name: "Approved", value: totalQrApproved || 45 },
+    { name: "Rejected", value: totalQrRejected || 12 },
+    { name: "Duplicate", value: totalQrDuplicate || 6 }
+  ];
+
+  const pointsTrendData = pointsTrend || demoPointsTrend;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 px-4 sm:px-6 lg:px-8 py-6 space-y-8 transition-all duration-500">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+
+    <div className="min-h-screen bg-gray-50 p-6 space-y-8">
+
+      {/* HEADER */}
+
+      <div className="flex justify-between items-center">
+
         <div>
-          <h1 className="text-3xl font-bold text-gray-800 tracking-tight">
-            Dashboard
-          </h1>
-          <p className="text-gray-500 text-sm mt-1">
-            Welcome back! Here's what's happening today.
-          </p>
+          <h1 className="text-3xl font-bold text-gray-800">Admin Dashboard</h1>
+          <p className="text-gray-500 text-sm">QR Reward System Overview</p>
         </div>
+
+        <div className="flex items-center gap-3">
+
+          {/* DATE FILTER */}
+
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          >
+
+            <option value="all">All</option>
+            <option value="today">Today</option>
+            <option value="weekly">Weekly</option>
+            <option value="monthly">Monthly</option>
+            <option value="yearly">Yearly</option>
+            <option value="custom">Custom</option>
+
+          </select>
+
+
+          {/* EXPORT BUTTON */}
+
+          <select
+            onChange={(e) => exportData(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          >
+
+            <option value="">Export</option>
+            <option value="csv">Export CSV</option>
+            <option value="xls">Export XLS</option>
+
+          </select>
+
+        </div>
+
       </div>
 
-      {/* Quick Stats - Top Row */}
+      {/* STAT CARDS */}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        {[
-          {
-            title: "Total Users",
-            value: totalUsers.toLocaleString(),
-            icon: <Users className="w-8 h-8 text-[#169698]" />,
-            border: "border-[#169698]",
-          },
-          {
-            title: "Total Dealers",
-            value: totalDealers.toLocaleString(),
-            icon: <Building2 className="w-8 h-8 text-[#8B5CF6]" />,
-            border: "border-[#8B5CF6]",
-          },
-          {
-            title: "Total Admin Users",
-            value: totalFactories.toLocaleString(),
-            icon: <Factory className="w-8 h-8 text-[#F97316]" />,
-            border: "border-[#F97316]",
-          },
-          {
-            title: "Total Customers",
-            value: totalCustomers.toLocaleString(),
-            icon: <UserCheck className="w-8 h-8 text-[#22C55E]" />,
-            border: "border-[#22C55E]",
-          },
-        ].map((card, i) => (
+
+        {stats.map((card, i) => (
+
           <div
             key={i}
-            className={`bg-white rounded-xl shadow-sm border-l-4 ${card.border} p-5 flex items-center gap-4 hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
+            className="bg-white p-5 rounded-xl shadow-sm flex flex-col gap-3"
+            style={{ borderLeft: `4px solid ${card.color}` }}
           >
-            <div className="bg-[#F9FAFB] p-3 rounded-lg">{card.icon}</div>
-            <div>
-              <p className="text-sm text-gray-500">{card.title}</p>
-              <p className="text-2xl font-bold text-gray-800">{card.value}</p>
+
+            <div className="flex items-center gap-3">
+
+              <div className="bg-gray-100 p-2 rounded-lg">
+                {card.icon}
+              </div>
+
+              <div>
+                <p className="text-sm text-gray-500">{card.title}</p>
+                <p className="text-xl font-bold">{card.value}</p>
+              </div>
+
             </div>
+
+            <div className="h-14">
+
+              <ResponsiveContainer width="100%" height="100%">
+
+                <AreaChart data={card.trend}>
+
+                  <Area
+                    type="monotone"
+                    dataKey="value"
+                    stroke={card.color}
+                    fill={card.color}
+                    fillOpacity={0.15}
+                    strokeWidth={2}
+                    dot={false}
+                  />
+
+                </AreaChart>
+
+              </ResponsiveContainer>
+
+            </div>
+
           </div>
+
         ))}
+
       </div>
 
-      {/* Quick Stats - Bottom Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-        {[
-          {
-            title: "Points Generated",
-            value: totalGeneratedPoints.toLocaleString(),
-            icon: <CreditCard className="w-8 h-8 text-[#22C55E]" />,
-            border: "border-[#22C55E]",
-          },
-          {
-            title: "Points Scanned",
-            value: totalRedeemedPoints.toLocaleString(),
-            icon: <TrendingUp className="w-8 h-8 text-[#D7145D]" />,
-            border: "border-[#D7145D]",
-          },
-          {
-            title: "KYC Verified",
-            value: `${totalKycApproved} (${kycPercentage}%)`,
-            icon: <CheckCircle className="w-8 h-8 text-[#EAB308]" />,
-            border: "border-[#EAB308]",
-          },
-        ].map((card, i) => (
-          <div
-            key={i}
-            className={`bg-white rounded-xl shadow-sm border-l-4 ${card.border} p-5 flex items-center gap-4 hover:shadow-md hover:-translate-y-1 transition-all duration-300`}
-          >
-            <div className="bg-[#F9FAFB] p-3 rounded-lg">{card.icon}</div>
-            <div>
-              <p className="text-sm text-gray-500">{card.title}</p>
-              <p className="text-2xl font-bold text-gray-800">{card.value}</p>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* EARN VS REDEEM + QR STATUS */}
 
-      {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Bar Chart - Registrations by State */}
-        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            Registrations by State
+
+        {/* Earn vs Redeem */}
+
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+
+          <h2 className="text-lg font-semibold mb-4">
+            Points Earned vs Redeemed
           </h2>
-          <div className="h-72 sm:h-80">
+
+          <div className="h-80">
+
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={registrationsByState}>
-                <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-                <XAxis
-                  dataKey="state"
-                  stroke="#9ca3af"
-                  angle={-90}
-                  textAnchor="end"
-                  height={100}
-                  interval={0}
-                  tick={{ fontSize: 12 }}
-                />
-                <YAxis stroke="#9ca3af" />
+
+              <AreaChart data={pointsTrendData}>
+
+                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
+
+                <XAxis axisLine={false} tickLine={false} dataKey="date" />
+
+                <YAxis axisLine={false} tickLine={false} />
+
                 <Tooltip />
-                <Bar dataKey="count" fill="#169698" radius={[8, 8, 0, 0]} />
-              </BarChart>
+
+                <Legend />
+
+                <Area dataKey="earned" stroke="#374151" fill="#374151" fillOpacity={0.1} strokeWidth={2} />
+
+                <Area dataKey="redeemed" stroke="#9ca3af" fill="#9ca3af" fillOpacity={0.1} strokeWidth={2} />
+
+              </AreaChart>
+
             </ResponsiveContainer>
+
           </div>
+
         </div>
 
-        {/* Pie Chart - KYC Status */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">
-            KYC Status Overview
+        {/* QR STATUS */}
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+
+          <h2 className="text-lg font-semibold mb-4">
+            QR Status Overview
           </h2>
-          <div className="h-72 sm:h-80">
+
+          <div className="h-80">
+
             <ResponsiveContainer width="100%" height="100%">
+
               <PieChart>
+
                 <Pie
-                  data={kycPieData}
+                  data={qrStatusData}
                   dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  outerRadius="70%"
-                  labelLine={false}
+                  innerRadius={60}
+                  outerRadius={90}
+                  paddingAngle={4}
                 >
-                  {kycPieData.map((entry, i) => (
-                    <Cell
-                      key={i}
-                      fill={COLORS[i % COLORS.length]}
-                      stroke="#fff"
-                      strokeWidth={2}
-                    />
-                  ))}
+
+                  <Cell fill="#374151" />
+                  <Cell fill="#9ca3af" />
+                  <Cell fill="#d1d5db" />
+
                 </Pie>
 
-                {/* Tooltip - clean white theme */}
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "rgba(255, 255, 255, 0.95)",
-                    borderRadius: "8px",
-                    border: "1px solid #e5e7eb",
-                    boxShadow: "0 4px 8px rgba(0, 0, 0, 0.08)",
-                  }}
-                  itemStyle={{ color: "#374151", fontWeight: 500 }}
-                  formatter={(value, name) => [`${value}`, name]}
-                  cursor={{ fill: "rgba(0,0,0,0.03)" }}
-                />
+                <Tooltip />
+                <Legend />
 
-                {/* 🏷️ Legend with values */}
-                <Legend
-                  verticalAlign="bottom"
-                  align="center"
-                  iconType="circle"
-                  iconSize={10}
-                  wrapperStyle={{ paddingTop: "10px" }}
-                  formatter={(value) => {
-                    const found = kycPieData.find((d) => d.name === value);
-                    return `${value}: ${found ? found.value : 0}`;
-                  }}
-                />
               </PieChart>
+
             </ResponsiveContainer>
+
           </div>
+
         </div>
+
       </div>
 
-      {/* Dealer QR Stats & Redemption by City */}
+      {/* KPI + MONTHLY GRAPH */}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* KPI CARDS */}
+
+        {/* STATISTICS OF 2026 */}
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+
+          <div className="flex justify-between items-center mb-6">
+
+            <h2 className="text-lg font-semibold">
+              Statistics of 2026
+            </h2>
+
+          </div>
+
+          {[
+            {
+              label: "Registered Customer",
+              value: 43,
+              percent: 40
+            },
+            {
+              label: "Earn Points",
+              value: "77110",
+              percent: 80
+            },
+            {
+              label: "Redeem Points",
+              value: "53060",
+              percent: 60
+            },
+            {
+              label: "Scan Count",
+              value: 1061,
+              percent: 90
+            },
+            {
+              label: "Balance",
+              value: "INR 1061",
+              percent: 50
+            }
+          ].map((item, index) => (
+
+            <div key={index} className="mb-6">
+
+              <div className="flex justify-between text-sm mb-2">
+
+                <span className="text-gray-500">
+                  {item.label}
+                </span>
+
+                <span className="font-semibold text-gray-800">
+                  {item.value}
+                </span>
+
+              </div>
+
+              <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+
+                <div
+                  className="h-full bg-indigo-500 rounded-full transition-all duration-500"
+                  style={{ width: `${item.percent}%` }}
+                ></div>
+
+              </div>
+
+            </div>
+
+          ))}
+
+        </div>
+
+        {/* MONTHLY GRAPH */}
+
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+
+          <h2 className="text-lg font-semibold mb-4">
+            Earn / Redeem Points By Month - 2026
+          </h2>
+
+          <div className="h-96">
+
+            <ResponsiveContainer width="100%" height="100%">
+
+              <BarChart data={monthlyPoints} barCategoryGap={30}>
+
+                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
+
+                <XAxis axisLine={false} tickLine={false} dataKey="month" />
+
+                <YAxis axisLine={false} tickLine={false} />
+
+                <Tooltip />
+
+                <Legend />
+
+                <Bar dataKey="earn" name="Loyalty Points" fill="#374151" barSize={12} radius={[4, 4, 0, 0]} />
+
+                <Bar dataKey="redeem" name="Redemption Points" fill="#9ca3af" barSize={12} radius={[4, 4, 0, 0]} />
+
+              </BarChart>
+
+            </ResponsiveContainer>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      {/* KYC Status + Customer Scan Report */}
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+        {/* KYC STATUS */}
+        <div className="bg-white rounded-xl shadow-sm p-6">
+
+          <h2 className="text-lg font-semibold mb-6">
+            KYC Status Chart
+          </h2>
+
+          <div className="flex items-center justify-between">
+
+            {/* LEFT LEGEND */}
+
+            <div className="space-y-3 text-sm">
+
+              {kycStatusData.map((item, i) => (
+
+                <div key={i} className="flex items-center gap-2">
+
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ background: item.color }}
+                  ></div>
+
+                  <span className="text-gray-600">
+                    {item.name} {item.value}
+                  </span>
+
+                </div>
+
+              ))}
+
+            </div>
+
+
+            {/* RIGHT CHART */}
+
+            <div className="h-56 w-56">
+
+              <ResponsiveContainer width="100%" height="100%">
+
+                <PieChart>
+
+                  {kycStatusData.map((item, index) => {
+
+                    const inner = 30 + index * 18;
+                    const outer = inner + 10;
+
+                    return (
+
+                      <React.Fragment key={index}>
+
+                        {/* BACKGROUND SHADOW TRACK */}
+
+                        <Pie
+                          data={[{ value: MAX_VALUE }]}
+                          dataKey="value"
+                          startAngle={90}
+                          endAngle={-180}
+                          innerRadius={inner}
+                          outerRadius={outer}
+                          fill="#f1f5f9"
+                          cornerRadius={10}
+                          stroke="none"
+                        />
+
+                        {/* ACTUAL VALUE ARC */}
+
+                        <Pie
+                          data={[{ value: item.value }]}
+                          dataKey="value"
+                          startAngle={90}
+                          endAngle={90 - (item.value / MAX_VALUE) * 270}
+                          innerRadius={inner}
+                          outerRadius={outer}
+                          fill={item.color}
+                          cornerRadius={10}
+                          stroke="none"
+                        />
+
+                      </React.Fragment>
+
+                    );
+
+                  })}
+
+                </PieChart>
+
+              </ResponsiveContainer>
+
+            </div>
+
+          </div>
+
+        </div>
+
+
+        {/* CUSTOMER SCAN REPORT */}
+
+        <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
+
+          <h2 className="text-lg font-semibold mb-4">
+            Customer Scan Report of 2026
+          </h2>
+
+          <div className="h-70">
+
+            <ResponsiveContainer width="100%" height="100%">
+
+              <AreaChart data={scanReportData}>
+
+                <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
+
+                <XAxis
+                  dataKey="day"
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <YAxis
+                  axisLine={false}
+                  tickLine={false}
+                />
+
+                <Tooltip />
+
+                <Area
+                  type="monotone"
+                  dataKey="scans"
+                  stroke="#111827"
+                  fill="#111827"
+                  fillOpacity={0.08}
+                  strokeWidth={2}
+                />
+
+              </AreaChart>
+
+            </ResponsiveContainer>
+
+          </div>
+
+        </div>
+
+      </div>
+      {/* PRODUCT SCAN REPORT */}
+
+      <div className="bg-white rounded-xl shadow-sm p-6">
+
+        <h2 className="text-lg font-semibold mb-4">
+          Product Scan Report of 2026
+        </h2>
+
+        <div className="h-96">
+
+          <ResponsiveContainer width="100%" height="100%">
+
+            <BarChart
+              layout="vertical"
+              data={productScanReport}
+              margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
+            >
+
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis type="number" />
+
+              <YAxis
+                dataKey="product"
+                type="category"
+                width={120}
+              />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="scans"
+                fill="#6366F1"
+                radius={[0, 10, 10, 0]}
+              />
+
+            </BarChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+      </div>
+
+      {/* REGISTRATIONS BY STATE */}
+
+      <div className="bg-white rounded-xl shadow-sm p-6">
+
+        <h2 className="text-lg font-semibold mb-4">
+          Registrations by State
+        </h2>
+
+        <div className="h-96">
+
+          <ResponsiveContainer width="100%" height="100%">
+
+            <BarChart data={registrationsByState}>
+
+              <CartesianGrid strokeDasharray="3 3" />
+
+              <XAxis
+                dataKey="state"
+                angle={-45}
+                textAnchor="end"
+                height={80}
+                interval={0}
+              />
+
+              <YAxis />
+
+              <Tooltip />
+
+              <Bar
+                dataKey="count"
+                fill="#374151"
+                radius={[6, 6, 0, 0]}
+              />
+
+            </BarChart>
+
+          </ResponsiveContainer>
+
+        </div>
+
+      </div>
+
+      {/* TOP SELLING PRODUCTS */}
+
+      <div className="bg-white rounded-xl shadow-sm p-6">
+
+        <div className="flex justify-between items-center mb-4">
+
+          <h2 className="text-lg font-semibold">
+            Top Selling Products
+          </h2>
+
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          >
+            {categories.map((cat, i) => (
+              <option key={i} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+
+        </div>
+
+        <div className="overflow-y-auto max-h-80">
+
+          <table className="w-full text-sm">
+
+            <thead className="sticky top-0 bg-white border-b">
+
+              <tr className="text-gray-500 text-left">
+
+                <th className="py-2">Product</th>
+                <th className="py-2">Product ID</th>
+                <th className="py-2">Category</th>
+                <th className="py-2 text-right">Scan Count</th>
+
+              </tr>
+
+            </thead>
+
+            <tbody>
+
+              {filteredProducts.map((item, index) => (
+
+                <tr
+                  key={index}
+                  className="border-t hover:bg-gray-50 transition"
+                >
+
+                  <td className="py-3 font-medium text-gray-800">
+                    {item.product}
+                  </td>
+
+                  <td className="py-3 text-gray-600">
+                    {item.productId}
+                  </td>
+
+                  <td className="py-3 text-gray-600">
+                    {item.category}
+                  </td>
+
+                  <td className="py-3 text-right font-semibold">
+                    {item.scans}
+                  </td>
+
+                </tr>
+
+              ))}
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      </div>
+      {/* DEALER QR + CITY SCAN */}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Dealer QR Statistics */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <ArrowRight className="w-5 h-5 text-[#169698]" /> Dealer QR
-            Statistics
+
+        {/* Dealer QR Stats */}
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+
+          <h2 className="text-lg font-semibold mb-4">
+            Dealer QR Statistics
           </h2>
-          {dealerQRStats && dealerQRStats.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-gray-500 text-left border-b ">
-                    <th className="pb-2">Dealer ID</th>
-                    <th className="pb-2">Dealer Name</th>
-                    <th className="pb-2">QR Count</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {dealerQRStats.map((dealer, idx) => (
-                    <tr
-                      key={idx}
-                      className="border-t hover:bg-[#169698]/5 transition"
-                    >
-                      <td className="py-2 font-medium text-gray-800">
-                        {dealer.dealerId}
-                      </td>
-                      <td className="py-2">{dealer.dealerName}</td>
-                      <td className="py-2">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#169698]/10 text-[#169698]">
-                          {dealer.qrsCount}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm">No dealer QR data available</p>
-          )}
+
+          <table className="w-full text-sm">
+
+            <thead>
+              <tr className="border-b text-gray-500">
+                <th className="text-left pb-2">Dealer</th>
+                <th className="text-left pb-2">QR Count</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {dealerQRStats?.map((dealer, i) => (
+                <tr key={i} className="border-t">
+
+                  <td className="py-2">{dealer.dealerName}</td>
+
+                  <td className="py-2">
+                    <span className="bg-indigo-100 text-indigo-600 px-2 py-1 rounded-full text-xs">
+                      {dealer.qrsCount}
+                    </span>
+                  </td>
+
+                </tr>
+              ))}
+
+            </tbody>
+
+          </table>
+
         </div>
 
-        {/* Redemption by City */}
-        <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-            <MapPin className="w-5 h-5 text-[#D7145D]" /> City of Scan
+
+        {/* City of Scan */}
+
+        <div className="bg-white rounded-xl shadow-sm p-6">
+
+          <h2 className="text-lg font-semibold mb-4">
+            City of Scan
           </h2>
-          {redemptionByCity && redemptionByCity.length > 0 ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-gray-500 text-left border-b">
-                    <th className="pb-2">City</th>
-                    <th className="pb-2">Points Redeemed</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {redemptionByCity.map((city, idx) => (
-                    <tr
-                      key={idx}     
-                      className="border-t hover:bg-[#169698]/5 transition"
-                    >
-                      <td className="py-2 font-medium text-gray-800">
-                        {city.city}
-                      </td> 
-                      <td className="py-2">
-                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-[#D7145D]/10 text-[#D7145D]">
-                          {city.points} pts
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          ) : (
-            <p className="text-gray-500 text-sm">
-              No redemption data available
-            </p>
-          )}
+
+          <table className="w-full text-sm">
+
+            <thead>
+              <tr className="border-b text-gray-500">
+                <th className="text-left pb-2">City</th>
+                <th className="text-left pb-2">Points</th>
+              </tr>
+            </thead>
+
+            <tbody>
+
+              {redemptionByCity?.map((city, i) => (
+                <tr key={i} className="border-t">
+
+                  <td className="py-2">{city.city}</td>
+
+                  <td className="py-2">
+                    <span className="bg-pink-100 text-pink-600 px-2 py-1 rounded-full text-xs">
+                      {city.points}
+                    </span>
+                  </td>
+
+                </tr>
+              ))}
+
+            </tbody>
+
+          </table>
+
         </div>
+
       </div>
 
-      {/* Top Scanners */}
-      <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">
+      {/* TOP SCANNERS */}
+
+      <div className="bg-white rounded-xl shadow-sm p-6">
+
+        <h2 className="text-lg font-semibold mb-4">
           Top Scanners
         </h2>
-        {topScanners && topScanners.length > 0 ? (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-gray-500 text-left border-b">
-                  <th className="pb-2">User Name</th>
-                  <th className="pb-2">City</th>
-                  <th className="pb-2">State</th>
-                  <th className="pb-2">Points Scanned</th>
-                </tr>
-              </thead>
-              <tbody>
-                {topScanners.map((scanner, idx) => (
-                  <tr
-                    key={idx} 
-                    className="border-t hover:bg-[#169698]/5 transition"
-                  >
-                    <td className="py-2 font-medium text-gray-800">
-                      {scanner.userName}
-                    </td>
-                    <td className="py-2">{scanner.city}</td>
-                    <td className="py-2">{scanner.state}</td>
-                    <td className="py-2">
-                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-700">
-                        {scanner.pointsRedeemed} pts
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <p className="text-gray-500 text-sm">
-            No top scanners data available
-          </p>
-        )}
+
+        <table className="w-full text-sm">
+
+          <thead>
+
+            <tr className="border-b text-gray-500">
+
+              <th className="text-left pb-2">User</th>
+              <th className="text-left pb-2">City</th>
+              <th className="text-left pb-2">State</th>
+              <th className="text-left pb-2">Points</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody>
+
+            {topScanners?.map((user, i) => (
+              <tr key={i} className="border-t">
+
+                <td className="py-2">{user.userName}</td>
+                <td className="py-2">{user.city}</td>
+                <td className="py-2">{user.state}</td>
+
+                <td className="py-2">
+                  <span className="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">
+                    {user.pointsRedeemed}
+                  </span>
+                </td>
+
+              </tr>
+            ))}
+
+          </tbody>
+
+        </table>
+
       </div>
+
     </div>
+
   );
+
 };
 
 export default Dashboard;

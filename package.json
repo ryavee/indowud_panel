@@ -14,6 +14,8 @@
     "grommet-icons": "^4.14.0",
     "jspdf": "^3.0.3",
     "jszip": "^3.10.1",
+    "leaflet": "^1.9.4",
+    "leaflet.heat": "^0.2.0",
     "lucide-react": "^0.544.0",
     "papaparse": "^5.5.3",
     "qrcode": "^1.5.4",
@@ -21,6 +23,7 @@
     "react-dom": "^19.1.1",
     "react-hot-toast": "^2.6.0",
     "react-icons": "^5.5.0",
+    "react-leaflet": "^5.0.0",
     "react-router-dom": "^7.9.1",
     "recharts": "^3.2.1"
   },
