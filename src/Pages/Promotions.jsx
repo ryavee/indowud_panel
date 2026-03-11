@@ -11,6 +11,8 @@ import {
   MoreVertical,
   Calendar,
   Percent,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 
 import { toast } from "react-hot-toast";
@@ -126,10 +128,51 @@ const Promotions = () => {
   const [pageSize, setPageSize] = useState(10);
   const totalPages = Math.max(1, Math.ceil(promotions.length / pageSize));
 
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
+  const sortedPromotions = useMemo(() => {
+    let sortablePromotions = [...promotions];
+    if (sortConfig.key !== null) {
+      sortablePromotions.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (sortConfig.key === 'productName') {
+          aValue = a.productNames?.[0] || '';
+          bValue = b.productNames?.[0] || '';
+        } else if (sortConfig.key === 'dates') {
+          aValue = a.startDate || '';
+          bValue = b.startDate || '';
+        }
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortablePromotions;
+  }, [promotions, sortConfig]);
+
+  const requestSort = (key) => {
+    if (!key) return;
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
   const paginatedPromotions = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return promotions.slice(start, start + pageSize);
-  }, [promotions, currentPage, pageSize]);
+    return sortedPromotions.slice(start, start + pageSize);
+  }, [sortedPromotions, currentPage, pageSize]);
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -369,14 +412,14 @@ const Promotions = () => {
   }
 
   const headerConfig = [
-    { key: "productName", label: "Product Name", Icon: Box },
-    { key: "description", label: "Description", Icon: FileText },
-    { key: "category", label: "Category", Icon: Tag },
-    { key: "bonusType", label: "Bonus Type", Icon: Percent },
-    { key: "value", label: "Value", Icon: Star },
-    { key: "dates", label: "Duration", Icon: Calendar },
-    { key: "status", label: "Status", Icon: CheckCircle },
-    { key: "actions", label: "Action", Icon: MoreVertical },
+    { key: "productName", label: "Product Name", Icon: Box, sortKey: "productName" },
+    { key: "description", label: "Description", Icon: FileText, sortKey: "description" },
+    { key: "category", label: "Category", Icon: Tag, sortKey: "category" },
+    { key: "bonusType", label: "Bonus Type", Icon: Percent, sortKey: "bonusType" },
+    { key: "value", label: "Value", Icon: Star, sortKey: "bonusValue" },
+    { key: "dates", label: "Duration", Icon: Calendar, sortKey: "dates" },
+    { key: "status", label: "Status", Icon: CheckCircle, sortKey: "active" },
+    { key: "actions", label: "Action", Icon: MoreVertical, sortKey: null },
   ];
 
   return (
@@ -461,14 +504,26 @@ const Promotions = () => {
               <table className="min-w-full text-sm divide-y divide-gray-200">
                 <thead className="bg-gray-100 border-b border-gray-200 sticky top-0">
                   <tr>
-                    {headerConfig.map(({ key, label, Icon }) => (
+                    {headerConfig.map(({ key, label, Icon, sortKey }) => (
                       <th
                         key={key}
-                        className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                        className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
+                        onClick={() => requestSort(sortKey)}
                       >
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-1.5 whitespace-nowrap">
                           <Icon className="h-4 w-4 text-gray-500" />
                           <span>{label}</span>
+                          {sortKey && (
+                            <div className="w-4 h-4 flex items-center justify-center">
+                              {sortConfig.key === sortKey ? (
+                                sortConfig.direction === 'asc' ?
+                                  <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                  <ChevronDown className="h-4 w-4 text-gray-700" />
+                              ) : (
+                                <div className="w-4 h-4" />
+                              )}
+                            </div>
+                          )}
                         </div>
                       </th>
                     ))}

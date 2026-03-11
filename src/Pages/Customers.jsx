@@ -13,6 +13,8 @@ import {
   Unlock,
   Users as UsersIcon,
   ExternalLink,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -33,6 +35,7 @@ const Customers = () => {
     block: null,
     kyc: null,
   });
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const {
     customersList = [],
@@ -86,12 +89,62 @@ const Customers = () => {
   const [pageSize, setPageSize] = useState(10);
   const currentUserRole = getCurrentUserRole();
 
-  const totalPages = Math.ceil(filteredCustomers.length / pageSize);
+  const sortedCustomers = useMemo(() => {
+    let sortableCustomers = [...filteredCustomers];
+    if (sortConfig.key !== null) {
+      sortableCustomers.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (sortConfig.key === 'firstName') {
+          aValue = `${a.firstName || ''} ${a.lastName || ''}`.toLowerCase();
+          bValue = `${b.firstName || ''} ${b.lastName || ''}`.toLowerCase();
+        } else if (sortConfig.key === 'phone') {
+          aValue = String(a.phone || '');
+          bValue = String(b.phone || '');
+        } else if (sortConfig.key === 'district') {
+          aValue = `${a.district || ''} ${a.state || ''} ${a.pincode || ''}`.toLowerCase();
+          bValue = `${b.district || ''} ${b.state || ''} ${b.pincode || ''}`.toLowerCase();
+        } else if (sortConfig.key === 'loyaltyPoint') {
+          aValue = a.loyaltyPoint || 0;
+          bValue = b.loyaltyPoint || 0;
+        } else if (sortConfig.key === 'status') {
+          let aStatus = `${a.isKYCverifed ? '1' : '0'}${a.isBlocked ? '0' : '1'}`;
+          let bStatus = `${b.isKYCverifed ? '1' : '0'}${b.isBlocked ? '0' : '1'}`;
+          aValue = aStatus;
+          bValue = bStatus;
+        } else {
+          if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+          if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        }
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableCustomers;
+  }, [filteredCustomers, sortConfig]);
+
+  const requestSort = (key) => {
+    if (!key) return;
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
+  const totalPages = Math.ceil(sortedCustomers.length / pageSize);
 
   const paginatedCustomers = useMemo(() => {
     const start = (currentPage - 1) * pageSize;
-    return filteredCustomers.slice(start, start + pageSize);
-  }, [filteredCustomers, currentPage, pageSize]);
+    return sortedCustomers.slice(start, start + pageSize);
+  }, [sortedCustomers, currentPage, pageSize]);
 
   useEffect(() => {
     if (currentPage > totalPages) setCurrentPage(totalPages);
@@ -390,36 +443,36 @@ const Customers = () => {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-100">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <User className="h-4 w-4" /> Customer
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <Phone className="h-4 w-4" /> Contact
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <Locate className="h-4 w-4" /> Location
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <CircleStar className="h-4 w-4" /> Loyalty Points
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <CheckCircle className="h-4 w-4" /> Status
-                      </div>
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <div className="flex items-center gap-1">
-                        <MoreVertical className="h-4 w-4" /> Action
-                      </div>
-                    </th>
+                    {[
+                      { label: "Customer", Icon: User, sortKey: "firstName" },
+                      { label: "Contact", Icon: Phone, sortKey: "phone" },
+                      { label: "Location", Icon: Locate, sortKey: "district" },
+                      { label: "Loyalty Points", Icon: CircleStar, sortKey: "loyaltyPoint" },
+                      { label: "Status", Icon: CheckCircle, sortKey: "status" },
+                      { label: "Action", Icon: MoreVertical, sortKey: null },
+                    ].map(({ label, Icon, sortKey }) => (
+                      <th
+                        key={label}
+                        className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
+                        onClick={() => requestSort(sortKey)}
+                      >
+                        <div className="flex items-center gap-1 whitespace-nowrap">
+                          <Icon className="h-4 w-4 text-gray-500" />
+                          <span>{label}</span>
+                          {sortKey && (
+                            <div className="w-4 h-4 flex items-center justify-center">
+                              {sortConfig.key === sortKey ? (
+                                sortConfig.direction === 'asc' ?
+                                  <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                  <ChevronDown className="h-4 w-4 text-gray-700" />
+                              ) : (
+                                <div className="w-4 h-4" />
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">

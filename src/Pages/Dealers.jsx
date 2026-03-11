@@ -9,6 +9,8 @@ import {
   Building2,
   MapPin,
   MoreVertical,
+  ChevronUp,
+  ChevronDown,
 } from "lucide-react";
 import { toast } from "react-hot-toast";
 import { useDealersContext } from "../Context/DealersContext";
@@ -147,6 +149,8 @@ const Dealers = () => {
     clearError();
     refreshDealers();
   };
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+
   const filteredDealers = (Array.isArray(dealers) ? dealers : []).filter(
     (d) => {
       const q = searchTerm.toLowerCase();
@@ -158,16 +162,47 @@ const Dealers = () => {
     }
   );
 
+  const sortedDealers = React.useMemo(() => {
+    let sortableDealers = [...filteredDealers];
+    if (sortConfig.key !== null) {
+      sortableDealers.sort((a, b) => {
+        let aValue = a[sortConfig.key];
+        let bValue = b[sortConfig.key];
+
+        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
+        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    return sortableDealers;
+  }, [filteredDealers, sortConfig]);
+
+  const requestSort = (key) => {
+    if (!key) return;
+    let direction = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
+
 
   // Pagination 
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  // Use filteredDealers length for correct total
-  const totalPages = Math.max(1, Math.ceil(filteredDealers.length / pageSize));
+  // Use sortedDealers length for correct total
+  const totalPages = Math.max(1, Math.ceil(sortedDealers.length / pageSize));
 
-  // Slice filtered list for current page
-  const paginatedDealers = filteredDealers.slice(
+  // Slice sorted list for current page
+  const paginatedDealers = sortedDealers.slice(
     (currentPage - 1) * pageSize,
     currentPage * pageSize
   );
@@ -242,7 +277,7 @@ const Dealers = () => {
                 { key: "city", header: "City" },
               ]}
               filename="dealers_export"
-              page = "dealers"
+              page="dealers"
               disabled={operationLoading || filteredDealers.length === 0}
             />
 
@@ -264,17 +299,30 @@ const Dealers = () => {
               <thead className="bg-gray-100">
                 <tr>
                   {[
-                    ["Dealer ID", Hash],
-                    ["Company Name", Building2],
-                    ["City", MapPin],
-                    ["Action", MoreVertical],
-                  ].map(([label, Icon]) => (
+                    { label: "Dealer ID", Icon: Hash, sortKey: "dealerId" },
+                    { label: "Company Name", Icon: Building2, sortKey: "companyName" },
+                    { label: "City", Icon: MapPin, sortKey: "city" },
+                    { label: "Action", Icon: MoreVertical, sortKey: null },
+                  ].map(({ label, Icon, sortKey }) => (
                     <th
                       key={label}
-                      className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider"
+                      className={`px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider outline-none focus:outline-none focus-visible:outline-none ${sortKey ? "cursor-pointer select-none hover:bg-gray-200 transition-colors group" : ""}`}
+                      onClick={() => requestSort(sortKey)}
                     >
-                      <div className="flex items-center gap-1.5">
-                        <Icon className="h-4 w-4 text-gray-500" /> {label}
+                      <div className="flex items-center gap-1.5 whitespace-nowrap">
+                        <Icon className="h-4 w-4 text-gray-500" />
+                        <span>{label}</span>
+                        {sortKey && (
+                          <div className="w-4 h-4 flex items-center justify-center">
+                            {sortConfig.key === sortKey ? (
+                              sortConfig.direction === 'asc' ?
+                                <ChevronUp className="h-4 w-4 text-gray-700" /> :
+                                <ChevronDown className="h-4 w-4 text-gray-700" />
+                            ) : (
+                              <div className="w-4 h-4" />
+                            )}
+                          </div>
+                        )}
                       </div>
                     </th>
                   ))}
@@ -282,9 +330,9 @@ const Dealers = () => {
               </thead>
               <tbody className="bg-white divide-y divide-gray-100">
                 {paginatedDealers.length > 0 ? (
-                  paginatedDealers.map((dealer) => {
+                  paginatedDealers.map((dealer, index) => {
                     const uniqueKey =
-                      dealer.dealerId || dealer.id || Math.random();
+                      dealer.dealerId || dealer.id || `dealer-key-${index}`;
                     return (
                       <tr
                         key={uniqueKey}
