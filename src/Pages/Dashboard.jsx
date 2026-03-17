@@ -127,13 +127,18 @@ const monthlyPoints = [
 ];
 
 const kycStatusData = [
-  { name: "Approved", value: 139, color: "#6366F1" },
-  { name: "Not provided", value: 662, color: "#F59E0B" },
-  { name: "Pending", value: 1, color: "#14B8A6" },
-  { name: "Rejected", value: 24, color: "#EF4444" }
+  { name: "Rejected", value: 24, color: "#DC2626" }, // inner
+  { name: "Pending", value: 34, color: "#FACC15" },  // middle
+  { name: "Approved", value: 139, color: "#16A34A" } // outer
 ];
 
+const kycLabelData = [
+  { name: "Approved", value: 139, color: "#16A34A" },
+  { name: "Pending", value: 34, color: "#FACC15" },
+  { name: "Rejected", value: 24, color: "#DC2626" }
+];
 const MAX_VALUE = Math.max(...kycStatusData.map(i => i.value), 1);
+const TOTAL_KYC = kycStatusData.reduce((sum, item) => sum + item.value, 0);
 
 const scanReportData = [
   { day: 1, scans: 10 },
@@ -221,10 +226,6 @@ const Dashboard = () => {
     totalCustomers,
     totalQrGenerated,
     totalQrScanned,
-    totalQrApproved,
-    totalQrRejected,
-    totalQrDuplicate,
-    userTrend,
     dealerTrend,
     adminTrend,
     customerTrend,
@@ -243,11 +244,11 @@ const Dashboard = () => {
 
   const stats = [
     {
-      title: "Total Users",
-      value: totalUsers || 0,
-      trend: userTrend || demoTrend,
-      color: "#169698",
-      icon: <Users className="w-6 h-6 text-[#169698]" />
+      title: "Total Carpenters",
+      value: totalCustomers || 0,
+      trend: customerTrend || demoTrend,
+      color: "#22C55E",
+      icon: <UserCheck className="w-6 h-6 text-[#22C55E]" />
     },
     {
       title: "Total Dealers",
@@ -263,13 +264,7 @@ const Dashboard = () => {
       color: "#F97316",
       icon: <Factory className="w-6 h-6 text-[#F97316]" />
     },
-    {
-      title: "Customers",
-      value: totalCustomers || 0,
-      trend: customerTrend || demoTrend,
-      color: "#22C55E",
-      icon: <UserCheck className="w-6 h-6 text-[#22C55E]" />
-    },
+
     {
       title: "QR Generated",
       value: totalQrGenerated || 0,
@@ -283,27 +278,15 @@ const Dashboard = () => {
       trend: qrScannedTrend || demoTrend,
       color: "#EC4899",
       icon: <TrendingUp className="w-6 h-6 text-pink-500" />
-    },
-    {
-      title: "QR Approved",
-      value: totalQrApproved || 0,
-      trend: qrApprovedTrend || demoTrend,
-      color: "#10B981",
-      icon: <CheckCircle className="w-6 h-6 text-green-500" />
-    },
-    {
-      title: "QR Rejected",
-      value: totalQrRejected || 0,
-      trend: qrRejectedTrend || demoTrend,
-      color: "#EF4444",
-      icon: <CheckCircle className="w-6 h-6 text-red-500" />
     }
   ];
+  const hasQrData = totalQrGenerated || totalQrScanned;
+  const qrPending = (totalQrGenerated || 0) - (totalQrScanned || 0);
 
   const qrStatusData = [
-    { name: "Approved", value: totalQrApproved || 45 },
-    { name: "Rejected", value: totalQrRejected || 12 },
-    { name: "Duplicate", value: totalQrDuplicate || 6 }
+    { name: "QR Generated", value: totalQrGenerated || 0, color: "#6366F1" },
+    { name: "QR Scanned", value: totalQrScanned || 0, color: "#22C55E" },
+    { name: "Scan Pending", value: qrPending > 0 ? qrPending : 0, color: "#F59E0B" }
   ];
 
   const pointsTrendData = pointsTrend || demoPointsTrend;
@@ -453,38 +436,43 @@ const Dashboard = () => {
 
         {/* QR STATUS */}
 
+
         <div className="bg-white rounded-xl shadow-sm p-6">
 
           <h2 className="text-lg font-semibold mb-4">
-            QR Status Overview
+            QR Lifecycle Overview
           </h2>
 
           <div className="h-80">
 
-            <ResponsiveContainer width="100%" height="100%">
+            {hasQrData ? (
+              <ResponsiveContainer width="100%" height="100%">
 
-              <PieChart>
+                <PieChart>
 
-                <Pie
-                  data={qrStatusData}
-                  dataKey="value"
-                  innerRadius={60}
-                  outerRadius={90}
-                  paddingAngle={4}
-                >
+                  <Pie
+                    data={qrStatusData}
+                    dataKey="value"
+                    innerRadius={60}
+                    outerRadius={90}
+                    paddingAngle={4}
+                  >
+                    {qrStatusData.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
 
-                  <Cell fill="#374151" />
-                  <Cell fill="#9ca3af" />
-                  <Cell fill="#d1d5db" />
+                  <Tooltip />
+                  <Legend />
 
-                </Pie>
+                </PieChart>
 
-                <Tooltip />
-                <Legend />
-
-              </PieChart>
-
-            </ResponsiveContainer>
+              </ResponsiveContainer>
+            ) : (
+              <div className="flex items-center justify-center h-full text-gray-400">
+                No QR Data Available
+              </div>
+            )}
 
           </div>
 
@@ -622,7 +610,7 @@ const Dashboard = () => {
 
             <div className="space-y-3 text-sm">
 
-              {kycStatusData.map((item, i) => (
+              {kycLabelData.map((item, i) => (
 
                 <div key={i} className="flex items-center gap-2">
 
@@ -652,8 +640,8 @@ const Dashboard = () => {
 
                   {kycStatusData.map((item, index) => {
 
-                    const inner = 30 + index * 18;
-                    const outer = inner + 10;
+                    const inner = 40 + index * 22;
+                    const outer = inner + 12;
 
                     return (
 
@@ -679,7 +667,7 @@ const Dashboard = () => {
                           data={[{ value: item.value }]}
                           dataKey="value"
                           startAngle={90}
-                          endAngle={90 - (item.value / MAX_VALUE) * 270}
+                          endAngle={90 - (item.value / TOTAL_KYC) * 270}
                           innerRadius={inner}
                           outerRadius={outer}
                           fill={item.color}
@@ -692,6 +680,7 @@ const Dashboard = () => {
                     );
 
                   })}
+
 
                 </PieChart>
 
