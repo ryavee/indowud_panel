@@ -28,185 +28,21 @@ import {
 import { DashboardContext } from "../Context/DashboardContext";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
 
-/* ---------------- DEMO DATA ---------------- */
+/* ---------------- VISUAL CONSTANTS ---------------- */
 
-const topSellingProducts = [
-  {
-    product: "Indowud MR Board 10mm thick",
-    productId: "NFC12",
-    category: "MR Board",
-    scans: 6324
-  },
-  {
-    product: "Indowud MR Board 12mm thick",
-    productId: "NFC18",
-    category: "MR Board",
-    scans: 5925
-  },
-  {
-    product: "Indowud MR Board 16mm thick",
-    productId: "NFC08",
-    category: "MR Board",
-    scans: 1780
-  },
-  {
-    product: "Zerowud Board 18mm thick",
-    productId: "ZWC18",
-    category: "Zerowud",
-    scans: 1504
-  },
-  {
-    product: "Indowud MR Board 6mm thick",
-    productId: "NFC06",
-    category: "MR Board",
-    scans: 817
-  },
-  {
-    product: "Premium Laminate Sheet",
-    productId: "LAM22",
-    category: "Laminate",
-    scans: 619
-  }
-];
-const demoTrend = [
-  { value: 10 },
-  { value: 20 },
-  { value: 18 },
-  { value: 25 },
-  { value: 30 }
+const visualPlaceholderTrend = [
+  { value: 10 }, { value: 25 }, { value: 15 }, { value: 30 }, { value: 20 }, { value: 40 }
 ];
 
-const demoPointsTrend = [
-  { date: "Mon", earned: 1200, redeemed: 800 },
-  { date: "Tue", earned: 1500, redeemed: 900 },
-  { date: "Wed", earned: 1800, redeemed: 1000 },
-  { date: "Thu", earned: 1400, redeemed: 700 },
-  { date: "Fri", earned: 2000, redeemed: 1200 }
-];
-
-const statisticsData = [
-  {
-    title: "Registered Customers",
-    value: 46,
-    color: "#6366F1",
-    data: [{ value: 10 }, { value: 20 }, { value: 30 }, { value: 40 }, { value: 46 }]
-  },
-  {
-    title: "Earn Points",
-    value: 170000,
-    color: "#22C55E",
-    data: [{ value: 20000 }, { value: 60000 }, { value: 90000 }, { value: 140000 }, { value: 170000 }]
-  },
-  {
-    title: "Redeem Points",
-    value: 180000,
-    color: "#EF4444",
-    data: [{ value: 20000 }, { value: 50000 }, { value: 90000 }, { value: 140000 }, { value: 180000 }]
-  },
-  {
-    title: "Scan Count",
-    value: 500,
-    color: "#F59E0B",
-    data: [{ value: 120 }, { value: 200 }, { value: 350 }, { value: 420 }, { value: 500 }]
-  }
-];
-
-const monthlyPoints = [
-  { month: "Jan", earn: 5000, redeem: 2000 },
-  { month: "Feb", earn: 6500, redeem: 2500 },
-  { month: "Mar", earn: 7000, redeem: 3000 },
-  { month: "Apr", earn: 8500, redeem: 3500 },
-  { month: "May", earn: 9000, redeem: 4200 },
-  { month: "Jun", earn: 11000, redeem: 5200 },
-  { month: "Jul", earn: 10000, redeem: 4500 },
-  { month: "Aug", earn: 9500, redeem: 4300 },
-  { month: "Sep", earn: 8700, redeem: 3900 },
-  { month: "Oct", earn: 9200, redeem: 4100 },
-  { month: "Nov", earn: 9800, redeem: 4600 },
-  { month: "Dec", earn: 12000, redeem: 6000 }
-];
-
-const kycStatusData = [
-  { name: "Rejected", value: 24, color: "#DC2626" }, // inner
-  { name: "Pending", value: 34, color: "#FACC15" },  // middle
-  { name: "Approved", value: 139, color: "#16A34A" } // outer
-];
-
-const kycLabelData = [
-  { name: "Approved", value: 139, color: "#16A34A" },
-  { name: "Pending", value: 34, color: "#FACC15" },
-  { name: "Rejected", value: 24, color: "#DC2626" }
-];
-const MAX_VALUE = Math.max(...kycStatusData.map(i => i.value), 1);
-const TOTAL_KYC = kycStatusData.reduce((sum, item) => sum + item.value, 0);
-
-const scanReportData = [
-  { day: 1, scans: 10 },
-  { day: 2, scans: 30 },
-  { day: 3, scans: 20 },
-  { day: 4, scans: 5 },
-  { day: 5, scans: 65 },
-  { day: 6, scans: 95 },
-  { day: 7, scans: 15 },
-  { day: 8, scans: 25 },
-  { day: 9, scans: 80 },
-  { day: 10, scans: 40 },
-  { day: 11, scans: 70 },
-  { day: 12, scans: 10 },
-  { day: 13, scans: 5 },
-  { day: 14, scans: 15 },
-  { day: 15, scans: 8 }
-];
-
-
-const productScanReport = [
-  { product: "Plywood 12mm", scans: 120 },
-  { product: "Plywood 18mm", scans: 95 },
-  { product: "Laminate A", scans: 75 },
-  { product: "Laminate B", scans: 60 },
-  { product: "Board Classic", scans: 48 },
-  { product: "Board Premium", scans: 35 }
-];
+/* ---------------- COMPONENT ---------------- */
 /* ---------------- COMPONENT ---------------- */
 
 const Dashboard = () => {
 
   const context = useContext(DashboardContext);
-  const [dateFilter, setDateFilter] = useState("all");
-  const [exportType, setExportType] = useState("");
+
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const categories = [
-    "All",
-    ...new Set(topSellingProducts.map(p => p.category))
-  ];
 
-  const filteredProducts =
-    (selectedCategory === "All"
-      ? topSellingProducts
-      : topSellingProducts.filter(p => p.category === selectedCategory)
-    ).sort((a, b) => b.scans - a.scans);
-  const exportData = (type) => {
-
-    const data = topSellingProducts; // you can change to any dataset
-
-    if (!data || data.length === 0) return;
-
-    const headers = Object.keys(data[0]).join(",");
-    const rows = data.map(row => Object.values(row).join(",")).join("\n");
-
-    const csv = headers + "\n" + rows;
-
-    const blob = new Blob([csv], { type: "text/csv" });
-
-    const url = window.URL.createObjectURL(blob);
-
-    const a = document.createElement("a");
-
-    a.href = url;
-    a.download = type === "xls" ? "dashboard-data.xls" : "dashboard-data.csv";
-
-    a.click();
-  };
 
   if (!context) return <div>No dashboard access</div>;
 
@@ -226,6 +62,13 @@ const Dashboard = () => {
     totalCustomers,
     totalQrGenerated,
     totalQrScanned,
+    totalKycApproved,
+    totalGeneratedPoints,
+    totalRedeemedPoints,
+    currentYearStats,
+    pointsByMonth,
+    customerScanReport,
+    topSellingProducts: liveTopSellingProducts,
     dealerTrend,
     adminTrend,
     customerTrend,
@@ -242,42 +85,61 @@ const Dashboard = () => {
 
   } = dashboardData;
 
+  const currentTopSellingProducts = liveTopSellingProducts || [];
+
+  const categories = [
+    "All",
+    ...new Set(currentTopSellingProducts.map(p => p.category))
+  ];
+
+  const filteredProducts =
+    (selectedCategory === "All"
+      ? currentTopSellingProducts
+      : currentTopSellingProducts.filter(p => p.category === selectedCategory)
+    ).sort((a, b) => b.scans - a.scans);
+
   const stats = [
     {
       title: "Total Carpenters",
       value: totalCustomers || 0,
-      trend: customerTrend || demoTrend,
+      trend: customerTrend && customerTrend.length > 0 ? customerTrend : visualPlaceholderTrend,
       color: "#22C55E",
       icon: <UserCheck className="w-6 h-6 text-[#22C55E]" />
     },
     {
       title: "Total Dealers",
       value: totalDealers || 0,
-      trend: dealerTrend || demoTrend,
+      trend: dealerTrend && dealerTrend.length > 0 ? dealerTrend : visualPlaceholderTrend,
       color: "#8B5CF6",
       icon: <Building2 className="w-6 h-6 text-[#8B5CF6]" />
     },
     {
       title: "Admin Users",
       value: totalFactories || 0,
-      trend: adminTrend || demoTrend,
+      trend: adminTrend && adminTrend.length > 0 ? adminTrend : visualPlaceholderTrend,
       color: "#F97316",
       icon: <Factory className="w-6 h-6 text-[#F97316]" />
     },
-
     {
       title: "QR Generated",
       value: totalQrGenerated || 0,
-      trend: qrGeneratedTrend || demoTrend,
+      trend: qrGeneratedTrend && qrGeneratedTrend.length > 0 ? qrGeneratedTrend : visualPlaceholderTrend,
       color: "#6366F1",
       icon: <QrCode className="w-6 h-6 text-indigo-500" />
     },
     {
       title: "QR Scanned",
       value: totalQrScanned || 0,
-      trend: qrScannedTrend || demoTrend,
+      trend: qrScannedTrend && qrScannedTrend.length > 0 ? qrScannedTrend : visualPlaceholderTrend,
       color: "#EC4899",
       icon: <TrendingUp className="w-6 h-6 text-pink-500" />
+    },
+    {
+      title: "KYC Approved",
+      value: totalKycApproved || 0,
+      trend: qrApprovedTrend && qrApprovedTrend.length > 0 ? qrApprovedTrend : visualPlaceholderTrend,
+      color: "#16A34A",
+      icon: <CheckCircle className="w-6 h-6 text-green-500" />
     }
   ];
   const hasQrData = totalQrGenerated || totalQrScanned;
@@ -289,7 +151,20 @@ const Dashboard = () => {
     { name: "Scan Pending", value: qrPending > 0 ? qrPending : 0, color: "#F59E0B" }
   ];
 
-  const pointsTrendData = pointsTrend || demoPointsTrend;
+  const pointsTrendData = pointsTrend || [];
+
+  const currentKycStatusData = [
+    { name: "Approved", value: totalKycApproved || 0, color: "#16A34A" },
+    { name: "Pending", value: 0, color: "#FACC15" }
+  ];
+
+  const currentKycLabelData = [
+    { name: "Approved", value: totalKycApproved || 0, color: "#16A34A" },
+    { name: "Pending", value: 0, color: "#FACC15" }
+  ];
+
+  const currentTotalKyc = currentKycStatusData.reduce((sum, item) => sum + item.value, 0);
+  const currentMaxValue = Math.max(...currentKycStatusData.map(i => i.value), 1);
 
   return (
 
@@ -304,46 +179,12 @@ const Dashboard = () => {
           <p className="text-gray-500 text-sm">QR Reward System Overview</p>
         </div>
 
-        <div className="flex items-center gap-3">
-
-          {/* DATE FILTER */}
-
-          <select
-            value={dateFilter}
-            onChange={(e) => setDateFilter(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm"
-          >
-
-            <option value="all">All</option>
-            <option value="today">Today</option>
-            <option value="weekly">Weekly</option>
-            <option value="monthly">Monthly</option>
-            <option value="yearly">Yearly</option>
-            <option value="custom">Custom</option>
-
-          </select>
-
-
-          {/* EXPORT BUTTON */}
-
-          <select
-            onChange={(e) => exportData(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm"
-          >
-
-            <option value="">Export</option>
-            <option value="csv">Export CSV</option>
-            <option value="xls">Export XLS</option>
-
-          </select>
-
-        </div>
 
       </div>
 
       {/* STAT CARDS */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
 
         {stats.map((card, i) => (
 
@@ -493,7 +334,7 @@ const Dashboard = () => {
           <div className="flex justify-between items-center mb-6">
 
             <h2 className="text-lg font-semibold">
-              Statistics of 2026
+              Statistics of {currentYearStats?.year || 2026}
             </h2>
 
           </div>
@@ -501,28 +342,28 @@ const Dashboard = () => {
           {[
             {
               label: "Registered Customer",
-              value: 43,
-              percent: 40
+              value: currentYearStats?.registeredCustomers || 0,
+              percent: 100
             },
             {
               label: "Earn Points",
-              value: "77110",
-              percent: 80
+              value: currentYearStats?.earnPoints || 0,
+              percent: 100
             },
             {
               label: "Redeem Points",
-              value: "53060",
-              percent: 60
+              value: currentYearStats?.redeemPoints || 0,
+              percent: Math.min(100, ((currentYearStats?.redeemPoints || 0) / (currentYearStats?.earnPoints || 1)) * 100)
             },
             {
               label: "Scan Count",
-              value: 1061,
-              percent: 90
+              value: currentYearStats?.scanCount || 0,
+              percent: 100
             },
             {
-              label: "Balance",
-              value: "INR 1061",
-              percent: 50
+              label: "Balance Points",
+              value: currentYearStats?.balancePoints || 0,
+              percent: 100
             }
           ].map((item, index) => (
 
@@ -560,14 +401,14 @@ const Dashboard = () => {
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
 
           <h2 className="text-lg font-semibold mb-4">
-            Earn / Redeem Points By Month - 2026
+            Earn / Redeem Points By Month - {currentYearStats?.year || 2026}
           </h2>
 
           <div className="h-96">
 
             <ResponsiveContainer width="100%" height="100%">
 
-              <BarChart data={monthlyPoints} barCategoryGap={30}>
+              <BarChart data={pointsByMonth || []} barCategoryGap={30}>
 
                 <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
 
@@ -579,9 +420,9 @@ const Dashboard = () => {
 
                 <Legend />
 
-                <Bar dataKey="earn" name="Loyalty Points" fill="#374151" barSize={12} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="earned" name="Loyalty Points" fill="#374151" barSize={12} radius={[4, 4, 0, 0]} />
 
-                <Bar dataKey="redeem" name="Redemption Points" fill="#9ca3af" barSize={12} radius={[4, 4, 0, 0]} />
+                <Bar dataKey="redeemed" name="Redemption Points" fill="#9ca3af" barSize={12} radius={[4, 4, 0, 0]} />
 
               </BarChart>
 
@@ -610,7 +451,7 @@ const Dashboard = () => {
 
             <div className="space-y-3 text-sm">
 
-              {kycLabelData.map((item, i) => (
+              {currentKycLabelData.map((item, i) => (
 
                 <div key={i} className="flex items-center gap-2">
 
@@ -638,7 +479,7 @@ const Dashboard = () => {
 
                 <PieChart>
 
-                  {kycStatusData.map((item, index) => {
+                  {currentKycStatusData.map((item, index) => {
 
                     const inner = 40 + index * 22;
                     const outer = inner + 12;
@@ -650,7 +491,7 @@ const Dashboard = () => {
                         {/* BACKGROUND SHADOW TRACK */}
 
                         <Pie
-                          data={[{ value: MAX_VALUE }]}
+                          data={[{ value: currentMaxValue }]}
                           dataKey="value"
                           startAngle={90}
                           endAngle={-180}
@@ -667,7 +508,7 @@ const Dashboard = () => {
                           data={[{ value: item.value }]}
                           dataKey="value"
                           startAngle={90}
-                          endAngle={90 - (item.value / TOTAL_KYC) * 270}
+                          endAngle={90 - (item.value / (currentTotalKyc || 1)) * 270}
                           innerRadius={inner}
                           outerRadius={outer}
                           fill={item.color}
@@ -698,14 +539,14 @@ const Dashboard = () => {
         <div className="lg:col-span-2 bg-white rounded-xl shadow-sm p-6">
 
           <h2 className="text-lg font-semibold mb-4">
-            Customer Scan Report of 2026
+            Customer Scan Report of {currentYearStats?.year || 2026}
           </h2>
 
           <div className="h-70">
 
             <ResponsiveContainer width="100%" height="100%">
 
-              <AreaChart data={scanReportData}>
+              <AreaChart data={customerScanReport || []}>
 
                 <CartesianGrid stroke="#e5e7eb" strokeDasharray="3 3" />
 
@@ -745,7 +586,7 @@ const Dashboard = () => {
       <div className="bg-white rounded-xl shadow-sm p-6">
 
         <h2 className="text-lg font-semibold mb-4">
-          Product Scan Report of 2026
+          Dealer QR Statistics Report
         </h2>
 
         <div className="h-96">
@@ -754,7 +595,7 @@ const Dashboard = () => {
 
             <BarChart
               layout="vertical"
-              data={productScanReport}
+              data={dealerQRStats}
               margin={{ top: 5, right: 30, left: 40, bottom: 5 }}
             >
 
@@ -763,7 +604,7 @@ const Dashboard = () => {
               <XAxis type="number" />
 
               <YAxis
-                dataKey="product"
+                dataKey="dealerName"
                 type="category"
                 width={120}
               />
@@ -771,7 +612,7 @@ const Dashboard = () => {
               <Tooltip />
 
               <Bar
-                dataKey="scans"
+                dataKey="qrsCount"
                 fill="#6366F1"
                 radius={[0, 10, 10, 0]}
               />
@@ -835,18 +676,6 @@ const Dashboard = () => {
           <h2 className="text-lg font-semibold">
             Top Selling Products
           </h2>
-
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border rounded-lg px-3 py-2 text-sm"
-          >
-            {categories.map((cat, i) => (
-              <option key={i} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
 
         </div>
 
