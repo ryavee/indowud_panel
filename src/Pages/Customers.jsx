@@ -351,8 +351,20 @@ const Customers = () => {
             return (
               <div
                 key={i}
-                className="bg-white rounded-xl p-5 shadow-sm hover:shadow-md transition-all border border-gray-100 flex items-center gap-4"
-              >
+                onClick={() => {
+                  if (stat.title === "Total Customers") setStatusFilter("All");
+                  if (stat.title === "KYC Verified") setStatusFilter("KYC Verified");
+                  if (stat.title === "Blocked Users") setStatusFilter("Blocked");
+                  if (stat.title === "Active Users") setStatusFilter("Active");
+                }}
+                className={`bg-white rounded-xl p-5 shadow-sm  flex items-center gap-4 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.03] active:scale-[0.98]
+                ${(stat.title === "Total Customers" && statusFilter === "All") ||
+                    (stat.title === "KYC Verified" && statusFilter === "KYC Verified") ||
+                    (stat.title === "Blocked Users" && statusFilter === "Blocked") ||
+                    (stat.title === "Active Users" && statusFilter === "Active")
+                    ? "ring-2 ring-orange-500 bg-orange-50"
+                    : "border-gray-100"
+                  }`}              >
                 <div className={`p-3 rounded-full ${colorMap[stat.color]}`}>
                   <stat.icon className="w-6 h-6" />
                 </div>
