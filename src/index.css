@@ -101,3 +101,8 @@ body {
 .custom-scrollbar {
   transition: all 0.3s ease-in-out;
 }
+
+.recharts-wrapper:focus,
+.recharts-surface:focus {
+  outline: none !important;
+}
