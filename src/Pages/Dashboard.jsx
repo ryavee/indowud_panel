@@ -1,4 +1,5 @@
 import React, { useContext, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Users,
   TrendingUp,
@@ -39,6 +40,7 @@ const visualPlaceholderTrend = [
 
 const Dashboard = () => {
 
+  const navigate = useNavigate();
   const context = useContext(DashboardContext);
 
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -102,44 +104,50 @@ const Dashboard = () => {
     {
       title: "Total Carpenters",
       value: totalCustomers || 0,
-      trend: customerTrend && customerTrend.length > 0 ? customerTrend : visualPlaceholderTrend,
+      trend: customerTrend?.length ? customerTrend : visualPlaceholderTrend,
       color: "#22C55E",
-      icon: <UserCheck className="w-6 h-6 text-[#22C55E]" />
+      icon: <UserCheck className="w-6 h-6 text-[#22C55E]" />,
+      action: () => navigate("/customers")
     },
     {
       title: "Total Dealers",
       value: totalDealers || 0,
-      trend: dealerTrend && dealerTrend.length > 0 ? dealerTrend : visualPlaceholderTrend,
+      trend: dealerTrend?.length ? dealerTrend : visualPlaceholderTrend,
       color: "#8B5CF6",
-      icon: <Building2 className="w-6 h-6 text-[#8B5CF6]" />
+      icon: <Building2 className="w-6 h-6 text-[#8B5CF6]" />,
+      action: () => navigate("/dealers")
     },
     {
       title: "Admin Users",
       value: totalFactories || 0,
-      trend: adminTrend && adminTrend.length > 0 ? adminTrend : visualPlaceholderTrend,
+      trend: adminTrend?.length ? adminTrend : visualPlaceholderTrend,
       color: "#F97316",
-      icon: <Factory className="w-6 h-6 text-[#F97316]" />
+      icon: <Factory className="w-6 h-6 text-[#F97316]" />,
+      action: () => navigate("/factoryUsers") // IMPORTANT
     },
     {
       title: "QR Generated",
       value: totalQrGenerated || 0,
-      trend: qrGeneratedTrend && qrGeneratedTrend.length > 0 ? qrGeneratedTrend : visualPlaceholderTrend,
+      trend: qrGeneratedTrend?.length ? qrGeneratedTrend : visualPlaceholderTrend,
       color: "#6366F1",
-      icon: <QrCode className="w-6 h-6 text-indigo-500" />
+      icon: <QrCode className="w-6 h-6 text-indigo-500" />,
+      action: () => navigate("/qr")
     },
     {
       title: "QR Scanned",
       value: totalQrScanned || 0,
-      trend: qrScannedTrend && qrScannedTrend.length > 0 ? qrScannedTrend : visualPlaceholderTrend,
+      trend: qrScannedTrend?.length ? qrScannedTrend : visualPlaceholderTrend,
       color: "#EC4899",
-      icon: <TrendingUp className="w-6 h-6 text-pink-500" />
+      icon: <TrendingUp className="w-6 h-6 text-pink-500" />,
+      action: () => navigate("/track")
     },
     {
       title: "KYC Approved",
       value: totalKycApproved || 0,
-      trend: qrApprovedTrend && qrApprovedTrend.length > 0 ? qrApprovedTrend : visualPlaceholderTrend,
+      trend: qrApprovedTrend?.length ? qrApprovedTrend : visualPlaceholderTrend,
       color: "#16A34A",
-      icon: <CheckCircle className="w-6 h-6 text-green-500" />
+      icon: <CheckCircle className="w-6 h-6 text-green-500" />,
+      action: () => navigate("/customers") // or create dedicated KYC page
     }
   ];
   const hasQrData = totalQrGenerated || totalQrScanned;
@@ -184,13 +192,13 @@ const Dashboard = () => {
 
       {/* STAT CARDS */}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 cursor-pointer">
 
         {stats.map((card, i) => (
-
           <div
             key={i}
-            className="bg-white p-5 rounded-xl shadow-sm flex flex-col gap-3"
+            onClick={card.action}
+            className="bg-white p-5 rounded-xl shadow-sm flex flex-col gap-3 cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]"
             style={{ borderLeft: `4px solid ${card.color}` }}
           >
 
@@ -207,12 +215,13 @@ const Dashboard = () => {
 
             </div>
 
-            <div className="h-14">
+            <div className="h-14 ">
 
               <ResponsiveContainer width="100%" height="100%">
-
-                <AreaChart data={card.trend}>
-
+                <AreaChart
+                  data={card.trend}
+                  style={{ pointerEvents: "none" }}
+                >
                   <Area
                     type="monotone"
                     dataKey="value"
@@ -222,9 +231,7 @@ const Dashboard = () => {
                     strokeWidth={2}
                     dot={false}
                   />
-
                 </AreaChart>
-
               </ResponsiveContainer>
 
             </div>
