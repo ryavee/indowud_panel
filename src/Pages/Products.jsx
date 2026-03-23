@@ -10,6 +10,7 @@ import {
   MoreVertical,
   ChevronUp,
   ChevronDown,
+  Search,
 } from "lucide-react";
 import toast from "react-hot-toast";
 import { useProductContext } from "../Context/ProductsContext";
@@ -45,11 +46,24 @@ const Products = () => {
   const [editTarget, setEditTarget] = useState(null);
   const [editLoading, setEditLoading] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
+  const filteredProducts = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return products;
+
+    return products.filter((p) => {
+      const name = (p.name || p.productName || "").toLowerCase();
+      const id = (p.productId || "").toLowerCase();
+      const unit = (p.productUnit || "").toLowerCase();
+      return name.includes(q) || id.includes(q) || unit.includes(q);
+    });
+  }, [products, searchTerm]);
+
   const sortedProducts = useMemo(() => {
-    let sortableProducts = [...products];
+    let sortableProducts = [...filteredProducts];
     if (sortConfig.key !== null) {
       sortableProducts.sort((a, b) => {
         let aValue = a[sortConfig.key];
@@ -73,7 +87,7 @@ const Products = () => {
       });
     }
     return sortableProducts;
-  }, [products, sortConfig]);
+  }, [filteredProducts, sortConfig]);
 
   const requestSort = (key) => {
     if (!key) return;
@@ -152,6 +166,10 @@ const Products = () => {
       toast.error(err.message || "Failed to delete product.");
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // ========== EDIT PRODUCT ==========
   const handleEdit = (product) => {
@@ -255,18 +273,30 @@ const Products = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
-              Products
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">
-              Manage your product list and inventory.
-            </p>
+        <div className="mb-8">
+          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+            Products
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage your product list and inventory.
+          </p>
+        </div>
+
+        {/* Filters and Actions */}
+        <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
+          <div className="relative min-w-[300px] md:w-80 flex-1">
+            <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by name, ID, or unit..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+            />
           </div>
 
           <div className="flex items-center gap-2">
-            {currentUserRole !== ROLES.QR_GENERATE ? (
+            {currentUserRole !== ROLES.QR_GENERATE && (
               <>
                 <ImportButton
                   requiredHeaders={[
@@ -293,15 +323,10 @@ const Products = () => {
                   type="button"
                   onClick={() => setShowAddModal(true)}
                   disabled={creating || importing}
-                  className={`
-                flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-                text-white rounded-lg shadow-sm transition-all cursor-pointer
-                active:scale-[0.97] 
-                ${creating || importing
-                      ? "bg-gray-400 cursor-not-allowed"
-                      : "bg-[#00A9A3] hover:bg-[#128083]"
-                    }
-              `}
+                  className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-sm transition-all cursor-pointer active:scale-[0.97] ${creating || importing
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-[#00A9A3] hover:bg-[#128083]"
+                    }`}
                 >
                   {creating ? (
                     <>
@@ -316,7 +341,7 @@ const Products = () => {
                   )}
                 </button>
               </>
-            ) : null}
+            )}
           </div>
         </div>
 
