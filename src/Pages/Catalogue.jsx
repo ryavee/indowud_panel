@@ -8,6 +8,7 @@ import {
   Check,
   Eye,
   Loader,
+  Search,
 } from "lucide-react";
 import { useCatalogContext } from "../Context/CatalogContext";
 import LoadingSpinner from "../Components/Reusable/LoadingSpinner";
@@ -25,10 +26,21 @@ const Catalogue = () => {
   });
   const [dragOver, setDragOver] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // For delete confirmation, we'll use the shared ConfirmationModal
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
   const [catalogueToDelete, setCatalogueToDelete] = useState(null);
+
+  const filteredCatalogs = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return catalogs;
+    return catalogs.filter(
+      (c) =>
+        (c.name || "").toLowerCase().includes(q) ||
+        (c.hindiName || "").toLowerCase().includes(q)
+    );
+  }, [catalogs, searchTerm]);
 
   const handleCreateCatalogue = async () => {
     if (
@@ -95,14 +107,26 @@ const Catalogue = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-2xl font-extrabold text-gray-900">
-            Catalogue Management
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Create, organize, and manage your product catalogues.
-          </p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-extrabold text-gray-900">
+          Catalogue Management
+        </h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Create, organize, and manage your product catalogues.
+        </p>
+      </div>
+
+      {/* Filters and Actions */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 mb-8 justify-between">
+        <div className="relative min-w-[300px] md:w-80 flex-1">
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by name..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+          />
         </div>
 
         <button
@@ -117,7 +141,7 @@ const Catalogue = () => {
       </div>
 
       {/* Empty state */}
-      {Array.isArray(catalogs) && catalogs.length === 0 && !loading ? (
+      {Array.isArray(filteredCatalogs) && filteredCatalogs.length === 0 && !loading ? (
         <div className="col-span-full flex flex-col items-center justify-center text-center py-12 text-gray-500 bg-white border border-gray-100 rounded-lg shadow-sm">
           <FileText size={40} className="mx-auto text-gray-300 mb-2" />
           <h3 className="text-base font-medium text-gray-900 mb-1">
@@ -137,9 +161,9 @@ const Catalogue = () => {
         </div>
       ) : (
         // Catalog grid
-        Array.isArray(catalogs) && (
+        Array.isArray(filteredCatalogs) && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {catalogs.map((catalogue) => (
+            {filteredCatalogs.map((catalogue) => (
               <div
                 key={catalogue.id}
                 className="group bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:shadow-md transition-all hover:scale-[1.01]"

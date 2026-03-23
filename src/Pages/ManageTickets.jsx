@@ -12,11 +12,13 @@ import {
   AlertCircle,
   Eye,
   Paperclip,
+  Search,
 } from "lucide-react";
 import { useTicketContext } from "../Context/TicketsContext";
 
 const ManageTickets = () => {
   const [activeFilter, setActiveFilter] = useState("P"); // Default to Pending
+  const [searchTerm, setSearchTerm] = useState("");
 
   const {
     tickets,
@@ -34,6 +36,20 @@ const ManageTickets = () => {
 
   // Get filtered tickets using context helper
   const filteredTickets = getTicketsByStatus(activeFilter);
+
+  const searchedTickets = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return filteredTickets;
+
+    return filteredTickets.filter(
+      (t) =>
+        (t.subject || "").toLowerCase().includes(q) ||
+        (t.message || "").toLowerCase().includes(q) ||
+        (t.userName || "").toLowerCase().includes(q) ||
+        (t.userPhone || "").toLowerCase().includes(q) ||
+        (t.ticketId || "").toLowerCase().includes(q)
+    );
+  }, [filteredTickets, searchTerm]);
 
   const getStatusInfo = (status) => {
     switch (status) {
@@ -326,21 +342,29 @@ const ManageTickets = () => {
       <div className="bg-white rounded-lg shadow-sm border p-12 text-center">
         <div className="max-w-sm mx-auto">
           <div className="mb-4">
-            {activeFilter === "P" && (
-              <Clock className="h-12 w-12 text-gray-400 mx-auto" />
-            )}
-            {activeFilter === "C" && (
-              <CheckCircle className="h-12 w-12 text-gray-400 mx-auto" />
-            )}
-            {activeFilter === "R" && (
-              <XCircle className="h-12 w-12 text-gray-400 mx-auto" />
+            {searchTerm ? (
+              <Search className="h-12 w-12 text-gray-400 mx-auto" />
+            ) : (
+              <>
+                {activeFilter === "P" && (
+                  <Clock className="h-12 w-12 text-gray-400 mx-auto" />
+                )}
+                {activeFilter === "C" && (
+                  <CheckCircle className="h-12 w-12 text-gray-400 mx-auto" />
+                )}
+                {activeFilter === "R" && (
+                  <XCircle className="h-12 w-12 text-gray-400 mx-auto" />
+                )}
+              </>
             )}
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">
-            No {statusLabel} tickets
+            {searchTerm ? "No results found" : `No ${statusLabel} tickets`}
           </h3>
           <p className="text-gray-500">
-            There are currently no {statusLabel} tickets to display.
+            {searchTerm
+              ? "Try adjusting your search terms"
+              : `There are currently no ${statusLabel} tickets to display.`}
           </p>
         </div>
       </div>
@@ -382,9 +406,19 @@ const ManageTickets = () => {
                 {activeFilter === "C" && "Completed Tickets"}
                 {activeFilter === "R" && "Rejected Tickets"}
                 <span className="ml-2 text-sm font-normal text-gray-500">
-                  ({filteredTickets.length})
+                  ({searchedTickets.length})
                 </span>
               </h2>
+              <div className="relative min-w-[260px] md:w-80">
+                <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search tickets..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none text-sm transition-all bg-white"
+                />
+              </div>
               {error && (
                 <button
                   onClick={handleRetry}
@@ -397,9 +431,9 @@ const ManageTickets = () => {
             </div>
           </div>
 
-          {filteredTickets.length > 0 ? (
+          {searchedTickets.length > 0 ? (
             <div className="divide-y divide-gray-200">
-              {filteredTickets.map((ticket) => (
+              {searchedTickets.map((ticket) => (
                 <TicketItem key={ticket.ticketId} ticket={ticket} />
               ))}
             </div>

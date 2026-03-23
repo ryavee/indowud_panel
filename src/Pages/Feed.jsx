@@ -6,6 +6,7 @@ import {
   AlertCircle,
   Loader,
   Image as ImageIcon,
+  Search,
 } from "lucide-react";
 import { useFeedContext } from "../Context/FeedContext";
 import { useAuthContext } from "../Context/AuthContext";
@@ -28,10 +29,22 @@ const Feed = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [imageErrors, setImageErrors] = useState(new Set());
+  const [searchTerm, setSearchTerm] = useState("");
 
   // delete confirmation
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState(null);
+
+  const filteredFeeds = React.useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return feeds;
+
+    return feeds.filter(
+      (f) =>
+        (f.title || "").toLowerCase().includes(q) ||
+        (f.description || "").toLowerCase().includes(q)
+    );
+  }, [feeds, searchTerm]);
 
   // Fetch feeds initially
   useEffect(() => {
@@ -173,29 +186,53 @@ const Feed = () => {
         </div>
       </div>
 
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
+        <div className="relative min-w-[300px] md:w-80 flex-1">
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by title or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+          />
+        </div>
+      </div>
+
       {/* Feeds Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {(!feeds || feeds.length === 0) ? (
+        {(!filteredFeeds || filteredFeeds.length === 0) ? (
           <div className="col-span-full flex flex-col items-center justify-center text-center py-12 text-gray-500 bg-white border border-gray-100 rounded-lg shadow-sm">
             <div className="mb-4">
-              <Plus size={40} className="mx-auto text-gray-300" />
+              {searchTerm ? (
+                <Search size={40} className="mx-auto text-gray-300" />
+              ) : (
+                <Plus size={40} className="mx-auto text-gray-300" />
+              )}
             </div>
 
-            <h3 className="text-base font-medium text-gray-900 mb-1">No feeds yet</h3>
-            <p className="text-gray-500 mb-4 text-sm">Create your first feed to get started!</p>
+            <h3 className="text-base font-medium text-gray-900 mb-1">
+              {searchTerm ? "No results found" : "No feeds yet"}
+            </h3>
+            <p className="text-gray-500 mb-4 text-sm">
+              {searchTerm ? "Try adjusting your search terms" : "Create your first feed to get started!"}
+            </p>
 
-            <button
-              onClick={openAddModal}
-              className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold 
-              text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
-              shadow-sm hover:shadow-md transition-all cursor-pointer"
-            >
-              <Plus className="w-4 h-4" /> Create Feed
-            </button>
+            {!searchTerm && (
+              <button
+                onClick={openAddModal}
+                className="flex items-center justify-center gap-2 px-4 py-2 text-sm font-semibold 
+                text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+                shadow-sm hover:shadow-md transition-all cursor-pointer"
+              >
+                <Plus className="w-4 h-4" /> Create Feed
+              </button>
+            )}
           </div>
 
         ) : (
-          feeds.map((feed) => (
+          filteredFeeds.map((feed) => (
             <div
               key={feed.id}
               className="group bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all hover:scale-[1.01]"
@@ -388,10 +425,10 @@ const Feed = () => {
         isOpen={confirmOpen}
         title="Delete Feed"
         message={<>
-      Are you sure you want to delete{" "}
-      <strong className="text-red-600">{deleteTarget?.title || "this feed"}</strong>?
-      This action cannot be undone.
-    </>}
+          Are you sure you want to delete{" "}
+          <strong className="text-red-600">{deleteTarget?.title || "this feed"}</strong>?
+          This action cannot be undone.
+        </>}
         onConfirm={handleDelete}
         onCancel={() => {
           setConfirmOpen(false);

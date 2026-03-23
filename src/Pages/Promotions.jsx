@@ -13,6 +13,7 @@ import {
   Percent,
   ChevronUp,
   ChevronDown,
+  Search,
 } from "lucide-react";
 
 import { toast } from "react-hot-toast";
@@ -129,9 +130,31 @@ const Promotions = () => {
   const totalPages = Math.max(1, Math.ceil(promotions.length / pageSize));
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredPromotions = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return promotions;
+
+    return promotions.filter((promo) => {
+      const productNames = (promo.productNames || []).join(" ").toLowerCase();
+      const productIds = (promo.productIds || []).join(" ").toLowerCase();
+      const description = (promo.description || "").toLowerCase();
+      const category = (promo.category || "").toLowerCase();
+      const bonusType = (promo.bonusType || "").toLowerCase();
+
+      return (
+        productNames.includes(q) ||
+        productIds.includes(q) ||
+        description.includes(q) ||
+        category.includes(q) ||
+        bonusType.includes(q)
+      );
+    });
+  }, [promotions, searchTerm]);
 
   const sortedPromotions = useMemo(() => {
-    let sortablePromotions = [...promotions];
+    let sortablePromotions = [...filteredPromotions];
     if (sortConfig.key !== null) {
       sortablePromotions.sort((a, b) => {
         let aValue = a[sortConfig.key];
@@ -158,7 +181,7 @@ const Promotions = () => {
       });
     }
     return sortablePromotions;
-  }, [promotions, sortConfig]);
+  }, [filteredPromotions, sortConfig]);
 
   const requestSort = (key) => {
     if (!key) return;
@@ -173,6 +196,10 @@ const Promotions = () => {
     const start = (currentPage - 1) * pageSize;
     return sortedPromotions.slice(start, start + pageSize);
   }, [sortedPromotions, currentPage, pageSize]);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     if (!isModalOpen) {
@@ -427,7 +454,7 @@ const Promotions = () => {
       <ErrorAlert error={error} onClose={clearError} />
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="mb-8">
         <div>
           <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
             <span>Promotions</span>
@@ -442,8 +469,22 @@ const Promotions = () => {
             Manage bonus points, offers, and promotional rewards.
           </p>
         </div>
+      </div>
 
-        <div className="flex item-center gap-2">
+      {/* Filters and Actions */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
+        <div className="relative min-w-[300px] md:w-80 flex-1">
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by product, description, or category..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
           <ExportButton
             data={promotions.map((promo) => ({
               productName: promo.productNames?.join(", ") || "",
