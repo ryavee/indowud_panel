@@ -48,6 +48,10 @@ const Products = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   const filteredProducts = useMemo(() => {
@@ -63,31 +67,35 @@ const Products = () => {
   }, [products, searchTerm]);
 
   const sortedProducts = useMemo(() => {
-    let sortableProducts = [...filteredProducts];
+    const q = searchTerm.toLowerCase();
+
+    let sortableProducts = products.filter((p) =>
+      (p.productId || "").toLowerCase().includes(q) ||
+      (p.productName || p.name || "").toLowerCase().includes(q) ||
+      (p.productUnit || "").toLowerCase().includes(q)
+    );
+
     if (sortConfig.key !== null) {
       sortableProducts.sort((a, b) => {
         let aValue = a[sortConfig.key];
         let bValue = b[sortConfig.key];
 
-        if (sortConfig.key === 'productName') {
-          aValue = a.name || a.productName || '';
-          bValue = b.name || b.productName || '';
+        if (sortConfig.key === "productName") {
+          aValue = a.name || a.productName || "";
+          bValue = b.name || b.productName || "";
         }
 
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+        if (typeof aValue === "string") aValue = aValue.toLowerCase();
+        if (typeof bValue === "string") bValue = bValue.toLowerCase();
 
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
+        if (aValue < bValue) return sortConfig.direction === "asc" ? -1 : 1;
+        if (aValue > bValue) return sortConfig.direction === "asc" ? 1 : -1;
         return 0;
       });
     }
+
     return sortableProducts;
-  }, [filteredProducts, sortConfig]);
+  }, [products, sortConfig, searchTerm]);
 
   const requestSort = (key) => {
     if (!key) return;
@@ -273,77 +281,88 @@ const Products = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
+
         <div className="mb-8">
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          <h1 className="text-2xl font-extrabold text-gray-900">
             Products
           </h1>
           <p className="text-sm text-gray-600 mt-1">
-            Manage your product list and inventory.
+            Manage your product list.
           </p>
         </div>
 
-        {/* Filters and Actions */}
-        <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
-          <div className="relative min-w-[300px] md:w-80 flex-1">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+
+          {/* SEARCH LEFT */}
+          <div className="relative flex-1 max-w-sm w-full">
             <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, ID, or unit..."
+              placeholder="Search product ID, name, unit..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm"
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            {currentUserRole !== ROLES.QR_GENERATE && (
-              <>
-                <ImportButton
-                  requiredHeaders={[
-                    { key: "productName", header: "Product Name" },
-                    { key: "productUnit", header: "Product Unit" },
-                    { key: "productPoint", header: "Point" },
-                  ]}
-                  onUpload={handleImportProducts}
-                  disabled={loading || creating || importing}
-                />
+          {/* BUTTONS RIGHT */}
+          {currentUserRole !== ROLES.QR_GENERATE && (
+            <div className="flex gap-3 flex-wrap">
 
-                <ExportButton
-                  data={products}
-                  columns={[
-                    { key: "productId", header: "Product ID" },
-                    { key: "productName", header: "Product Name" },
-                    { key: "productUnit", header: "Product Unit" },
-                    { key: "productPoint", header: "Point" },
-                  ]}
-                  filename="products"
-                  disabled={loading || creating || importing}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(true)}
-                  disabled={creating || importing}
-                  className={`flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white rounded-lg shadow-sm transition-all cursor-pointer active:scale-[0.97] ${creating || importing
+              <ImportButton
+                requiredHeaders={[
+                  { key: "productName", header: "Product Name" },
+                  { key: "productUnit", header: "Product Unit" },
+                  { key: "productPoint", header: "Point" },
+                ]}
+                onUpload={handleImportProducts}
+                disabled={loading || creating || importing}
+              />
+
+              <ExportButton
+                data={sortedProducts}
+                columns={[
+                  { key: "productId", header: "Product ID" },
+                  { key: "productName", header: "Product Name" },
+                  { key: "productUnit", header: "Product Unit" },
+                  { key: "productPoint", header: "Point" },
+                ]}
+                filename="products"
+                disabled={loading || creating || importing}
+              />
+
+              <button
+                type="button"
+                onClick={() => setShowAddModal(true)}
+                disabled={creating || importing}
+                className={`
+          flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+          text-white rounded-lg shadow-sm transition-all cursor-pointer
+          active:scale-[0.97]
+          ${creating || importing
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-[#00A9A3] hover:bg-[#128083]"
-                    }`}
-                >
-                  {creating ? (
-                    <>
-                      <Loader className="w-4 h-4 animate-spin" />
-                      <span>Adding...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Plus className="w-4 h-4" />
-                      <span>Add Product</span>
-                    </>
-                  )}
-                </button>
-              </>
-            )}
-          </div>
+                  }
+        `}
+              >
+                {creating ? (
+                  <>
+                    <Loader className="w-4 h-4 animate-spin" />
+                    <span>Adding...</span>
+                  </>
+                ) : (
+                  <>
+                    <Plus className="w-4 h-4" />
+                    <span>Add Product</span>
+                  </>
+                )}
+              </button>
+
+            </div>
+          )}
+
         </div>
+
 
         {/* Product Table */}
         <div className="bg-white rounded-lg shadow border border-gray-100 overflow-hidden">
@@ -353,7 +372,7 @@ const Products = () => {
                 Product List
               </h2>
               <p className="text-xs text-gray-500">
-                {products.length} {products.length === 1 ? "item" : "items"}
+                {sortedProducts.length} {sortedProducts.length === 1 ? "item" : "items"}
               </p>
             </div>
             {(loading || importing) && (
@@ -364,7 +383,7 @@ const Products = () => {
             )}
           </div>
 
-          {loading && products.length === 0 ? (
+          {loading && sortedProducts.length === 0 ? (
             <div className="p-10 text-center text-gray-500">
               <Loader
                 size={24}
@@ -372,10 +391,12 @@ const Products = () => {
               />
               Loading products...
             </div>
-          ) : products.length === 0 ? (
+          ) : sortedProducts.length === 0 ? (
             <div className="p-10 text-center text-gray-500">
               <Box className="mx-auto mb-3 text-[#169698]" size={28} />
-              No products found
+              {searchTerm
+                ? "No products match your search."
+                : "No products found"}
             </div>
           ) : (
             <div className="bg-white  overflow-hidden">
