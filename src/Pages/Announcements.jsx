@@ -110,32 +110,22 @@ const Announcements = () => {
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <div className="max-w-6xl mx-auto">
         {/* Header: title + Add button */}
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
-              <span>Announcements</span>
-              <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-[#00A9A3]/10 text-[#00A9A3] border border-[#00A9A3]/20">
-                {announcements?.length || 0}
-              </span>
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">Manage announcements shown to users</p>
-          </div>
+        <div className="mb-8">
 
-          <div>
-            <button
-              onClick={handleHeaderAdd}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
-                          shadow-sm hover:shadow-md transition-all cursor-pointer"            >
-              <Plus className="w-4 h-4" />
-              Add Announcement
-            </button>
-          </div>
+          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
+            <span>Announcements</span>
+            <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded bg-[#00A9A3]/10 text-[#00A9A3] border border-[#00A9A3]/20">
+              {announcements?.length || 0}
+            </span>
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Manage announcements shown to users
+          </p>
         </div>
 
-        {/* Filters */}
+        {/* Filters  and add buttons*/}
         <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
-          <div className="relative min-w-[300px] md:w-80 flex-1">
+          <div className="relative flex-1 max-w-sm w-full">
             <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
             <input
               type="text"
@@ -145,6 +135,17 @@ const Announcements = () => {
               className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
             />
           </div>
+
+
+          <button
+            onClick={handleHeaderAdd}
+            className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
+                          text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+                          shadow-sm hover:shadow-md transition-all cursor-pointer"            >
+            <Plus className="w-4 h-4" />
+            Add Announcement
+          </button>
+
         </div>
 
         {/* Table container */}

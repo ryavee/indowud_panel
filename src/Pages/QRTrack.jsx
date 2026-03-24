@@ -1,5 +1,5 @@
 import { useState, useEffect, useContext, useMemo } from "react";
-import { MapPin, X, Loader2, EyeIcon, RefreshCw, ChevronUp, ChevronDown } from "lucide-react";
+import { MapPin, X, Loader2, EyeIcon, RefreshCw, Search, ChevronUp, ChevronDown } from "lucide-react";
 import { useTrackQRData } from "../Context/TrackQRDataContext";
 
 const QRTrack = () => {
@@ -16,32 +16,57 @@ const QRTrack = () => {
     setSearchQuery: setContextSearchQuery,
   } = useTrackQRData();
 
+  const [dateFilter, setDateFilter] = useState("all");
+  const [customRange, setCustomRange] = useState({
+    from: "",
+    to: "",
+  });
+
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [localSearchQuery, setLocalSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
-  const sortedQrData = useMemo(() => {
-    let sortableData = [...qrData];
-    if (sortConfig.key !== null) {
-      sortableData.sort((a, b) => {
-        let aValue = a[sortConfig.key];
-        let bValue = b[sortConfig.key];
+  const filteredQrData = useMemo(() => {
+    let data = [...qrData];
 
-        if (typeof aValue === 'string') aValue = aValue.toLowerCase();
-        if (typeof bValue === 'string') bValue = bValue.toLowerCase();
+    const now = new Date();
 
-        if (aValue < bValue) {
-          return sortConfig.direction === 'asc' ? -1 : 1;
-        }
-        if (aValue > bValue) {
-          return sortConfig.direction === 'asc' ? 1 : -1;
-        }
-        return 0;
+    if (dateFilter === "today") {
+      data = data.filter(item =>
+        new Date(item.createdAt).toDateString() === now.toDateString()
+      );
+    }
+
+    if (dateFilter === "week") {
+      const weekAgo = new Date();
+      weekAgo.setDate(now.getDate() - 7);
+
+      data = data.filter(item =>
+        new Date(item.createdAt) >= weekAgo
+      );
+    }
+
+    if (dateFilter === "month") {
+      const monthAgo = new Date();
+      monthAgo.setMonth(now.getMonth() - 1);
+
+      data = data.filter(item =>
+        new Date(item.createdAt) >= monthAgo
+      );
+    }
+
+    if (dateFilter === "custom" && customRange.from && customRange.to) {
+      data = data.filter(item => {
+        const date = new Date(item.createdAt);
+        return (
+          date >= new Date(customRange.from) &&
+          date <= new Date(customRange.to)
+        );
       });
     }
-    return sortableData;
-  }, [qrData, sortConfig]);
 
+    return data;
+  }, [qrData, dateFilter, customRange]);
   const requestSort = (key) => {
     if (!key) return;
     let direction = 'asc';
@@ -129,8 +154,8 @@ const QRTrack = () => {
 
   // Calculate showing range
   const pageSize = 10;
-  const showingStart = qrData.length > 0 ? (page - 1) * pageSize + 1 : 0;
-  const showingEnd = (page - 1) * pageSize + qrData.length;
+  const showingStart = filteredQrData.length > 0 > 0 ? (page - 1) * pageSize + 1 : 0;
+  const showingEnd = (page - 1) * pageSize + filteredQrData.length > 0;
   const displayTotal = totalItems || totalPages * pageSize;
 
   return (
@@ -151,33 +176,84 @@ const QRTrack = () => {
         </div>
 
         {/* Search Bar */}
-        <div className="mb-4 flex flex-col sm:flex-row items-start sm:items-center gap-2">
-          <input
-            type="text"
-            placeholder="Search by Batch ID"
-            value={localSearchQuery}
-            onChange={(e) => setLocalSearchQuery(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-            className="px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 flex-1"
-          />
-          <div className="flex gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+
+          {/* LEFT SIDE */}
+          <div className="flex flex-wrap items-center gap-3 flex-1">
+
+            {/* SEARCH */}
+            <div className="relative w-full sm:w-72">
+              <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search by Batch ID, Product, or Dealer..."
+                value={localSearchQuery}
+                onChange={(e) => setLocalSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm"
+              />
+            </div>
+
+            {/* DATE FILTER */}
+            <select
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-orange-500 cursor-pointer shadow-sm"
+            >
+              <option value="all">All</option>
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month">This Month</option>
+              <option value="custom">Custom</option>
+            </select>
+
+            {/* CUSTOM DATE */}
+            {dateFilter === "custom" && (
+              <>
+                <input
+                  type="date"
+                  value={customRange.from}
+                  max={new Date().toISOString().split("T")[0]}
+                  onChange={(e) =>
+                    setCustomRange((prev) => ({ ...prev, from: e.target.value }))
+                  }
+                  className="border px-3 py-2 rounded-lg text-sm"
+                />
+
+                <input
+                  type="date"
+                  value={customRange.to}
+                  max={new Date().toISOString().split("T")[0]}
+                  onChange={(e) =>
+                    setCustomRange((prev) => ({ ...prev, to: e.target.value }))
+                  }
+                  className="border px-3 py-2 rounded-lg text-sm"
+                />
+              </>
+            )}
+          </div>
+
+          {/* RIGHT SIDE ACTIONS */}
+          <div className="flex gap-3">
             <button
               onClick={handleSearch}
               disabled={loading}
-              className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition font-medium"
             >
               Search
             </button>
+
             {localSearchQuery && (
               <button
                 onClick={handleClearSearch}
                 disabled={loading}
-                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium"
               >
                 Clear
               </button>
             )}
           </div>
+
         </div>
 
         {/* Error Message */}
@@ -283,7 +359,7 @@ const QRTrack = () => {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {qrData.length > 0 ? (
-                      sortedQrData.map((qr) => (
+                      filteredQrData.map((qr) => (
                         <tr
                           key={qr.qrId}
                           className="hover:bg-gray-50 transition-colors"
