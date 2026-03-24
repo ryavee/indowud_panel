@@ -21,7 +21,7 @@ const QRGeneration = () => {
   const [showForm, setShowForm] = useState(false);
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [showImportMenu, setShowImportMenu] = useState(false);
-  const [currentPage, setCurrentPage] = useState(1);
+
   const [generatingPDF, setGeneratingPDF] = useState(null);
   const [selectedBatches, setSelectedBatches] = useState([]);
   const [exporting, setExporting] = useState(false);
@@ -55,24 +55,76 @@ const QRGeneration = () => {
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [searchTerm, setSearchTerm] = useState("");
+  const [dateFilter, setDateFilter] = useState("all");
+  const [customRange, setCustomRange] = useState({
+    from: "",
+    to: ""
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, dateFilter, customRange]);
 
   const filteredBatches = useMemo(() => {
-    const q = searchTerm.trim().toLowerCase();
-    if (!q) return batches;
+    let filtered = batches;
 
-    return batches.filter((batch) => {
-      const batchId = (batch.batchId || "").toLowerCase();
-      const productName = (batch.productName || "").toLowerCase();
-      const companyName = (batch.companyName || "").toLowerCase();
-      const remarks = (batch.remarks || "").toLowerCase();
-      return (
-        batchId.includes(q) ||
-        productName.includes(q) ||
-        companyName.includes(q) ||
-        remarks.includes(q)
-      );
-    });
-  }, [batches, searchTerm]);
+    // 🔍 SEARCH FILTER
+    const q = searchTerm.trim().toLowerCase();
+    if (q) {
+      filtered = filtered.filter((batch) => {
+        return (
+          batch.batchId?.toLowerCase().includes(q) ||
+          batch.productName?.toLowerCase().includes(q) ||
+          batch.companyName?.toLowerCase().includes(q) ||
+          batch.remarks?.toLowerCase().includes(q)
+        );
+      });
+    }
+
+    // 📅 DATE FILTER
+    const now = new Date();
+
+    if (dateFilter === "today") {
+      filtered = filtered.filter((batch) => {
+        const d = new Date(batch.createdAt);
+        return d.toDateString() === now.toDateString();
+      });
+    }
+
+    if (dateFilter === "week") {
+      const startOfWeek = new Date();
+      startOfWeek.setDate(now.getDate() - now.getDay());
+
+      filtered = filtered.filter((batch) => {
+        const d = new Date(batch.createdAt);
+        return d >= startOfWeek && d <= now;
+      });
+    }
+
+    if (dateFilter === "month") {
+      filtered = filtered.filter((batch) => {
+        const d = new Date(batch.createdAt);
+        return (
+          d.getMonth() === now.getMonth() &&
+          d.getFullYear() === now.getFullYear()
+        );
+      });
+    }
+
+    if (dateFilter === "custom" && customRange.from && customRange.to) {
+      const from = new Date(customRange.from);
+      const to = new Date(customRange.to);
+
+      filtered = filtered.filter((batch) => {
+        const d = new Date(batch.createdAt);
+        return d >= from && d <= to;
+      });
+    }
+
+    return filtered;
+  }, [batches, searchTerm, dateFilter, customRange]);
 
   const sortedBatches = useMemo(() => {
     let sortableBatches = [...filteredBatches];
@@ -816,28 +868,80 @@ const QRGeneration = () => {
         </p>
       </div>
 
-      {/* Filters and Actions */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
-        <div className="relative flex-1 max-w-sm w-full">
-          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by Batch ID, Product, or Dealer..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm"
-          />
+      {/*Search, Filters and Actions */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+
+        {/* LEFT SIDE */}
+        <div className="flex flex-wrap items-center gap-3 flex-1">
+
+          {/* SEARCH */}
+          <div className="relative w-full sm:w-72">
+            <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search by Batch ID, Product, or Dealer..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm"
+            />
+          </div>
+
+          {/* FILTER */}
+          <select
+            value={dateFilter}
+            onChange={(e) => setDateFilter(e.target.value)}
+            className="border rounded-lg px-3 py-2 text-sm"
+          >
+            <option value="all">All</option>
+            <option value="today">Today</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="custom">Custom</option>
+          </select>
+
+          {/* CUSTOM DATE */}
+          {dateFilter === "custom" && (
+            <>
+              <input
+                type="date"
+                value={customRange.from}
+                max={new Date().toISOString().split("T")[0]}
+                onChange={(e) =>
+                  setCustomRange((prev) => ({
+                    ...prev,
+                    from: e.target.value,
+                  }))
+                }
+                className="border px-3 py-2 rounded-lg text-sm"
+              />
+
+              <input
+                type="date"
+                value={customRange.to}
+                max={new Date().toISOString().split("T")[0]} // 🚫 restrict future
+                onChange={(e) =>
+                  setCustomRange((prev) => ({
+                    ...prev,
+                    to: e.target.value,
+                  }))
+                }
+                className="border px-3 py-2 rounded-lg text-sm"
+              />
+            </>
+          )}
         </div>
 
+        {/* RIGHT SIDE BUTTON */}
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
-            text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
-            shadow-sm hover:shadow-md transition-all cursor-pointer"
+      text-white bg-[#00A9A3] rounded-lg hover:bg-[#128083] 
+      shadow-sm hover:shadow-md transition-all cursor-pointer whitespace-nowrap"
         >
           <Plus size={20} />
           Generate QR Codes
         </button>
+
       </div>
 
       <div className="bg-white rounded-lg shadow-md overflow-hidden">
