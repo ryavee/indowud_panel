@@ -54,6 +54,18 @@ const Products = () => {
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
+  const filteredProducts = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return products;
+
+    return products.filter((p) => {
+      const name = (p.name || p.productName || "").toLowerCase();
+      const id = (p.productId || "").toLowerCase();
+      const unit = (p.productUnit || "").toLowerCase();
+      return name.includes(q) || id.includes(q) || unit.includes(q);
+    });
+  }, [products, searchTerm]);
+
   const sortedProducts = useMemo(() => {
     const q = searchTerm.toLowerCase();
 
@@ -162,6 +174,10 @@ const Products = () => {
       toast.error(err.message || "Failed to delete product.");
     }
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   // ========== EDIT PRODUCT ==========
   const handleEdit = (product) => {

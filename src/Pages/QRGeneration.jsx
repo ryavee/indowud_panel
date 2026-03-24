@@ -7,6 +7,7 @@ import {
   Download,
   ChevronUp,
   ChevronDown,
+  Search,
 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { useCodesContext } from "../Context/CodesContext";
@@ -53,9 +54,28 @@ const QRGeneration = () => {
   }, []);
 
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const filteredBatches = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return batches;
+
+    return batches.filter((batch) => {
+      const batchId = (batch.batchId || "").toLowerCase();
+      const productName = (batch.productName || "").toLowerCase();
+      const companyName = (batch.companyName || "").toLowerCase();
+      const remarks = (batch.remarks || "").toLowerCase();
+      return (
+        batchId.includes(q) ||
+        productName.includes(q) ||
+        companyName.includes(q) ||
+        remarks.includes(q)
+      );
+    });
+  }, [batches, searchTerm]);
 
   const sortedBatches = useMemo(() => {
-    let sortableBatches = [...batches];
+    let sortableBatches = [...filteredBatches];
     if (sortConfig.key !== null) {
       sortableBatches.sort((a, b) => {
         let aValue = a[sortConfig.key];
@@ -74,7 +94,7 @@ const QRGeneration = () => {
       });
     }
     return sortableBatches;
-  }, [batches, sortConfig]);
+  }, [filteredBatches, sortConfig]);
 
   const requestSort = (key) => {
     if (!key) return;
@@ -113,6 +133,10 @@ const QRGeneration = () => {
 
     return `${dealerPart}${productPart}${unitPart}${dateStr}${autoIncrement}`;
   };
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
 
   useEffect(() => {
     console.log(formData);
@@ -783,15 +807,28 @@ const QRGeneration = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 px-4 sm:px-6 lg:px-8 py-6">
       <Toaster position="top-right" />
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h1 className="text-2xl font-extrabold text-gray-900 flex items-center gap-3">
-            QR Code Generation
-          </h1>
-          <p className="text-sm text-gray-600 mt-1">
-            Manage & Generate QR Codes.
-          </p>
+      <div className="mb-8">
+        <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">
+          QR Code Generation
+        </h1>
+        <p className="text-sm text-gray-600 mt-1">
+          Manage & Generate QR Codes.
+        </p>
+      </div>
+
+      {/* Filters and Actions */}
+      <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
+        <div className="relative min-w-[300px] md:w-80 flex-1">
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by Batch ID, Product, or Dealer..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
+          />
         </div>
+
         <button
           onClick={() => setShowForm(true)}
           className="flex items-center gap-2 px-4 py-2 text-sm font-semibold 
