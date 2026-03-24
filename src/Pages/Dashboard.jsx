@@ -296,7 +296,7 @@ const Dashboard = () => {
             {hasQrData ? (
               <ResponsiveContainer width="100%" height="100%">
 
-                <PieChart>
+                <PieChart style={{ pointerEvents: "none" }}>
 
                   <Pie
                     data={qrStatusData}
@@ -310,7 +310,6 @@ const Dashboard = () => {
                     ))}
                   </Pie>
 
-                  <Tooltip />
                   <Legend />
 
                 </PieChart>
@@ -484,7 +483,7 @@ const Dashboard = () => {
 
               <ResponsiveContainer width="100%" height="100%">
 
-                <PieChart>
+                <PieChart style={{ pointerEvents: "none" }}>
 
                   {currentKycStatusData.map((item, index) => {
 
