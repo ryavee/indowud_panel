@@ -174,6 +174,21 @@ const Feed = () => {
           </p>
         </div>
 
+
+      </div>
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 mb-6">
+        <div className="relative flex-1 max-w-sm w-full">
+          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search by title or description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-orange-500 focus:outline-none shadow-sm"
+          />
+        </div>
         <div className="flex items-center gap-3">
           <button
             onClick={openAddModal}
@@ -184,20 +199,7 @@ const Feed = () => {
             <Plus className="w-4 h-4" /> Add Feed
           </button>
         </div>
-      </div>
 
-      {/* Filters */}
-      <div className="flex flex-col sm:flex-row items-center gap-3 mb-6 justify-between">
-        <div className="relative min-w-[300px] md:w-80 flex-1">
-          <Search className="absolute left-3 top-2.5 w-5 h-5 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Search by title or description..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-orange-500 focus:outline-none text-sm shadow-sm transition-all"
-          />
-        </div>
       </div>
 
       {/* Feeds Grid */}
